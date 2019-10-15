@@ -120,6 +120,9 @@
   <ItemGroup>
     <ResourceCompile Include="HostMachine.rc" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="hostmachine_zh.ts" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

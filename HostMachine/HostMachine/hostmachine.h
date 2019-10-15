@@ -12,6 +12,9 @@ public:
     ~HostMachine();
 
 private:
+    void initUI();
+    void initLayout();
+    void initConnect();
 };
 
 #endif // HOSTMACHINE_H
