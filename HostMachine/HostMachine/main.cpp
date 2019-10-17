@@ -6,8 +6,10 @@ int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
 
+    QString sTrans = QString("%0/translation/hostmachine_zh.qm").arg(a.applicationDirPath());
+
     QTranslator translator;
-    translator.load("E:\\_Code\\HostMachine\\HostMachine\\HostMachine\\hostmachine_zh.qm");
+    translator.load(sTrans);
     a.installTranslator(&translator);
 
     HostMachine w;
