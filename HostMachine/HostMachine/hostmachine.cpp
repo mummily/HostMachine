@@ -9,6 +9,7 @@
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 #include <QSplitter>
+#include <QHeaderView>
 
 static const char *c_sHostMachine = "HostMachine";
 static const char *c_sTitle = QT_TRANSLATE_NOOP("HostMachine", "网络应用软件");
@@ -30,7 +31,8 @@ static const char *c_sPlayback = QT_TRANSLATE_NOOP("HostMachine", "回放");
 static const char *c_sStop = QT_TRANSLATE_NOOP("HostMachine", "停止");
 
 // 状态栏
-static const char *c_sContactUs = QT_TRANSLATE_NOOP("HostMachine", "<a href=\"http://baidu.com\">联系我们</a>");
+static const char *c_sReady = QT_TRANSLATE_NOOP("HostMachine", "就绪");
+static const char *c_sContactUs = QT_TRANSLATE_NOOP("HostMachine", "联系我们");
 
 // 文件列表框 - 雷达数据
 static const char *c_sLDData = QT_TRANSLATE_NOOP("HostMachine", "雷达数据");
@@ -84,6 +86,12 @@ HostMachine::~HostMachine()
 
 }
 
+/*****************************************************************************
+* @brief   : 初始化UI
+* @author  : wb
+* @date    : 2019/10/19
+* @param:  : 
+*****************************************************************************/
 void HostMachine::initUI()
 {
     setWindowTitle(qApp->translate(c_sHostMachine, c_sTitle));
@@ -182,15 +190,22 @@ void HostMachine::initUI()
 
     // 状态栏
     statusBar()->setSizeGripEnabled(true);
-    statusBar()->showMessage("Normal Message");
+    statusBar()->showMessage(qApp->translate(c_sHostMachine, c_sReady));
 
     QLabel *permanent = new QLabel(this);
     permanent->setFrameStyle(QFrame::Box|QFrame::Sunken);
-    permanent->setText(qApp->translate(c_sHostMachine, c_sContactUs));
-    permanent->setOpenExternalLinks(true);//设置可以打开网站链接
-    statusBar()->addPermanentWidget(permanent);//显示永久信息
+    QString sText = QString("<a href=\"http://www.baidu.com/\">%0").arg(qApp->translate(c_sHostMachine, c_sContactUs));
+    permanent->setText(sText);
+    permanent->setOpenExternalLinks(true); //设置可以打开网站链接
+    statusBar()->addPermanentWidget(permanent); //显示永久信息
 }
 
+/*****************************************************************************
+* @brief   : 初始化布局
+* @author  : wb
+* @date    : 2019/10/19
+* @param:  : 
+*****************************************************************************/
 void HostMachine::initLayout()
 {
     QWidget* centralWidget = new QWidget(this);
@@ -201,11 +216,23 @@ void HostMachine::initLayout()
     mainLayout->addWidget(m_splitter3);
 }
 
+/*****************************************************************************
+* @brief   : 初始化信号槽
+* @author  : wb
+* @date    : 2019/10/19
+* @param:  : 
+*****************************************************************************/
 void HostMachine::initConnect()
 {
 
 }
 
+/*****************************************************************************
+* @brief   : 初始化：雷达数据
+* @author  : wb
+* @date    : 2019/10/19
+* @param:  : 
+*****************************************************************************/
 void HostMachine::initLDDataWgt()
 {
     QStringList headerList1;
@@ -216,6 +243,10 @@ void HostMachine::initLDDataWgt()
 
     m_pLDDataWgt1->setColumnCount(headerList1.size());
     m_pLDDataWgt1->setHorizontalHeaderLabels(headerList1);
+    QHeaderView* headerView1 = m_pLDDataWgt1->horizontalHeader();
+    headerView1->setDefaultAlignment(Qt::AlignLeft);
+    headerView1->setStretchLastSection(true);
+    headerView1->setSectionResizeMode(0, QHeaderView::ResizeToContents);
 
     QStringList headerList2;
     headerList2 << qApp->translate(c_sHostMachine, c_sLDHeader1_2) 
@@ -225,8 +256,21 @@ void HostMachine::initLDDataWgt()
 
     m_pLDDataWgt2->setColumnCount(headerList2.size());
     m_pLDDataWgt2->setHorizontalHeaderLabels(headerList2);
+    QHeaderView* headerView2 = m_pLDDataWgt2->horizontalHeader();
+    headerView2->setDefaultAlignment(Qt::AlignLeft);
+    headerView2->setStretchLastSection(true);
+    headerView2->setSectionResizeMode(0, QHeaderView::ResizeToContents);
+
+    m_pLDDataWgt1->setShowGrid(true);
+    m_pLDDataWgt1->setShowGrid(true);
 }
 
+/*****************************************************************************
+* @brief   : 初始化光电数据
+* @author  : wb
+* @date    : 2019/10/19
+* @param:  : 
+*****************************************************************************/
 void HostMachine::initGDDataWgt()
 {
     QStringList headerList1;
@@ -237,6 +281,10 @@ void HostMachine::initGDDataWgt()
 
     m_pGDDataWgt1->setColumnCount(headerList1.size());
     m_pGDDataWgt1->setHorizontalHeaderLabels(headerList1);
+    QHeaderView* headerView1 = m_pGDDataWgt1->horizontalHeader();
+    headerView1->setDefaultAlignment(Qt::AlignLeft);
+    headerView1->setStretchLastSection(true);
+    headerView1->setSectionResizeMode(0, QHeaderView::ResizeToContents);
 
     QStringList headerList2;
     headerList2 << qApp->translate(c_sHostMachine, c_sGDHeader1_2) 
@@ -246,8 +294,21 @@ void HostMachine::initGDDataWgt()
 
     m_pGDDataWgt2->setColumnCount(headerList2.size());
     m_pGDDataWgt2->setHorizontalHeaderLabels(headerList2);
+    QHeaderView* headerView2 = m_pGDDataWgt2->horizontalHeader();
+    headerView2->setDefaultAlignment(Qt::AlignLeft);
+    headerView2->setStretchLastSection(true);
+    headerView2->setSectionResizeMode(0, QHeaderView::ResizeToContents);
+
+    m_pGDDataWgt1->setShowGrid(true);
+    m_pGDDataWgt2->setShowGrid(true);
 }
 
+/*****************************************************************************
+* @brief   : 初始化混合数据
+* @author  : wb
+* @date    : 2019/10/19
+* @param:  : 
+*****************************************************************************/
 void HostMachine::initHHDataWgt()
 {
     QStringList headerList;
@@ -258,8 +319,20 @@ void HostMachine::initHHDataWgt()
 
     m_pHHDataWgt->setColumnCount(headerList.size());
     m_pHHDataWgt->setHorizontalHeaderLabels(headerList);
+    QHeaderView* headerView = m_pHHDataWgt->horizontalHeader();
+    headerView->setDefaultAlignment(Qt::AlignLeft);
+    headerView->setStretchLastSection(true);
+    headerView->setSectionResizeMode(0, QHeaderView::ResizeToContents);
+
+    m_pHHDataWgt->setShowGrid(true);
 }
 
+/*****************************************************************************
+* @brief   : 初始化任务区
+* @author  : wb
+* @date    : 2019/10/19
+* @param:  : 
+*****************************************************************************/
 void HostMachine::initTaskWgt()
 {
     QStringList headerList;
@@ -274,10 +347,20 @@ void HostMachine::initTaskWgt()
         << qApp->translate(c_sHostMachine, c_sTaskHeader9)
         << qApp->translate(c_sHostMachine, c_sTaskHeader10);
 
+    m_pTaskWgt->setShowGrid(false);
     m_pTaskWgt->setColumnCount(headerList.size());
     m_pTaskWgt->setHorizontalHeaderLabels(headerList);
+    QHeaderView* headerView = m_pTaskWgt->horizontalHeader();
+    headerView->setDefaultAlignment(Qt::AlignLeft);
+    headerView->setStretchLastSection(true);
 }
 
+/*****************************************************************************
+* @brief   : 初始化日志区
+* @author  : wb
+* @date    : 2019/10/19
+* @param:  : 
+*****************************************************************************/
 void HostMachine::initLogWgt()
 {
     QStringList headerList;
@@ -286,4 +369,11 @@ void HostMachine::initLogWgt()
 
     m_pLogWgt->setColumnCount(headerList.size());
     m_pLogWgt->setHorizontalHeaderLabels(headerList);
+    QHeaderView* headerView = m_pLogWgt->horizontalHeader();
+    headerView->setDefaultAlignment(Qt::AlignLeft);
+    headerView->setStretchLastSection(true);
+    // headerView->setSectionResizeMode(0, QHeaderView::ResizeToContents);
+    // headerView->setSectionResizeMode(1, QHeaderView::Stretch);
+
+    m_pLogWgt->setShowGrid(true);
 }
