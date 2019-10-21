@@ -1,3 +1,4 @@
+
 #include "hostmachine.h"
 #include <QApplication>
 #include <QMenuBar>
@@ -10,6 +11,12 @@
 #include <QVBoxLayout>
 #include <QSplitter>
 #include <QHeaderView>
+#include "qttreepropertybrowser.h"
+#include "qtvariantproperty.h"
+#include "QDateTime"
+#include <QFrame>
+#include <QGroupBox>
+#include <QPushButton>
 
 static const char *c_sHostMachine = "HostMachine";
 static const char *c_sTitle = QT_TRANSLATE_NOOP("HostMachine", "网络应用软件");
@@ -72,6 +79,40 @@ static const char *c_sTaskHeader7 = QT_TRANSLATE_NOOP("HostMachine", "百分比");
 static const char *c_sTaskHeader8 = QT_TRANSLATE_NOOP("HostMachine", "速率(MB/S)");
 static const char *c_sTaskHeader9 = QT_TRANSLATE_NOOP("HostMachine", "状态");
 static const char *c_sTaskHeader10 = QT_TRANSLATE_NOOP("HostMachine", "耗时");
+
+// 属性区
+static const char *c_sPropertyTitle1 = QT_TRANSLATE_NOOP("HostMachine", "磁盘控制面板");
+static const char *c_sPropertyGroup1_1 = QT_TRANSLATE_NOOP("HostMachine", "原始数据分区");
+static const char *c_sPropertyGroup1_2 = QT_TRANSLATE_NOOP("HostMachine", "雷达结果分区");
+static const char *c_sPropertyGroup1_3 = QT_TRANSLATE_NOOP("HostMachine", "光电图片分区");
+static const char *c_sPropertyGroup1_4 = QT_TRANSLATE_NOOP("HostMachine", "光电视频分区");
+static const char *c_sPropertyGroup1_5 = QT_TRANSLATE_NOOP("HostMachine", "混合数据分区");
+static const char *c_sPropertyGroup1_6 = QT_TRANSLATE_NOOP("HostMachine", "参数信息");
+static const char *c_sProperty1_1 = QT_TRANSLATE_NOOP("HostMachine", "总大小");
+static const char *c_sProperty1_2 = QT_TRANSLATE_NOOP("HostMachine", "已用大小");
+static const char *c_sProperty1_3 = QT_TRANSLATE_NOOP("HostMachine", "未用百分比");
+static const char *c_sProperty1_4 = QT_TRANSLATE_NOOP("HostMachine", "文件数量");
+static const char *c_sProperty1_5 = QT_TRANSLATE_NOOP("HostMachine", "当前状态");
+static const char *c_sProperty1_6 = QT_TRANSLATE_NOOP("HostMachine", "通道连接状态");
+static const char *c_sProperty1_7 = QT_TRANSLATE_NOOP("HostMachine", "通道选择状态");
+static const char *c_sProperty1_8 = QT_TRANSLATE_NOOP("HostMachine", "通道带宽");
+static const char *c_sPropertyTitle2 = QT_TRANSLATE_NOOP("HostMachine", "基本参数");
+static const char *c_sPropertyGroup2_1 = QT_TRANSLATE_NOOP("HostMachine", "导出参数");
+static const char *c_sPropertyGroup2_2 = QT_TRANSLATE_NOOP("HostMachine", "回放参数");
+static const char *c_sProperty2_1 = QT_TRANSLATE_NOOP("HostMachine", "所属分区");
+static const char *c_sProperty2_2 = QT_TRANSLATE_NOOP("HostMachine", "记录文件名");
+static const char *c_sProperty2_3 = QT_TRANSLATE_NOOP("HostMachine", "导出路径");
+static const char *c_sProperty2_4 = QT_TRANSLATE_NOOP("HostMachine", "文件编号");
+static const char *c_sProperty2_5 = QT_TRANSLATE_NOOP("HostMachine", "原始文件大小");
+static const char *c_sProperty2_6 = QT_TRANSLATE_NOOP("HostMachine", "文件偏移");
+static const char *c_sProperty2_7 = QT_TRANSLATE_NOOP("HostMachine", "导出文件大小");
+static const char *c_sProperty2_8 = QT_TRANSLATE_NOOP("HostMachine", "文件编号");
+static const char *c_sProperty2_9 = QT_TRANSLATE_NOOP("HostMachine", "PRF_TIME(us)");
+static const char *c_sProperty2_10 = QT_TRANSLATE_NOOP("HostMachine", "NUM");
+static const char *c_sProperty2_11 = QT_TRANSLATE_NOOP("HostMachine", "HEAD_PRF(H)");
+static const char *c_sProperty2_12 = QT_TRANSLATE_NOOP("HostMachine", "HEAD_CPI(H)");
+static const char *c_sConfirm = QT_TRANSLATE_NOOP("HostMachine", "确定");
+static const char *c_sCancel = QT_TRANSLATE_NOOP("HostMachine", "取消");
 
 HostMachine::HostMachine(QWidget *parent)
     : QMainWindow(parent)
@@ -178,9 +219,14 @@ void HostMachine::initUI()
     m_splitter2->setOpaqueResize(true);
     m_splitter2->setChildrenCollapsible(false);
 
-    // 系统状态
+    // 属性区
     QTabWidget *pTabWgt2 = new QTabWidget(this);
-    // TODO 添加2个QtPropertyBrower
+    m_pPropertyWgt1 = new QtTreePropertyBrowser();
+    initPropertyWgt1();
+    m_pPropertyWgt2 = new QFrame(this);
+    initPropertyWgt2();
+    pTabWgt2->addTab(m_pPropertyWgt1, qApp->translate(c_sHostMachine, c_sPropertyTitle1));
+    pTabWgt2->addTab(m_pPropertyWgt2, qApp->translate(c_sHostMachine, c_sPropertyTitle2));
     m_splitter3 = new QSplitter(Qt::Horizontal, this);
     m_splitter3->addWidget(m_splitter2);
     m_splitter3->addWidget(pTabWgt2);
@@ -376,4 +422,388 @@ void HostMachine::initLogWgt()
     // headerView->setSectionResizeMode(1, QHeaderView::Stretch);
 
     m_pLogWgt->setShowGrid(true);
+}
+
+/*****************************************************************************
+* @brief   : 初始化磁盘控制面板
+* @author  : wb
+* @date    : 2019/10/19
+* @param:  : 
+*****************************************************************************/
+void HostMachine::initPropertyWgt1()
+{
+    QtVariantPropertyManager *variantManager = new QtVariantPropertyManager();
+    QtVariantEditorFactory *variantFactory = new QtVariantEditorFactory();
+    m_pPropertyWgt1->setFactoryForManager(variantManager, variantFactory);
+
+    // 原始数据分区
+    {
+        QtProperty *topItem = variantManager->addProperty(QtVariantPropertyManager::groupTypeId(),
+            qApp->translate(c_sHostMachine, c_sPropertyGroup1_1));
+
+        QtVariantProperty *item = variantManager->addProperty(QVariant::Double,
+            qApp->translate(c_sHostMachine, c_sProperty1_1));
+        item->setValue(20);
+        item->setAttribute(QLatin1String("minimum"), 0);
+        item->setAttribute(QLatin1String("maximum"), 100);
+        item->setAttribute(QLatin1String("singleStep"), 10);
+        topItem->addSubProperty(item);
+
+        item = variantManager->addProperty(QVariant::Double,
+            qApp->translate(c_sHostMachine, c_sProperty1_2));
+        item->setValue(20);
+        item->setAttribute(QLatin1String("minimum"), 0);
+        item->setAttribute(QLatin1String("maximum"), 100);
+        item->setAttribute(QLatin1String("singleStep"), 10);
+        topItem->addSubProperty(item);
+
+        item = variantManager->addProperty(QVariant::Double,
+            qApp->translate(c_sHostMachine, c_sProperty1_3));
+        item->setValue(20);
+        item->setAttribute(QLatin1String("minimum"), 0);
+        item->setAttribute(QLatin1String("maximum"), 100);
+        item->setAttribute(QLatin1String("singleStep"), 10);
+        item->setAttribute(QLatin1String("readOnly"), true);
+        topItem->addSubProperty(item);
+
+        item = variantManager->addProperty(QVariant::Int,
+            qApp->translate(c_sHostMachine, c_sProperty1_4));
+        item->setValue(100);
+        item->setAttribute(QLatin1String("minimum"), 0);
+        item->setAttribute(QLatin1String("maximum"), 100);
+        item->setAttribute(QLatin1String("singleStep"), 1);
+        item->setAttribute(QLatin1String("readOnly"), true);
+        topItem->addSubProperty(item);
+
+        item = variantManager->addProperty(QtVariantPropertyManager::enumTypeId(),
+            qApp->translate(c_sHostMachine, c_sProperty1_5));
+        QStringList enumNames1_5;
+        enumNames1_5 << "Enum0" << "Enum1" << "Enum2";
+        item->setAttribute(QLatin1String("enumNames"), enumNames1_5);
+        item->setValue(1);
+        topItem->addSubProperty(item);
+
+        m_pPropertyWgt1->addProperty(topItem);
+    }
+    // 雷达结果分区
+    {
+        QtProperty *topItem = variantManager->addProperty(QtVariantPropertyManager::groupTypeId(),
+            qApp->translate(c_sHostMachine, c_sPropertyGroup1_2));
+
+        QtVariantProperty *item = variantManager->addProperty(QVariant::Double,
+            qApp->translate(c_sHostMachine, c_sProperty1_1));
+        item->setValue(20);
+        item->setAttribute(QLatin1String("minimum"), 0);
+        item->setAttribute(QLatin1String("maximum"), 100);
+        item->setAttribute(QLatin1String("singleStep"), 10);
+        topItem->addSubProperty(item);
+
+        item = variantManager->addProperty(QVariant::Double,
+            qApp->translate(c_sHostMachine, c_sProperty1_2));
+        item->setValue(20);
+        item->setAttribute(QLatin1String("minimum"), 0);
+        item->setAttribute(QLatin1String("maximum"), 100);
+        item->setAttribute(QLatin1String("singleStep"), 10);
+        topItem->addSubProperty(item);
+
+        item = variantManager->addProperty(QVariant::Double,
+            qApp->translate(c_sHostMachine, c_sProperty1_3));
+        item->setValue(20);
+        item->setAttribute(QLatin1String("minimum"), 0);
+        item->setAttribute(QLatin1String("maximum"), 100);
+        item->setAttribute(QLatin1String("singleStep"), 10);
+        item->setAttribute(QLatin1String("readOnly"), true);
+        topItem->addSubProperty(item);
+
+        item = variantManager->addProperty(QVariant::Int,
+            qApp->translate(c_sHostMachine, c_sProperty1_4));
+        item->setValue(100);
+        item->setAttribute(QLatin1String("minimum"), 0);
+        item->setAttribute(QLatin1String("maximum"), 100);
+        item->setAttribute(QLatin1String("singleStep"), 1);
+        item->setAttribute(QLatin1String("readOnly"), true);
+        topItem->addSubProperty(item);
+
+        item = variantManager->addProperty(QtVariantPropertyManager::enumTypeId(),
+            qApp->translate(c_sHostMachine, c_sProperty1_5));
+        QStringList enumNames1_5;
+        enumNames1_5 << "Enum0" << "Enum1" << "Enum2";
+        item->setAttribute(QLatin1String("enumNames"), enumNames1_5);
+        item->setValue(1);
+        topItem->addSubProperty(item);
+
+        m_pPropertyWgt1->addProperty(topItem);
+    }
+    // 光电图片分区
+    {
+        QtProperty *topItem = variantManager->addProperty(QtVariantPropertyManager::groupTypeId(),
+            qApp->translate(c_sHostMachine, c_sPropertyGroup1_3));
+
+        QtVariantProperty *item = variantManager->addProperty(QVariant::Double,
+            qApp->translate(c_sHostMachine, c_sProperty1_1));
+        item->setValue(20);
+        item->setAttribute(QLatin1String("minimum"), 0);
+        item->setAttribute(QLatin1String("maximum"), 100);
+        item->setAttribute(QLatin1String("singleStep"), 10);
+        topItem->addSubProperty(item);
+
+        item = variantManager->addProperty(QVariant::Double,
+            qApp->translate(c_sHostMachine, c_sProperty1_2));
+        item->setValue(20);
+        item->setAttribute(QLatin1String("minimum"), 0);
+        item->setAttribute(QLatin1String("maximum"), 100);
+        item->setAttribute(QLatin1String("singleStep"), 10);
+        topItem->addSubProperty(item);
+
+        item = variantManager->addProperty(QVariant::Double,
+            qApp->translate(c_sHostMachine, c_sProperty1_3));
+        item->setValue(20);
+        item->setAttribute(QLatin1String("minimum"), 0);
+        item->setAttribute(QLatin1String("maximum"), 100);
+        item->setAttribute(QLatin1String("singleStep"), 10);
+        item->setAttribute(QLatin1String("readOnly"), true);
+        topItem->addSubProperty(item);
+
+        item = variantManager->addProperty(QVariant::Int,
+            qApp->translate(c_sHostMachine, c_sProperty1_4));
+        item->setValue(100);
+        item->setAttribute(QLatin1String("minimum"), 0);
+        item->setAttribute(QLatin1String("maximum"), 100);
+        item->setAttribute(QLatin1String("singleStep"), 1);
+        item->setAttribute(QLatin1String("readOnly"), true);
+        topItem->addSubProperty(item);
+
+        item = variantManager->addProperty(QtVariantPropertyManager::enumTypeId(),
+            qApp->translate(c_sHostMachine, c_sProperty1_5));
+        QStringList enumNames1_5;
+        enumNames1_5 << "Enum0" << "Enum1" << "Enum2";
+        item->setAttribute(QLatin1String("enumNames"), enumNames1_5);
+        item->setValue(1);
+        topItem->addSubProperty(item);
+
+        m_pPropertyWgt1->addProperty(topItem);
+    }
+    // 光电视频分区
+    {
+        QtProperty *topItem = variantManager->addProperty(QtVariantPropertyManager::groupTypeId(),
+            qApp->translate(c_sHostMachine, c_sPropertyGroup1_4));
+
+        QtVariantProperty *item = variantManager->addProperty(QVariant::Double,
+            qApp->translate(c_sHostMachine, c_sProperty1_1));
+        item->setValue(20);
+        item->setAttribute(QLatin1String("minimum"), 0);
+        item->setAttribute(QLatin1String("maximum"), 100);
+        item->setAttribute(QLatin1String("singleStep"), 10);
+        topItem->addSubProperty(item);
+
+        item = variantManager->addProperty(QVariant::Double,
+            qApp->translate(c_sHostMachine, c_sProperty1_2));
+        item->setValue(20);
+        item->setAttribute(QLatin1String("minimum"), 0);
+        item->setAttribute(QLatin1String("maximum"), 100);
+        item->setAttribute(QLatin1String("singleStep"), 10);
+        topItem->addSubProperty(item);
+
+        item = variantManager->addProperty(QVariant::Double,
+            qApp->translate(c_sHostMachine, c_sProperty1_3));
+        item->setValue(20);
+        item->setAttribute(QLatin1String("minimum"), 0);
+        item->setAttribute(QLatin1String("maximum"), 100);
+        item->setAttribute(QLatin1String("singleStep"), 10);
+        item->setAttribute(QLatin1String("readOnly"), true);
+        topItem->addSubProperty(item);
+
+        item = variantManager->addProperty(QVariant::Int,
+            qApp->translate(c_sHostMachine, c_sProperty1_4));
+        item->setValue(100);
+        item->setAttribute(QLatin1String("minimum"), 0);
+        item->setAttribute(QLatin1String("maximum"), 100);
+        item->setAttribute(QLatin1String("singleStep"), 1);
+        item->setAttribute(QLatin1String("readOnly"), true);
+        topItem->addSubProperty(item);
+
+        item = variantManager->addProperty(QtVariantPropertyManager::enumTypeId(),
+            qApp->translate(c_sHostMachine, c_sProperty1_5));
+        QStringList enumNames1_5;
+        enumNames1_5 << "Enum0" << "Enum1" << "Enum2";
+        item->setAttribute(QLatin1String("enumNames"), enumNames1_5);
+        item->setValue(1);
+        topItem->addSubProperty(item);
+
+        m_pPropertyWgt1->addProperty(topItem);
+    }
+    // 混合数据分区
+    {
+        QtProperty *topItem = variantManager->addProperty(QtVariantPropertyManager::groupTypeId(),
+            qApp->translate(c_sHostMachine, c_sPropertyGroup1_5));
+
+        QtVariantProperty *item = variantManager->addProperty(QVariant::Double,
+            qApp->translate(c_sHostMachine, c_sProperty1_1));
+        item->setValue(20);
+        item->setAttribute(QLatin1String("minimum"), 0);
+        item->setAttribute(QLatin1String("maximum"), 100);
+        item->setAttribute(QLatin1String("singleStep"), 10);
+        topItem->addSubProperty(item);
+
+        item = variantManager->addProperty(QVariant::Double,
+            qApp->translate(c_sHostMachine, c_sProperty1_2));
+        item->setValue(20);
+        item->setAttribute(QLatin1String("minimum"), 0);
+        item->setAttribute(QLatin1String("maximum"), 100);
+        item->setAttribute(QLatin1String("singleStep"), 10);
+        topItem->addSubProperty(item);
+
+        item = variantManager->addProperty(QVariant::Double,
+            qApp->translate(c_sHostMachine, c_sProperty1_3));
+        item->setValue(20);
+        item->setAttribute(QLatin1String("minimum"), 0);
+        item->setAttribute(QLatin1String("maximum"), 100);
+        item->setAttribute(QLatin1String("singleStep"), 10);
+        item->setAttribute(QLatin1String("readOnly"), true);
+        topItem->addSubProperty(item);
+
+        item = variantManager->addProperty(QVariant::Int,
+            qApp->translate(c_sHostMachine, c_sProperty1_4));
+        item->setValue(100);
+        item->setAttribute(QLatin1String("minimum"), 0);
+        item->setAttribute(QLatin1String("maximum"), 100);
+        item->setAttribute(QLatin1String("singleStep"), 1);
+        item->setAttribute(QLatin1String("readOnly"), true);
+        topItem->addSubProperty(item);
+
+        item = variantManager->addProperty(QtVariantPropertyManager::enumTypeId(),
+            qApp->translate(c_sHostMachine, c_sProperty1_5));
+        QStringList enumNames1_5;
+        enumNames1_5 << "Enum0" << "Enum1" << "Enum2";
+        item->setAttribute(QLatin1String("enumNames"), enumNames1_5);
+        item->setValue(1);
+        topItem->addSubProperty(item);
+
+        m_pPropertyWgt1->addProperty(topItem);
+    }
+    // 参数信息
+    {
+        QtProperty *topItem = variantManager->addProperty(QtVariantPropertyManager::groupTypeId(),
+            qApp->translate(c_sHostMachine, c_sPropertyGroup1_6));
+
+        QtVariantProperty *item = variantManager->addProperty(QtVariantPropertyManager::enumTypeId(),
+            qApp->translate(c_sHostMachine, c_sProperty1_6));
+        QStringList enumNames1_6;
+        enumNames1_6 << "Enum0" << "Enum1" << "Enum2";
+        item->setAttribute(QLatin1String("enumNames"), enumNames1_6);
+        item->setValue(1);
+        topItem->addSubProperty(item);
+
+        item = variantManager->addProperty(QtVariantPropertyManager::enumTypeId(),
+            qApp->translate(c_sHostMachine, c_sProperty1_7));
+        QStringList enumNames1_7;
+        enumNames1_7 << "Enum0" << "Enum1" << "Enum2";
+        item->setAttribute(QLatin1String("enumNames"), enumNames1_7);
+        item->setValue(1);
+        topItem->addSubProperty(item);
+
+        item = variantManager->addProperty(QVariant::Int,
+            qApp->translate(c_sHostMachine, c_sProperty1_8));
+        item->setValue(20);
+        item->setAttribute(QLatin1String("minimum"), 0);
+        item->setAttribute(QLatin1String("maximum"), 100);
+        item->setAttribute(QLatin1String("singleStep"), 10);
+        item->setAttribute(QLatin1String("readOnly"), true);
+        topItem->addSubProperty(item);
+
+        m_pPropertyWgt1->addProperty(topItem);
+    }
+    m_pPropertyWgt1->setPropertiesWithoutValueMarked(true);
+    m_pPropertyWgt1->setRootIsDecorated(false);
+
+    m_pPropertyWgt1->setHeaderVisible(false);
+}
+
+/*****************************************************************************
+* @brief   : 初始化基本信息
+* @author  : wb
+* @date    : 2019/10/21
+* @param:  : 
+*****************************************************************************/
+void HostMachine::initPropertyWgt2()
+{
+    QVBoxLayout *mainLayout = new QVBoxLayout();
+    m_pPropertyWgt2->setLayout(mainLayout);
+
+    {
+        QGridLayout *gridLayout = new QGridLayout();
+        gridLayout->addWidget(new QLabel(qApp->translate(c_sHostMachine, c_sProperty2_1), this), 0, 0);
+        gridLayout->addWidget(new QLineEdit(this), 0, 1);
+
+        gridLayout->addWidget(new QLabel(qApp->translate(c_sHostMachine, c_sProperty2_2), this), 1, 0);
+        gridLayout->addWidget(new QLineEdit(this), 1, 1);
+
+        mainLayout->addLayout(gridLayout);
+    }
+
+    {
+        QGridLayout *gridLayout = new QGridLayout();
+        gridLayout->addWidget(new QLabel(qApp->translate(c_sHostMachine, c_sProperty2_3), this), 0, 0);
+        gridLayout->addWidget(new QLineEdit(this), 0, 1);
+
+        gridLayout->addWidget(new QLabel(qApp->translate(c_sHostMachine, c_sProperty2_4), this), 1, 0);
+        gridLayout->addWidget(new QLineEdit(this), 1, 1);
+
+        gridLayout->addWidget(new QLabel(qApp->translate(c_sHostMachine, c_sProperty2_5), this), 2, 0);
+        gridLayout->addWidget(new QLineEdit(this), 2, 1);
+
+        gridLayout->addWidget(new QLabel(qApp->translate(c_sHostMachine, c_sProperty2_6), this), 3, 0);
+        gridLayout->addWidget(new QLineEdit(this), 3, 1);
+
+        gridLayout->addWidget(new QLabel(qApp->translate(c_sHostMachine, c_sProperty2_7), this), 4, 0);
+        gridLayout->addWidget(new QLineEdit(this), 4, 1);
+
+        QGroupBox* groupBox = new QGroupBox(qApp->translate(c_sHostMachine, c_sPropertyGroup2_1), this);
+        groupBox->setLayout(gridLayout);
+
+        mainLayout->addWidget(groupBox);
+    }
+
+    {
+        QGridLayout *gridLayout = new QGridLayout();
+        gridLayout->addWidget(new QLabel(qApp->translate(c_sHostMachine, c_sProperty2_8), this), 0, 0);
+        gridLayout->addWidget(new QLineEdit(this), 0, 1);
+
+        gridLayout->addWidget(new QLabel(qApp->translate(c_sHostMachine, c_sProperty2_9), this), 1, 0);
+        gridLayout->addWidget(new QLineEdit(this), 1, 1);
+
+        gridLayout->addWidget(new QLabel(qApp->translate(c_sHostMachine, c_sProperty2_10), this), 2, 0);
+        gridLayout->addWidget(new QLineEdit(this), 2, 1);
+
+        gridLayout->addWidget(new QLabel(qApp->translate(c_sHostMachine, c_sProperty2_11), this), 3, 0);
+        gridLayout->addWidget(new QLineEdit(this), 3, 1);
+
+        gridLayout->addWidget(new QLabel(qApp->translate(c_sHostMachine, c_sProperty2_12), this), 4, 0);
+        gridLayout->addWidget(new QLineEdit(this), 4, 1);
+
+        QGroupBox* groupBox = new QGroupBox(qApp->translate(c_sHostMachine, c_sPropertyGroup2_2), this);
+        groupBox->setLayout(gridLayout);
+
+        mainLayout->addWidget(groupBox);
+    }
+
+    //     QPushButton *getBackPushButton = new QPushButton("找回密码");
+    //     QLineEdit *passwordLineEdit = new QLineEdit();
+    //     passwordLineEdit->setTextMargins(0, 0, getBackPushButton->width(),0);
+    //     QHBoxLayout *layout = new QHBoxLayout();
+    //     layout->setContentsMargins(0, 0, 0, 0);
+    //     layout->addWidget(getBackPushButton, 0, Qt::AlignRight);
+    //     passwordLineEdit->setLayout(layout);
+    //     QHBoxLayout *layout2 = new QHBoxLayout();
+    //     layout2->addWidget(passwordLineEdit);
+    //     mainLayout->addLayout(layout2);
+
+    QHBoxLayout* hBoxLayout = new QHBoxLayout();
+    hBoxLayout->addStretch();
+    hBoxLayout->addWidget(new QPushButton(qApp->translate(c_sHostMachine, c_sConfirm), this));
+    hBoxLayout->addWidget(new QPushButton(qApp->translate(c_sHostMachine, c_sCancel), this));
+
+    mainLayout->addLayout(hBoxLayout);
+
+    mainLayout->addStretch();
 }
