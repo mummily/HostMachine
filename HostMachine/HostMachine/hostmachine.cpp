@@ -720,10 +720,10 @@ void HostMachine::initPropertyWgt1()
 }
 
 /*****************************************************************************
-* @brief   : 初始化基本信息
+* @brief   : 初始化基本参数
 * @author  : wb
 * @date    : 2019/10/21
-* @param:  : 
+* @param:  : 无；该函数自成体系，函数体内实现UI、Layout、Connect的建立
 *****************************************************************************/
 void HostMachine::initPropertyWgt2()
 {
@@ -731,53 +731,83 @@ void HostMachine::initPropertyWgt2()
     m_pPropertyWgt2->setLayout(mainLayout);
 
     {
+        // 所属分区
         QGridLayout *gridLayout = new QGridLayout();
         gridLayout->addWidget(new QLabel(qApp->translate(c_sHostMachine, c_sProperty2_1), this), 0, 0);
         gridLayout->addWidget(new QLineEdit(this), 0, 1);
 
+        // 记录文件名
         gridLayout->addWidget(new QLabel(qApp->translate(c_sHostMachine, c_sProperty2_2), this), 1, 0);
         gridLayout->addWidget(new QLineEdit(this), 1, 1);
 
         mainLayout->addLayout(gridLayout);
     }
 
+    // 导出参数
     {
         QGridLayout *gridLayout = new QGridLayout();
-        gridLayout->addWidget(new QLabel(qApp->translate(c_sHostMachine, c_sProperty2_3), this), 0, 0);
-        gridLayout->addWidget(new QLineEdit(this), 0, 1);
 
+        // 导出路径
+        gridLayout->addWidget(new QLabel(qApp->translate(c_sHostMachine, c_sProperty2_3), this), 0, 0);
+
+        QLineEdit* edtExportPath = new QLineEdit(this);
+        gridLayout->addWidget(edtExportPath, 0, 1);
+
+        QHBoxLayout *layoutExportPath = new QHBoxLayout();
+        layoutExportPath->setContentsMargins(0, 0, 0, 0);
+        edtExportPath->setLayout(layoutExportPath);
+
+        // 导出路径按钮
+        QPushButton *btnExportPath = new QPushButton("...", this);
+        btnExportPath->setFixedWidth(24);
+        layoutExportPath->addWidget(btnExportPath, 0, Qt::AlignRight);
+
+        edtExportPath->setTextMargins(0, 0, btnExportPath->width(), 0);
+
+        // 文件编号
         gridLayout->addWidget(new QLabel(qApp->translate(c_sHostMachine, c_sProperty2_4), this), 1, 0);
         gridLayout->addWidget(new QLineEdit(this), 1, 1);
 
+        // 原始文件大小
         gridLayout->addWidget(new QLabel(qApp->translate(c_sHostMachine, c_sProperty2_5), this), 2, 0);
         gridLayout->addWidget(new QLineEdit(this), 2, 1);
 
+        // 文件偏移
         gridLayout->addWidget(new QLabel(qApp->translate(c_sHostMachine, c_sProperty2_6), this), 3, 0);
         gridLayout->addWidget(new QLineEdit(this), 3, 1);
 
+        // 导出文件大小
         gridLayout->addWidget(new QLabel(qApp->translate(c_sHostMachine, c_sProperty2_7), this), 4, 0);
         gridLayout->addWidget(new QLineEdit(this), 4, 1);
 
+        // 导出参数
         QGroupBox* groupBox = new QGroupBox(qApp->translate(c_sHostMachine, c_sPropertyGroup2_1), this);
         groupBox->setLayout(gridLayout);
 
         mainLayout->addWidget(groupBox);
     }
 
+    // 回放参数
     {
         QGridLayout *gridLayout = new QGridLayout();
+
+        // 文件编号
         gridLayout->addWidget(new QLabel(qApp->translate(c_sHostMachine, c_sProperty2_8), this), 0, 0);
         gridLayout->addWidget(new QLineEdit(this), 0, 1);
 
+        // PRF_TIME(us)
         gridLayout->addWidget(new QLabel(qApp->translate(c_sHostMachine, c_sProperty2_9), this), 1, 0);
         gridLayout->addWidget(new QLineEdit(this), 1, 1);
 
+        // NUM
         gridLayout->addWidget(new QLabel(qApp->translate(c_sHostMachine, c_sProperty2_10), this), 2, 0);
         gridLayout->addWidget(new QLineEdit(this), 2, 1);
 
+        // HEAD_PRF(H)
         gridLayout->addWidget(new QLabel(qApp->translate(c_sHostMachine, c_sProperty2_11), this), 3, 0);
         gridLayout->addWidget(new QLineEdit(this), 3, 1);
 
+        // HEAD_CPI(H)
         gridLayout->addWidget(new QLabel(qApp->translate(c_sHostMachine, c_sProperty2_12), this), 4, 0);
         gridLayout->addWidget(new QLineEdit(this), 4, 1);
 
@@ -786,17 +816,6 @@ void HostMachine::initPropertyWgt2()
 
         mainLayout->addWidget(groupBox);
     }
-
-    //     QPushButton *getBackPushButton = new QPushButton("找回密码");
-    //     QLineEdit *passwordLineEdit = new QLineEdit();
-    //     passwordLineEdit->setTextMargins(0, 0, getBackPushButton->width(),0);
-    //     QHBoxLayout *layout = new QHBoxLayout();
-    //     layout->setContentsMargins(0, 0, 0, 0);
-    //     layout->addWidget(getBackPushButton, 0, Qt::AlignRight);
-    //     passwordLineEdit->setLayout(layout);
-    //     QHBoxLayout *layout2 = new QHBoxLayout();
-    //     layout2->addWidget(passwordLineEdit);
-    //     mainLayout->addLayout(layout2);
 
     QHBoxLayout* hBoxLayout = new QHBoxLayout();
     hBoxLayout->addStretch();

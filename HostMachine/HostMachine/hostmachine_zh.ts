@@ -351,9 +351,5 @@
         <source>取消</source>
         <translation>取消</translation>
     </message>
-    <message>
-        <source>&amp;File</source>
-        <translation type="vanished">&amp;File</translation>
-    </message>
 </context>
 </TS>
