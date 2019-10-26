@@ -23,7 +23,8 @@ static const char *c_sTitle = QT_TRANSLATE_NOOP("HostMachine", "网络应用软件");
 
 // 系统菜单
 static const char *c_sIPSetting = QT_TRANSLATE_NOOP("HostMachine", "IP设置");
-static const char *c_sSystemControl = QT_TRANSLATE_NOOP("HostMachine", "系统控制");
+static const char *c_sSystemSetting = QT_TRANSLATE_NOOP("HostMachine", "系统设置");
+static const char *c_sSystemOperation = QT_TRANSLATE_NOOP("HostMachine", "系统操作");
 static const char *c_sAbout = QT_TRANSLATE_NOOP("HostMachine", "关于");
 
 // 工具栏
@@ -38,6 +39,7 @@ static const char *c_sPlayback = QT_TRANSLATE_NOOP("HostMachine", "回放");
 static const char *c_sStop = QT_TRANSLATE_NOOP("HostMachine", "停止");
 
 // 状态栏
+static const char *c_sDisConnect = QT_TRANSLATE_NOOP("HostMachine", "未连接");
 static const char *c_sReady = QT_TRANSLATE_NOOP("HostMachine", "就绪");
 static const char *c_sContactUs = QT_TRANSLATE_NOOP("HostMachine", "联系我们");
 
@@ -138,26 +140,46 @@ void HostMachine::initUI()
     setWindowTitle(qApp->translate(c_sHostMachine, c_sTitle));
     resize(1124, 726);
     
-    // 菜单栏
-    QAction* actIPSetting = menuBar()->addAction(qApp->translate(c_sHostMachine, c_sIPSetting));
-    QAction* actSystemControl = menuBar()->addAction(qApp->translate(c_sHostMachine, c_sSystemControl));
-    QAction* actAbout = menuBar()->addAction(qApp->translate(c_sHostMachine, c_sAbout));
-    
     // 工具栏
-    QString sIcon = QString("%1/Image/icon.png").arg(qApp->applicationDirPath());
-    QIcon icon(sIcon);
-
     QToolBar *toolBar = addToolBar("");
     toolBar->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
-    toolBar->addAction(icon, qApp->translate(c_sHostMachine, c_sCheckSelf));
-    toolBar->addAction(icon, qApp->translate(c_sHostMachine, c_sFormat));
-    toolBar->addAction(icon, qApp->translate(c_sHostMachine, c_sImport));
-    toolBar->addAction(icon, qApp->translate(c_sHostMachine, c_sExport));
-    toolBar->addAction(icon, qApp->translate(c_sHostMachine, c_sRecord));
-    toolBar->addAction(icon, qApp->translate(c_sHostMachine, c_sDelete));
-    toolBar->addAction(icon, qApp->translate(c_sHostMachine, c_sRefresh));
-    toolBar->addAction(icon, qApp->translate(c_sHostMachine, c_sPlayback));
-    toolBar->addAction(icon, qApp->translate(c_sHostMachine, c_sStop));
+
+    QString sIcon = QString("%1/Image/checkself.png").arg(qApp->applicationDirPath());
+    m_pActCheckSelf = toolBar->addAction(QIcon(sIcon), qApp->translate(c_sHostMachine, c_sCheckSelf));
+
+    sIcon = QString("%1/Image/format.png").arg(qApp->applicationDirPath());
+    m_pActFormat = toolBar->addAction(QIcon(sIcon), qApp->translate(c_sHostMachine, c_sFormat));
+
+    sIcon = QString("%1/Image/import.png").arg(qApp->applicationDirPath());
+    m_pActImport = toolBar->addAction(QIcon(sIcon), qApp->translate(c_sHostMachine, c_sImport));
+
+    sIcon = QString("%1/Image/export.png").arg(qApp->applicationDirPath());
+    m_pActExport = toolBar->addAction(QIcon(sIcon), qApp->translate(c_sHostMachine, c_sExport));
+
+    sIcon = QString("%1/Image/record.png").arg(qApp->applicationDirPath());
+    m_pActRecord = toolBar->addAction(QIcon(sIcon), qApp->translate(c_sHostMachine, c_sRecord));
+
+    sIcon = QString("%1/Image/delete.png").arg(qApp->applicationDirPath());
+    m_pActDelete = toolBar->addAction(QIcon(sIcon), qApp->translate(c_sHostMachine, c_sDelete));
+
+    sIcon = QString("%1/Image/refresh.png").arg(qApp->applicationDirPath());
+    m_pActRecord = toolBar->addAction(QIcon(sIcon), qApp->translate(c_sHostMachine, c_sRefresh));
+
+    sIcon = QString("%1/Image/playback.png").arg(qApp->applicationDirPath());
+    m_pActPlayback = toolBar->addAction(QIcon(sIcon), qApp->translate(c_sHostMachine, c_sPlayback));
+
+    sIcon = QString("%1/Image/stop.png").arg(qApp->applicationDirPath());
+    m_pActStop = toolBar->addAction(QIcon(sIcon), qApp->translate(c_sHostMachine, c_sStop));
+
+    // 菜单栏
+    QAction* m_actIPSetting = menuBar()->addAction(qApp->translate(c_sHostMachine, c_sIPSetting));
+    QAction* actSystemSetting = menuBar()->addAction(qApp->translate(c_sHostMachine, c_sSystemSetting));
+    QMenu *menuSystemControl = menuBar()->addMenu(qApp->translate(c_sHostMachine, c_sSystemOperation));
+    {
+        menuSystemControl->addAction(m_pActCheckSelf);
+        menuSystemControl->addAction(m_pActFormat);
+    }
+    m_pActAbout = menuBar()->addAction(qApp->translate(c_sHostMachine, c_sAbout));
 
     // 文件列表框
     QTabWidget *pTabWgt1 = new QTabWidget(this);
@@ -203,21 +225,15 @@ void HostMachine::initUI()
     m_pLogWgt = new QTableWidget(this);
     initLogWgt();
 
-    m_splitter1 = new QSplitter(Qt::Vertical, this);
-    m_splitter1->addWidget(m_pTaskWgt);
-    m_splitter1->addWidget(m_pLogWgt);
-    QList<int> sizeList1;
-    sizeList1 << 300 << 200;
-    m_splitter1->setSizes(sizeList1);
-    m_splitter1->setOpaqueResize(true);
-    m_splitter1->setChildrenCollapsible(false);
-
-    m_splitter2 = new QSplitter(Qt::Vertical, this);
-    m_splitter2->addWidget(pTabWgt1);
-    m_splitter2->addWidget(m_splitter1);
-    m_splitter2->setSizes(QList<int>() << 200 << 200);
-    m_splitter2->setOpaqueResize(true);
-    m_splitter2->setChildrenCollapsible(false);
+    QSplitter *splitter = new QSplitter(Qt::Vertical, this);
+    splitter->addWidget(pTabWgt1);
+    splitter->addWidget(m_pTaskWgt);
+    splitter->addWidget(m_pLogWgt);
+    QList<int> sizeList;
+    sizeList << 300 << 200 << 100;
+    splitter->setSizes(sizeList);
+    splitter->setOpaqueResize(true);
+    splitter->setChildrenCollapsible(false);
 
     // 属性区
     QTabWidget *pTabWgt2 = new QTabWidget(this);
@@ -227,12 +243,12 @@ void HostMachine::initUI()
     initPropertyWgt2();
     pTabWgt2->addTab(m_pPropertyWgt1, qApp->translate(c_sHostMachine, c_sPropertyTitle1));
     pTabWgt2->addTab(m_pPropertyWgt2, qApp->translate(c_sHostMachine, c_sPropertyTitle2));
-    m_splitter3 = new QSplitter(Qt::Horizontal, this);
-    m_splitter3->addWidget(m_splitter2);
-    m_splitter3->addWidget(pTabWgt2);
-    m_splitter3->setSizes(QList<int>() << 500 << 200);
-    m_splitter3->setOpaqueResize(true);
-    m_splitter3->setChildrenCollapsible(false);
+    m_pSplitter = new QSplitter(Qt::Horizontal, this);
+    m_pSplitter->addWidget(splitter);
+    m_pSplitter->addWidget(pTabWgt2);
+    m_pSplitter->setSizes(QList<int>() << 500 << 200);
+    m_pSplitter->setOpaqueResize(true);
+    m_pSplitter->setChildrenCollapsible(false);
 
     // 状态栏
     statusBar()->setSizeGripEnabled(true);
@@ -259,7 +275,7 @@ void HostMachine::initLayout()
 
     QHBoxLayout* mainLayout = new QHBoxLayout();
     centralWidget->setLayout(mainLayout);
-    mainLayout->addWidget(m_splitter3);
+    mainLayout->addWidget(m_pSplitter);
 }
 
 /*****************************************************************************
