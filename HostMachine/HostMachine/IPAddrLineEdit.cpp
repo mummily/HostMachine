@@ -13,25 +13,26 @@ IPAddrLineEdit::IPAddrLineEdit(QWidget* pParent /* = 0 */)
     m_pEdtPart4 = new IPPartLineEdit(this); 
 
     m_pLabeldot1 = new QLabel(this); 
-    m_pLabeldot2 = new QLabel(this); 
-    m_pLabeldot3 = new QLabel(this); 
-
-    m_pEdtPart1->setGeometry(QRect(0, 0, 30, 20)); 
-    m_pEdtPart2->setGeometry(QRect(30, 0, 30, 20)); 
-    m_pEdtPart3->setGeometry(QRect(60, 0, 30, 20)); 
-    m_pEdtPart4->setGeometry(QRect(90, 0, 30, 20)); 
-
     m_pLabeldot1->setText(" ."); 
-    m_pLabeldot1->setGeometry(QRect(27, 1, 6, 18)); 
     m_pLabeldot1->setAlignment(Qt::AlignCenter); 
 
+    m_pLabeldot2 = new QLabel(this); 
     m_pLabeldot2->setText(" ."); 
-    m_pLabeldot2->setGeometry(QRect(57, 1, 6, 18)); 
     m_pLabeldot2->setAlignment(Qt::AlignCenter); 
 
+    m_pLabeldot3 = new QLabel(this); 
     m_pLabeldot3->setText(" ."); 
-    m_pLabeldot3->setGeometry(QRect(87, 1, 6, 18)); 
     m_pLabeldot3->setAlignment(Qt::AlignCenter); 
+
+    int nWidth = 50;
+    m_pEdtPart1->setGeometry(QRect(0, 0, nWidth, 20)); 
+    m_pEdtPart2->setGeometry(QRect(nWidth, 0, nWidth, 20)); 
+    m_pEdtPart3->setGeometry(QRect(nWidth * 2, 0, nWidth, 20)); 
+    m_pEdtPart4->setGeometry(QRect(nWidth * 3, 0, nWidth, 20)); 
+
+    m_pLabeldot1->setGeometry(QRect(nWidth - 3, 1, 6, 18)); 
+    m_pLabeldot2->setGeometry(QRect(nWidth * 2 - 3, 1, 6, 18)); 
+    m_pLabeldot3->setGeometry(QRect(nWidth * 3 - 3, 1, 6, 18)); 
 
     QWidget::setTabOrder(m_pEdtPart1, m_pEdtPart2); 
     QWidget::setTabOrder(m_pEdtPart2, m_pEdtPart3); 

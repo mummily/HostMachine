@@ -30,7 +30,7 @@ private:
     IPPartLineEdit  *m_pEdtPart1;
     IPPartLineEdit  *m_pEdtPart2;
     IPPartLineEdit  *m_pEdtPart3;
-    QLineEdit       *m_pEdtPart4;
+    IPPartLineEdit  *m_pEdtPart4;
 
     QLabel          *m_pLabeldot1;
     QLabel          *m_pLabeldot2;

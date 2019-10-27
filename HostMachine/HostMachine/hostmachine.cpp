@@ -18,6 +18,7 @@
 #include <QGroupBox>
 #include <QPushButton>
 #include <QTimer>
+#include <QMessageBox>
 
 #include <QTcpSocket>
 #include <QTcpServer>
@@ -38,7 +39,7 @@ HostMachine::HostMachine(QWidget *parent)
 
 HostMachine::~HostMachine()
 {
-
+    m_pTcpSocket->close();
 }
 
 /*****************************************************************************
@@ -49,8 +50,6 @@ HostMachine::~HostMachine()
 *****************************************************************************/
 void HostMachine::initTcp()
 {
-    m_pTcpServer = new QTcpServer(this);
-    m_pTcpServer->listen();
     m_pTcpSocket = new QTcpSocket(this);
 }
 
@@ -64,7 +63,7 @@ void HostMachine::initUI()
 {
     setWindowTitle(qApp->translate(c_sHostMachine, c_sTitle));
     resize(1124, 726);
-    
+
     // 工具栏
     QToolBar *toolBar = addToolBar("");
     toolBar->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
@@ -190,7 +189,7 @@ void HostMachine::initUI()
 
     // 状态栏
     statusBar()->setSizeGripEnabled(true);
-    
+
     m_pStateLabel = new QLabel(this);
     m_pStateLabel->setText(qApp->translate(c_sHostMachine, c_sDisConnect));
     statusBar()->addPermanentWidget(m_pStateLabel); //显示状态信息
@@ -229,6 +228,8 @@ void HostMachine::initConnect()
 {
     // Menubar & Toolbar
     connect(m_pActIPSetting, SIGNAL(triggered(bool)), this, SLOT(slotIPSetting()));
+    connect(m_pActCheckSelf, SIGNAL(triggered(bool)), this, SLOT(slotCheckSelf()));
+    connect(m_pActFormat, SIGNAL(triggered(bool)), this, SLOT(slotFormat()));
 
     // TCP
     connect(m_pTcpSocket, SIGNAL(connected()), this, SLOT(connected()));
@@ -791,33 +792,114 @@ void HostMachine::initPropertyWgt2()
     mainLayout->addStretch();
 }
 
+/*****************************************************************************
+* @brief   : TCP连接
+* @author  : wb
+* @date    : 2019/10/27
+* @param:  : 
+*****************************************************************************/
 void HostMachine::connected()
 {
-    // 状态
     m_pStateLabel->setText(qApp->translate(c_sHostMachine, c_sReady));
 }
 
+/*****************************************************************************
+* @brief   : TCP断开
+* @author  : wb
+* @date    : 2019/10/27
+* @param:  : 
+*****************************************************************************/
 void HostMachine::disconnect()
 {
     // 状态
     m_pStateLabel->setText(qApp->translate(c_sHostMachine, c_sDisConnect));
 }
 
-void HostMachine::readyRead()
-{
-
-}
-
+/*****************************************************************************
+* @brief   : TCP连接错误
+* @author  : wb
+* @date    : 2019/10/27
+* @param:  : 
+*****************************************************************************/
 void HostMachine::error()
 {
-
+    statusBar()->showMessage(m_pTcpSocket->errorString());
 }
 
+/*****************************************************************************
+* @brief   : 应答消息响应
+* @author  : wb
+* @date    : 2019/10/27
+* @param:  : 
+*****************************************************************************/
+void HostMachine::readyRead()
+{
+    QDataStream in(m_pTcpSocket);
+    in.setVersion(QDataStream::Qt_5_5);
+
+    if (m_pTcpSocket->bytesAvailable() < sizeof(quint32))
+        return;
+
+    quint32 respondType;
+    in >> respondType;
+    if (respondType == SC_Format)
+    {
+        quint32 result;
+        in >> result;
+
+        if (result == 0x00)
+        {
+            statusBar()->showMessage("format success");
+        }
+    }
+}
+
+/*****************************************************************************
+* @brief   : 槽函数-IP设置
+* @author  : wb
+* @date    : 2019/10/27
+* @param:  : 
+*****************************************************************************/
 void HostMachine::slotIPSetting()
 {
     DlgIPSetting dlg(this);
     if (QDialog::Accepted != dlg.exec())
         return;
 
-    m_pTcpSocket->connectToHost(/*QHostAddress::LocalHost*/QHostAddress(dlg.getIPAddr()), m_pTcpServer->serverPort());
+    QString sAddr = dlg.getIPAddr();
+    m_pTcpSocket->connectToHost(QHostAddress(sAddr), 6178);
+}
+
+/*****************************************************************************
+* @brief   : 槽函数-自检
+* @author  : wb
+* @date    : 2019/10/27
+* @param:  : 
+*****************************************************************************/
+void HostMachine::slotCheckSelf()
+{
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out << quint32(0) << "slotCheckSelf" << QDateTime::currentDateTime().toString();
+    out.device()->seek(0);
+    out << quint32(block.size() - sizeof(quint32));
+
+    m_pTcpSocket->write(block);
+}
+
+/*****************************************************************************
+* @brief   : 槽函数-格式化
+* @author  : wb
+* @date    : 2019/10/27
+* @param:  : 
+*****************************************************************************/
+void HostMachine::slotFormat()
+{
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out << quint32(0) << CS_Format << quint32(100) << quint32(200);
+    out.device()->seek(0);
+    out << quint32(block.size() - sizeof(quint32));
+
+    m_pTcpSocket->write(block);
 }

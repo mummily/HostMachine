@@ -3,6 +3,20 @@
 
 #include <QtWidgets/QMainWindow>
 
+// 请求类型
+enum RequestType
+{
+    CS_CheckSelf = 0x11,
+    CS_Format = 0xA1,
+};
+
+// 应答类型
+enum RespondType
+{
+    SC_CheckSelf = 0x1011,
+    SC_Format = 0x10A1
+};
+
 class QTableWidget;
 class QTabWidget;
 class QSplitter;
@@ -10,7 +24,6 @@ class QtTreePropertyBrowser;
 class QFrame;
 class QLabel;
 class QTcpSocket;
-class QTcpServer;
 class HostMachine : public QMainWindow
 {
     Q_OBJECT
@@ -42,6 +55,8 @@ private:
 
         // Menu
         void slotIPSetting();
+        void slotCheckSelf();
+        void slotFormat();
 
 private:
     QAction                 *m_pActCheckSelf;   // 自检
@@ -59,7 +74,6 @@ private:
     QMenu                   *m_menuSystemControl;
 
     QTcpSocket              *m_pTcpSocket;      // 
-    QTcpServer              *m_pTcpServer;      // 
 
     QTableWidget            *m_pLDDataWgt1;     // 雷达数据_1
     QTableWidget            *m_pLDDataWgt2;     // 雷达数据_2
