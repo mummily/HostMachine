@@ -2,19 +2,72 @@
 #define HOSTMACHINE_H
 
 #include <QtWidgets/QMainWindow>
+#include <list>
+using namespace std;
 
 // 请求类型
 enum RequestType
 {
-    CS_CheckSelf = 0x11,
-    CS_Format = 0xA1,
+    CS_CheckSelf = 0x11,    // 自检
+    CS_Format = 0xA1,       // 格式化
+    CS_SystemConfig = 0xB1, // 系统配置
+    CS_Record = 0x21,       // 记录
+    CS_PlayBack = 0x31,     // 回放
+    CS_Import = 0x41,       // 导入
+    CS_Export = 0x51,       // 导出
+    CS_Stop = 0x61,         // 停止
+    CS_Delete = 0x71,       // 删除
+    CS_Refresh = 0x81,      // 刷新
+    CS_TaskQuery = 0x91,    // 任务查询
+    CS_TaskStop = 0xC1,     // 任务停止
 };
 
 // 应答类型
 enum RespondType
 {
-    SC_CheckSelf = 0x1011,
-    SC_Format = 0x10A1
+    SC_CheckSelf = 0x1011,      // 自检
+    SC_Format = 0x10A1,         // 格式化
+    SC_SystemConfig = 0x10B1,   // 系统配置
+    SC_Record = 0x1021,         // 记录
+    SC_PlayBack = 0x1031,       // 回放
+    SC_Import = 0x1041,         // 导入
+    SC_Export = 0x1051,         // 导出
+    SC_Stop = 0x1061,           // 停止
+    SC_Delete = 0x1071,         // 删除
+    SC_Refresh = 0x1081,        // 刷新
+    SC_TaskQuery = 0x1091,      // 任务查询
+    SC_TaskStop = 0x10C1,       // 任务停止
+};
+
+// 任务查询应答-任务信息
+struct tagTaskInfo
+{
+    quint32 flag; // 标记 1-有效任务 0-无效任务
+    quint32 area; // 分区 0-0分区 1-1分区
+    quint32 type; // 任务类型 0-数据0 1-数据1 2-导入导出 3-回放
+    quint32 finishedsize; // 任务已完成大小
+    quint32 speed; // 任务速度
+    quint32 percent; // 任务进度百分比
+    quint32 state; // 任务状态 0-等待执行 1-执行中 2-已完成
+};
+
+// 自检应答-自检信息
+struct tagCheckSelf
+{
+    quint32 totalsize;
+    quint32 areasize0;
+    quint32 areaunuse0;
+    quint32 areafilenum0;
+    quint32 areastate0;
+    quint32 areasize1;
+    quint32 areaunuse1;
+    quint32 areafilenum1;
+    quint32 areastate1;
+    quint32 state;
+    quint32 choice;
+    quint32 bandwidth;
+    quint32 hardversion;
+    quint32 fpgaversion;
 };
 
 class QTableWidget;
@@ -54,22 +107,59 @@ private:
         void error();
 
         // Menu
+        // IP设置
         void slotIPSetting();
+        // 自检
         void slotCheckSelf();
+        // 格式化
         void slotFormat();
+        // 系统配置
+        void slotSystemConfig();
+        // 记录
+        void slotRecord();
+        // 回放
+        void slotPlayBack();
+        // 导入
+        void slotImport();
+        // 导出
+        void slotExport();
+        // 停止
+        void slotStop();
+        // 删除
+        void slotDelete();
+        // 刷新
+        void slotRefresh();
+        // 任务查询
+        void slotTaskQuery();
+        // 任务停止
+        void slotTaskStop();
+
+private:
+    void readCheckSelf(tagCheckSelf& checkSelf);
+    void readFormat(quint32 state);
+    void readSystemConfig(quint32 state);
+    void readRecord(quint32 area, quint32 state);
+    void readPlayBack(quint32 area, quint32 state);
+    void readImport(quint32 area, quint32 state);
+    void readExport(quint32 area, quint32 state);
+    void readStop(quint32 area, quint32 state);
+    void readDelete(quint32 area, quint32 state);
+    void readRefresh();
+    void readTaskQuery(list<tagTaskInfo>& lstTaskInfo);
+    void readTaskStop(qint32 tasktype, qint32 taskrespond);
 
 private:
     QAction                 *m_pActCheckSelf;   // 自检
     QAction                 *m_pActFormat;      // 格式化
     QAction                 *m_pActIPSetting;   // IP设置
-    QAction                 *m_pActSystemSetting;//系统设置
+    QAction                 *m_pActSystemConfig;//系统设置
     QAction                 *m_pActAbout;       // 关于
     QAction                 *m_pActImport;      // 导入
     QAction                 *m_pActExport;      // 导出
     QAction                 *m_pActRecord;      // 记录
     QAction                 *m_pActDelete;      // 删除
     QAction                 *m_pActRefresh;     // 刷新
-    QAction                 *m_pActPlayback;    // 回放
+    QAction                 *m_pActPlayBack;    // 回放
     QAction                 *m_pActStop;        // 停止
     QMenu                   *m_menuSystemControl;
 

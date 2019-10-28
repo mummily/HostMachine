@@ -97,8 +97,8 @@ void HostMachine::initUI()
     m_pActRefresh->setStatusTip(m_pActRefresh->text());
 
     sIcon = QString("%1/Image/playback.png").arg(qApp->applicationDirPath());
-    m_pActPlayback = toolBar->addAction(QIcon(sIcon), qApp->translate(c_sHostMachine, c_sPlayback));
-    m_pActPlayback->setStatusTip(m_pActPlayback->text());
+    m_pActPlayBack = toolBar->addAction(QIcon(sIcon), qApp->translate(c_sHostMachine, c_sPlayback));
+    m_pActPlayBack->setStatusTip(m_pActPlayBack->text());
 
     sIcon = QString("%1/Image/stop.png").arg(qApp->applicationDirPath());
     m_pActStop = toolBar->addAction(QIcon(sIcon), qApp->translate(c_sHostMachine, c_sStop));
@@ -107,8 +107,8 @@ void HostMachine::initUI()
     // 菜单栏
     m_pActIPSetting = menuBar()->addAction(qApp->translate(c_sHostMachine, c_sIPSetting));
     m_pActIPSetting->setStatusTip(m_pActIPSetting->text());
-    m_pActSystemSetting = menuBar()->addAction(qApp->translate(c_sHostMachine, c_sSystemSetting));
-    m_pActSystemSetting->setStatusTip(m_pActSystemSetting->text());
+    m_pActSystemConfig = menuBar()->addAction(qApp->translate(c_sHostMachine, c_sSystemSetting));
+    m_pActSystemConfig->setStatusTip(m_pActSystemConfig->text());
     m_menuSystemControl = menuBar()->addMenu(qApp->translate(c_sHostMachine, c_sSystemOperation));
     m_menuSystemControl->setStatusTip(m_menuSystemControl->title());
     {
@@ -230,6 +230,16 @@ void HostMachine::initConnect()
     connect(m_pActIPSetting, SIGNAL(triggered(bool)), this, SLOT(slotIPSetting()));
     connect(m_pActCheckSelf, SIGNAL(triggered(bool)), this, SLOT(slotCheckSelf()));
     connect(m_pActFormat, SIGNAL(triggered(bool)), this, SLOT(slotFormat()));
+    connect(m_pActSystemConfig, SIGNAL(triggered(bool)), this, SLOT(slotSystemConfig()));
+    connect(m_pActRecord, SIGNAL(triggered(bool)), this, SLOT(slotRecord()));
+    connect(m_pActPlayBack, SIGNAL(triggered(bool)), this, SLOT(slotPlayBack()));
+    connect(m_pActImport, SIGNAL(triggered(bool)), this, SLOT(slotImport()));
+    connect(m_pActExport, SIGNAL(triggered(bool)), this, SLOT(slotExport()));
+    connect(m_pActStop, SIGNAL(triggered(bool)), this, SLOT(slotStop()));
+    connect(m_pActDelete, SIGNAL(triggered(bool)), this, SLOT(slotDelete()));
+    connect(m_pActRefresh, SIGNAL(triggered(bool)), this, SLOT(slotRefresh()));
+//     connect(m_pActTaskQuery, SIGNAL(triggered(bool)), this, SLOT(slotTaskQuery()));
+//     connect(m_pActTaskStop, SIGNAL(triggered(bool)), this, SLOT(slotTaskStop()));
 
     // TCP
     connect(m_pTcpSocket, SIGNAL(connected()), this, SLOT(connected()));
@@ -842,20 +852,104 @@ void HostMachine::readyRead()
 
     quint32 respondType;
     in >> respondType;
-    if (respondType == SC_Format)
+    if (respondType == SC_CheckSelf)
     {
-        quint32 result;
-        in >> result;
+        tagCheckSelf checkSelf;
+        in >> checkSelf.totalsize >> checkSelf.areasize0 >> checkSelf.areaunuse0 >> checkSelf.areafilenum0 >> checkSelf.areastate0
+            >> checkSelf.areasize1 >> checkSelf.areaunuse1 >> checkSelf.areafilenum1 >> checkSelf.areastate1 >> checkSelf.state
+            >> checkSelf.choice >> checkSelf.bandwidth >> checkSelf.hardversion >> checkSelf.fpgaversion;
 
-        if (result == 0x00)
+        readCheckSelf(checkSelf);
+    }
+    else if (respondType == SC_Format)
+    {
+        quint32 state;
+        in >> state;
+
+        readFormat(state);
+    }
+    else if (respondType == SC_SystemConfig)
+    {
+        quint32 state;
+        in >> state;
+
+        readSystemConfig(state);
+    }
+    else if (respondType == SC_Record)
+    {
+        quint32 area, state;
+        in >> area >> state;
+
+        readRecord(area, state);
+    }
+    else if (respondType == SC_PlayBack)
+    {
+        quint32 area, state;
+        in >> area >> state;
+
+        readPlayBack(area, state);
+    }
+    else if (respondType == SC_Import)
+    {
+        quint32 area, state;
+        in >> area >> state;
+
+        readImport(area, state);
+    }
+    else if (respondType == SC_Export)
+    {
+        quint32 area, state;
+        in >> area >> state;
+
+        readExport(area, state);
+    }
+    else if (respondType == SC_Stop)
+    {
+        quint32 area, state;
+        in >> area >> state;
+
+        readStop(area, state);
+    }
+    else if (respondType == SC_Delete)
+    {
+        quint32 area, state;
+        in >> area >> state;
+
+        readDelete(area, state);
+    }
+    else if (respondType == SC_Refresh)
+    {
+        readRefresh();
+    }
+    else if (respondType == SC_TaskQuery)
+    {
+        quint32 tasknum;
+        in >> tasknum;
+        if (tasknum > 0)
         {
-            statusBar()->showMessage("format success");
+            list<tagTaskInfo> lstTaskInfo;
+            for (int index=0;index<tasknum;++index)
+            {
+                tagTaskInfo taskInfo;
+                in >> taskInfo.flag >> taskInfo.area >> taskInfo.type
+                    >> taskInfo.finishedsize >> taskInfo.speed >> taskInfo.percent >> taskInfo.state;
+                lstTaskInfo.push_back(taskInfo);
+            }
+
+            readTaskQuery(lstTaskInfo);
         }
+    }
+    else if (respondType == SC_TaskStop)
+    {
+        qint32 tasktype, taskrespond;
+        in >> tasktype >> taskrespond;
+
+        readTaskStop(tasktype, taskrespond);
     }
 }
 
 /*****************************************************************************
-* @brief   : 槽函数-IP设置
+* @brief   : IP设置
 * @author  : wb
 * @date    : 2019/10/27
 * @param:  : 
@@ -871,7 +965,7 @@ void HostMachine::slotIPSetting()
 }
 
 /*****************************************************************************
-* @brief   : 槽函数-自检
+* @brief   : 请求-自检
 * @author  : wb
 * @date    : 2019/10/27
 * @param:  : 
@@ -888,7 +982,7 @@ void HostMachine::slotCheckSelf()
 }
 
 /*****************************************************************************
-* @brief   : 槽函数-格式化
+* @brief   : 请求-格式化
 * @author  : wb
 * @date    : 2019/10/27
 * @param:  : 
@@ -902,4 +996,249 @@ void HostMachine::slotFormat()
     out << quint32(block.size() - sizeof(quint32));
 
     m_pTcpSocket->write(block);
+}
+
+/*****************************************************************************
+* @brief   : 请求-系统设置
+* @author  : wb
+* @date    : 2019/10/28
+* @param:  : 
+*****************************************************************************/
+void HostMachine::slotSystemConfig()
+{
+
+}
+
+/*****************************************************************************
+* @brief   : 请求-记录
+* @author  : wb
+* @date    : 2019/10/28
+* @param:  : 
+*****************************************************************************/
+void HostMachine::slotRecord()
+{
+
+}
+
+/*****************************************************************************
+* @brief   : 请求-回放
+* @author  : wb
+* @date    : 2019/10/28
+* @param:  : 
+*****************************************************************************/
+void HostMachine::slotPlayBack()
+{
+
+}
+
+/*****************************************************************************
+* @brief   : 请求-导入
+* @author  : wb
+* @date    : 2019/10/28
+* @param:  : 
+*****************************************************************************/
+void HostMachine::slotImport()
+{
+
+}
+
+/*****************************************************************************
+* @brief   : 请求-导出
+* @author  : wb
+* @date    : 2019/10/28
+* @param:  : 
+*****************************************************************************/
+void HostMachine::slotExport()
+{
+
+}
+
+/*****************************************************************************
+* @brief   : 请求-停止
+* @author  : wb
+* @date    : 2019/10/28
+* @param:  : 
+*****************************************************************************/
+void HostMachine::slotStop()
+{
+
+}
+
+/*****************************************************************************
+* @brief   : 请求-删除
+* @author  : wb
+* @date    : 2019/10/28
+* @param:  : 
+*****************************************************************************/
+void HostMachine::slotDelete()
+{
+
+}
+
+/*****************************************************************************
+* @brief   : 请求-刷新
+* @author  : wb
+* @date    : 2019/10/28
+* @param:  : 
+*****************************************************************************/
+void HostMachine::slotRefresh()
+{
+
+}
+
+/*****************************************************************************
+* @brief   : 请求-任务查询
+* @author  : wb
+* @date    : 2019/10/28
+* @param:  : 
+*****************************************************************************/
+void HostMachine::slotTaskQuery()
+{
+
+}
+
+/*****************************************************************************
+* @brief   : 请求-任务停止
+* @author  : wb
+* @date    : 2019/10/28
+* @param:  : 
+*****************************************************************************/
+void HostMachine::slotTaskStop()
+{
+
+}
+
+/*****************************************************************************
+* @brief   : 应答-自检
+* @author  : wb
+* @date    : 2019/10/28
+* @param:  : 
+*****************************************************************************/
+void HostMachine::readCheckSelf(tagCheckSelf& checkSelf)
+{
+
+}
+
+/*****************************************************************************
+* @brief   : 应答-格式化
+* @author  : wb
+* @date    : 2019/10/28
+* @param:  : 
+*****************************************************************************/
+void HostMachine::readFormat(quint32 state)
+{
+
+}
+
+/*****************************************************************************
+* @brief   : 应答-系统设置
+* @author  : wb
+* @date    : 2019/10/28
+* @param:  : 
+*****************************************************************************/
+void HostMachine::readSystemConfig(quint32 state)
+{
+    if (state == 0x00)
+    {
+        statusBar()->showMessage("format success");
+    }
+}
+
+/*****************************************************************************
+* @brief   : 应答-记录
+* @author  : wb
+* @date    : 2019/10/28
+* @param:  : 
+*****************************************************************************/
+void HostMachine::readRecord(quint32 area, quint32 state)
+{
+
+}
+
+/*****************************************************************************
+* @brief   : 应答-回放
+* @author  : wb
+* @date    : 2019/10/28
+* @param:  : 
+*****************************************************************************/
+void HostMachine::readPlayBack(quint32 area, quint32 state)
+{
+
+}
+
+/*****************************************************************************
+* @brief   : 应答-导入
+* @author  : wb
+* @date    : 2019/10/28
+* @param:  : 
+*****************************************************************************/
+void HostMachine::readImport(quint32 area, quint32 state)
+{
+
+}
+
+/*****************************************************************************
+* @brief   : 应答-导出
+* @author  : wb
+* @date    : 2019/10/28
+* @param:  : 
+*****************************************************************************/
+void HostMachine::readExport(quint32 area, quint32 state)
+{
+
+}
+
+/*****************************************************************************
+* @brief   : 应答-停止
+* @author  : wb
+* @date    : 2019/10/28
+* @param:  : 
+*****************************************************************************/
+void HostMachine::readStop(quint32 area, quint32 state)
+{
+
+}
+
+/*****************************************************************************
+* @brief   : 应答-删除
+* @author  : wb
+* @date    : 2019/10/28
+* @param:  : 
+*****************************************************************************/
+void HostMachine::readDelete(quint32 area, quint32 state)
+{
+
+}
+
+/*****************************************************************************
+* @brief   : 应答-刷新
+* @author  : wb
+* @date    : 2019/10/28
+* @param:  : 
+*****************************************************************************/
+void HostMachine::readRefresh()
+{
+
+}
+
+/*****************************************************************************
+* @brief   : 应答-任务查询
+* @author  : wb
+* @date    : 2019/10/28
+* @param:  : 
+*****************************************************************************/
+void HostMachine::readTaskQuery(list<tagTaskInfo>& lstTaskInfo)
+{
+
+}
+
+/*****************************************************************************
+* @brief   : 应答-任务停止
+* @author  : wb
+* @date    : 2019/10/28
+* @param:  : 
+*****************************************************************************/
+void HostMachine::readTaskStop(qint32 tasktype, qint32 taskrespond)
+{
+
 }
