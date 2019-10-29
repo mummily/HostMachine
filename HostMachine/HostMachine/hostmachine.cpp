@@ -25,6 +25,7 @@
 
 #include "dlgipsetting.h"
 #include "constdef.h"
+#include "qtpropertymanager.h"
 
 HostMachine::HostMachine(QWidget *parent)
     : QMainWindow(parent)
@@ -407,290 +408,257 @@ void HostMachine::initLogWgt()
 *****************************************************************************/
 void HostMachine::initPropertyWgt1()
 {
-    QtVariantPropertyManager *variantManager = new QtVariantPropertyManager();
-    QtVariantEditorFactory *variantFactory = new QtVariantEditorFactory();
-    m_pPropertyWgt1->setFactoryForManager(variantManager, variantFactory);
+    QtGroupPropertyManager *groupManager = new QtGroupPropertyManager(m_pPropertyWgt1);
+    QtStringPropertyManager *stringManager = new QtStringPropertyManager(m_pPropertyWgt1);
+    QtDoublePropertyManager *doubleManager = new QtDoublePropertyManager(m_pPropertyWgt1);
+    QtIntPropertyManager *intManager = new QtIntPropertyManager(m_pPropertyWgt1);
+    QtEnumPropertyManager *enumManager = new QtEnumPropertyManager(m_pPropertyWgt1);
 
     // 原始数据分区
     {
-        QtProperty *topItem = variantManager->addProperty(QtVariantPropertyManager::groupTypeId(),
-            qApp->translate(c_sHostMachine, c_sPropertyGroup1_1));
+        QtProperty *topItem = groupManager->addProperty(qApp->translate(c_sHostMachine, c_sPropertyGroup1_1));
 
-        QtVariantProperty *item = variantManager->addProperty(QVariant::Double,
-            qApp->translate(c_sHostMachine, c_sProperty1_1));
-        item->setValue(20);
-        item->setAttribute(QLatin1String("minimum"), 0);
-        item->setAttribute(QLatin1String("maximum"), 100);
-        item->setAttribute(QLatin1String("singleStep"), 10);
+        QtProperty *item = doubleManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_1));
+        doubleManager->setValue(item, 20);
+        doubleManager->setMinimum(item, 0);
+        doubleManager->setMaximum(item, 100);
+        doubleManager->setSingleStep(item, 10);;
+        doubleManager->setDecimals(item, 3);
         topItem->addSubProperty(item);
 
-        item = variantManager->addProperty(QVariant::Double,
-            qApp->translate(c_sHostMachine, c_sProperty1_2));
-        item->setValue(20);
-        item->setAttribute(QLatin1String("minimum"), 0);
-        item->setAttribute(QLatin1String("maximum"), 100);
-        item->setAttribute(QLatin1String("singleStep"), 10);
+        item = doubleManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_2));
+        doubleManager->setValue(item, 20);
+        doubleManager->setMinimum(item, 0);
+        doubleManager->setMaximum(item, 100);
+        doubleManager->setSingleStep(item, 10);;
+        doubleManager->setDecimals(item, 3);
         topItem->addSubProperty(item);
 
-        item = variantManager->addProperty(QVariant::Double,
-            qApp->translate(c_sHostMachine, c_sProperty1_3));
-        item->setValue(20);
-        item->setAttribute(QLatin1String("minimum"), 0);
-        item->setAttribute(QLatin1String("maximum"), 100);
-        item->setAttribute(QLatin1String("singleStep"), 10);
-        item->setAttribute(QLatin1String("readOnly"), true);
+        item = doubleManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_3));
+        doubleManager->setValue(item, 20);
+        doubleManager->setMinimum(item, 0);
+        doubleManager->setMaximum(item, 100);
+        doubleManager->setSingleStep(item, 10);;
+        doubleManager->setDecimals(item, 3);
         topItem->addSubProperty(item);
 
-        item = variantManager->addProperty(QVariant::Int,
-            qApp->translate(c_sHostMachine, c_sProperty1_4));
-        item->setValue(100);
-        item->setAttribute(QLatin1String("minimum"), 0);
-        item->setAttribute(QLatin1String("maximum"), 100);
-        item->setAttribute(QLatin1String("singleStep"), 1);
-        item->setAttribute(QLatin1String("readOnly"), true);
+        item = doubleManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_4));
+        doubleManager->setValue(item, 20);
+        doubleManager->setMinimum(item, 0);
+        doubleManager->setMaximum(item, 100);
+        doubleManager->setSingleStep(item, 10);;
+        doubleManager->setDecimals(item, 3);
         topItem->addSubProperty(item);
 
-        item = variantManager->addProperty(QtVariantPropertyManager::enumTypeId(),
-            qApp->translate(c_sHostMachine, c_sProperty1_5));
-        QStringList enumNames1_5;
-        enumNames1_5 << "Enum0" << "Enum1" << "Enum2";
-        item->setAttribute(QLatin1String("enumNames"), enumNames1_5);
-        item->setValue(1);
+        item = enumManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_5));
+        QStringList enumNames;
+        enumNames << "Enum0" << "Enum1" << "Enum2" << "Enum3";
+        enumManager->setEnumNames(item, enumNames);
         topItem->addSubProperty(item);
 
         m_pPropertyWgt1->addProperty(topItem);
     }
     // 雷达结果分区
     {
-        QtProperty *topItem = variantManager->addProperty(QtVariantPropertyManager::groupTypeId(),
-            qApp->translate(c_sHostMachine, c_sPropertyGroup1_2));
+        QtProperty *topItem = groupManager->addProperty(qApp->translate(c_sHostMachine, c_sPropertyGroup1_2));
 
-        QtVariantProperty *item = variantManager->addProperty(QVariant::Double,
-            qApp->translate(c_sHostMachine, c_sProperty1_1));
-        item->setValue(20);
-        item->setAttribute(QLatin1String("minimum"), 0);
-        item->setAttribute(QLatin1String("maximum"), 100);
-        item->setAttribute(QLatin1String("singleStep"), 10);
+        QtProperty *item = doubleManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_1));
+        doubleManager->setValue(item, 20);
+        doubleManager->setMinimum(item, 0);
+        doubleManager->setMaximum(item, 100);
+        doubleManager->setSingleStep(item, 10);;
+        doubleManager->setDecimals(item, 3);
         topItem->addSubProperty(item);
 
-        item = variantManager->addProperty(QVariant::Double,
-            qApp->translate(c_sHostMachine, c_sProperty1_2));
-        item->setValue(20);
-        item->setAttribute(QLatin1String("minimum"), 0);
-        item->setAttribute(QLatin1String("maximum"), 100);
-        item->setAttribute(QLatin1String("singleStep"), 10);
+        item = doubleManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_2));
+        doubleManager->setValue(item, 20);
+        doubleManager->setMinimum(item, 0);
+        doubleManager->setMaximum(item, 100);
+        doubleManager->setSingleStep(item, 10);;
+        doubleManager->setDecimals(item, 3);
         topItem->addSubProperty(item);
 
-        item = variantManager->addProperty(QVariant::Double,
-            qApp->translate(c_sHostMachine, c_sProperty1_3));
-        item->setValue(20);
-        item->setAttribute(QLatin1String("minimum"), 0);
-        item->setAttribute(QLatin1String("maximum"), 100);
-        item->setAttribute(QLatin1String("singleStep"), 10);
-        item->setAttribute(QLatin1String("readOnly"), true);
+        item = doubleManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_3));
+        doubleManager->setValue(item, 20);
+        doubleManager->setMinimum(item, 0);
+        doubleManager->setMaximum(item, 100);
+        doubleManager->setSingleStep(item, 10);;
+        doubleManager->setDecimals(item, 3);
         topItem->addSubProperty(item);
 
-        item = variantManager->addProperty(QVariant::Int,
-            qApp->translate(c_sHostMachine, c_sProperty1_4));
-        item->setValue(100);
-        item->setAttribute(QLatin1String("minimum"), 0);
-        item->setAttribute(QLatin1String("maximum"), 100);
-        item->setAttribute(QLatin1String("singleStep"), 1);
-        item->setAttribute(QLatin1String("readOnly"), true);
+        item = doubleManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_4));
+        doubleManager->setValue(item, 20);
+        doubleManager->setMinimum(item, 0);
+        doubleManager->setMaximum(item, 100);
+        doubleManager->setSingleStep(item, 10);;
+        doubleManager->setDecimals(item, 3);
         topItem->addSubProperty(item);
 
-        item = variantManager->addProperty(QtVariantPropertyManager::enumTypeId(),
-            qApp->translate(c_sHostMachine, c_sProperty1_5));
-        QStringList enumNames1_5;
-        enumNames1_5 << "Enum0" << "Enum1" << "Enum2";
-        item->setAttribute(QLatin1String("enumNames"), enumNames1_5);
-        item->setValue(1);
+        item = enumManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_5));
+        QStringList enumNames;
+        enumNames << "Enum0" << "Enum1" << "Enum2" << "Enum3";
+        enumManager->setEnumNames(item, enumNames);
         topItem->addSubProperty(item);
 
         m_pPropertyWgt1->addProperty(topItem);
     }
     // 光电图片分区
     {
-        QtProperty *topItem = variantManager->addProperty(QtVariantPropertyManager::groupTypeId(),
-            qApp->translate(c_sHostMachine, c_sPropertyGroup1_3));
+        QtProperty *topItem = groupManager->addProperty(qApp->translate(c_sHostMachine, c_sPropertyGroup1_3));
 
-        QtVariantProperty *item = variantManager->addProperty(QVariant::Double,
-            qApp->translate(c_sHostMachine, c_sProperty1_1));
-        item->setValue(20);
-        item->setAttribute(QLatin1String("minimum"), 0);
-        item->setAttribute(QLatin1String("maximum"), 100);
-        item->setAttribute(QLatin1String("singleStep"), 10);
+        QtProperty *item = doubleManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_1));
+        doubleManager->setValue(item, 20);
+        doubleManager->setMinimum(item, 0);
+        doubleManager->setMaximum(item, 100);
+        doubleManager->setSingleStep(item, 10);;
+        doubleManager->setDecimals(item, 3);
         topItem->addSubProperty(item);
 
-        item = variantManager->addProperty(QVariant::Double,
-            qApp->translate(c_sHostMachine, c_sProperty1_2));
-        item->setValue(20);
-        item->setAttribute(QLatin1String("minimum"), 0);
-        item->setAttribute(QLatin1String("maximum"), 100);
-        item->setAttribute(QLatin1String("singleStep"), 10);
+        item = doubleManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_2));
+        doubleManager->setValue(item, 20);
+        doubleManager->setMinimum(item, 0);
+        doubleManager->setMaximum(item, 100);
+        doubleManager->setSingleStep(item, 10);;
+        doubleManager->setDecimals(item, 3);
         topItem->addSubProperty(item);
 
-        item = variantManager->addProperty(QVariant::Double,
-            qApp->translate(c_sHostMachine, c_sProperty1_3));
-        item->setValue(20);
-        item->setAttribute(QLatin1String("minimum"), 0);
-        item->setAttribute(QLatin1String("maximum"), 100);
-        item->setAttribute(QLatin1String("singleStep"), 10);
-        item->setAttribute(QLatin1String("readOnly"), true);
+        item = doubleManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_3));
+        doubleManager->setValue(item, 20);
+        doubleManager->setMinimum(item, 0);
+        doubleManager->setMaximum(item, 100);
+        doubleManager->setSingleStep(item, 10);;
+        doubleManager->setDecimals(item, 3);
         topItem->addSubProperty(item);
 
-        item = variantManager->addProperty(QVariant::Int,
-            qApp->translate(c_sHostMachine, c_sProperty1_4));
-        item->setValue(100);
-        item->setAttribute(QLatin1String("minimum"), 0);
-        item->setAttribute(QLatin1String("maximum"), 100);
-        item->setAttribute(QLatin1String("singleStep"), 1);
-        item->setAttribute(QLatin1String("readOnly"), true);
+        item = doubleManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_4));
+        doubleManager->setValue(item, 20);
+        doubleManager->setMinimum(item, 0);
+        doubleManager->setMaximum(item, 100);
+        doubleManager->setSingleStep(item, 10);;
+        doubleManager->setDecimals(item, 3);
         topItem->addSubProperty(item);
 
-        item = variantManager->addProperty(QtVariantPropertyManager::enumTypeId(),
-            qApp->translate(c_sHostMachine, c_sProperty1_5));
-        QStringList enumNames1_5;
-        enumNames1_5 << "Enum0" << "Enum1" << "Enum2";
-        item->setAttribute(QLatin1String("enumNames"), enumNames1_5);
-        item->setValue(1);
+        item = enumManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_5));
+        QStringList enumNames;
+        enumNames << "Enum0" << "Enum1" << "Enum2" << "Enum3";
+        enumManager->setEnumNames(item, enumNames);
         topItem->addSubProperty(item);
 
         m_pPropertyWgt1->addProperty(topItem);
     }
     // 光电视频分区
     {
-        QtProperty *topItem = variantManager->addProperty(QtVariantPropertyManager::groupTypeId(),
-            qApp->translate(c_sHostMachine, c_sPropertyGroup1_4));
+        QtProperty *topItem = groupManager->addProperty(qApp->translate(c_sHostMachine, c_sPropertyGroup1_4));
 
-        QtVariantProperty *item = variantManager->addProperty(QVariant::Double,
-            qApp->translate(c_sHostMachine, c_sProperty1_1));
-        item->setValue(20);
-        item->setAttribute(QLatin1String("minimum"), 0);
-        item->setAttribute(QLatin1String("maximum"), 100);
-        item->setAttribute(QLatin1String("singleStep"), 10);
+        QtProperty *item = doubleManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_1));
+        doubleManager->setValue(item, 20);
+        doubleManager->setMinimum(item, 0);
+        doubleManager->setMaximum(item, 100);
+        doubleManager->setSingleStep(item, 10);;
+        doubleManager->setDecimals(item, 3);
         topItem->addSubProperty(item);
 
-        item = variantManager->addProperty(QVariant::Double,
-            qApp->translate(c_sHostMachine, c_sProperty1_2));
-        item->setValue(20);
-        item->setAttribute(QLatin1String("minimum"), 0);
-        item->setAttribute(QLatin1String("maximum"), 100);
-        item->setAttribute(QLatin1String("singleStep"), 10);
+        item = doubleManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_2));
+        doubleManager->setValue(item, 20);
+        doubleManager->setMinimum(item, 0);
+        doubleManager->setMaximum(item, 100);
+        doubleManager->setSingleStep(item, 10);;
+        doubleManager->setDecimals(item, 3);
         topItem->addSubProperty(item);
 
-        item = variantManager->addProperty(QVariant::Double,
-            qApp->translate(c_sHostMachine, c_sProperty1_3));
-        item->setValue(20);
-        item->setAttribute(QLatin1String("minimum"), 0);
-        item->setAttribute(QLatin1String("maximum"), 100);
-        item->setAttribute(QLatin1String("singleStep"), 10);
-        item->setAttribute(QLatin1String("readOnly"), true);
+        item = doubleManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_3));
+        doubleManager->setValue(item, 20);
+        doubleManager->setMinimum(item, 0);
+        doubleManager->setMaximum(item, 100);
+        doubleManager->setSingleStep(item, 10);;
+        doubleManager->setDecimals(item, 3);
         topItem->addSubProperty(item);
 
-        item = variantManager->addProperty(QVariant::Int,
-            qApp->translate(c_sHostMachine, c_sProperty1_4));
-        item->setValue(100);
-        item->setAttribute(QLatin1String("minimum"), 0);
-        item->setAttribute(QLatin1String("maximum"), 100);
-        item->setAttribute(QLatin1String("singleStep"), 1);
-        item->setAttribute(QLatin1String("readOnly"), true);
+        item = doubleManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_4));
+        doubleManager->setValue(item, 20);
+        doubleManager->setMinimum(item, 0);
+        doubleManager->setMaximum(item, 100);
+        doubleManager->setSingleStep(item, 10);;
+        doubleManager->setDecimals(item, 3);
         topItem->addSubProperty(item);
 
-        item = variantManager->addProperty(QtVariantPropertyManager::enumTypeId(),
-            qApp->translate(c_sHostMachine, c_sProperty1_5));
-        QStringList enumNames1_5;
-        enumNames1_5 << "Enum0" << "Enum1" << "Enum2";
-        item->setAttribute(QLatin1String("enumNames"), enumNames1_5);
-        item->setValue(1);
+        item = enumManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_5));
+        QStringList enumNames;
+        enumNames << "Enum0" << "Enum1" << "Enum2" << "Enum3";
+        enumManager->setEnumNames(item, enumNames);
         topItem->addSubProperty(item);
 
         m_pPropertyWgt1->addProperty(topItem);
     }
     // 混合数据分区
     {
-        QtProperty *topItem = variantManager->addProperty(QtVariantPropertyManager::groupTypeId(),
-            qApp->translate(c_sHostMachine, c_sPropertyGroup1_5));
+        QtProperty *topItem = groupManager->addProperty(qApp->translate(c_sHostMachine, c_sPropertyGroup1_5));
 
-        QtVariantProperty *item = variantManager->addProperty(QVariant::Double,
-            qApp->translate(c_sHostMachine, c_sProperty1_1));
-        item->setValue(20);
-        item->setAttribute(QLatin1String("minimum"), 0);
-        item->setAttribute(QLatin1String("maximum"), 100);
-        item->setAttribute(QLatin1String("singleStep"), 10);
+        QtProperty *item = doubleManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_1));
+        doubleManager->setValue(item, 20);
+        doubleManager->setMinimum(item, 0);
+        doubleManager->setMaximum(item, 100);
+        doubleManager->setSingleStep(item, 10);;
+        doubleManager->setDecimals(item, 3);
         topItem->addSubProperty(item);
 
-        item = variantManager->addProperty(QVariant::Double,
-            qApp->translate(c_sHostMachine, c_sProperty1_2));
-        item->setValue(20);
-        item->setAttribute(QLatin1String("minimum"), 0);
-        item->setAttribute(QLatin1String("maximum"), 100);
-        item->setAttribute(QLatin1String("singleStep"), 10);
+        item = doubleManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_2));
+        doubleManager->setValue(item, 20);
+        doubleManager->setMinimum(item, 0);
+        doubleManager->setMaximum(item, 100);
+        doubleManager->setSingleStep(item, 10);;
+        doubleManager->setDecimals(item, 3);
         topItem->addSubProperty(item);
 
-        item = variantManager->addProperty(QVariant::Double,
-            qApp->translate(c_sHostMachine, c_sProperty1_3));
-        item->setValue(20);
-        item->setAttribute(QLatin1String("minimum"), 0);
-        item->setAttribute(QLatin1String("maximum"), 100);
-        item->setAttribute(QLatin1String("singleStep"), 10);
-        item->setAttribute(QLatin1String("readOnly"), true);
+        item = doubleManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_3));
+        doubleManager->setValue(item, 20);
+        doubleManager->setMinimum(item, 0);
+        doubleManager->setMaximum(item, 100);
+        doubleManager->setSingleStep(item, 10);;
+        doubleManager->setDecimals(item, 3);
         topItem->addSubProperty(item);
 
-        item = variantManager->addProperty(QVariant::Int,
-            qApp->translate(c_sHostMachine, c_sProperty1_4));
-        item->setValue(100);
-        item->setAttribute(QLatin1String("minimum"), 0);
-        item->setAttribute(QLatin1String("maximum"), 100);
-        item->setAttribute(QLatin1String("singleStep"), 1);
-        item->setAttribute(QLatin1String("readOnly"), true);
+        item = doubleManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_4));
+        doubleManager->setValue(item, 20);
+        doubleManager->setMinimum(item, 0);
+        doubleManager->setMaximum(item, 100);
+        doubleManager->setSingleStep(item, 10);;
+        doubleManager->setDecimals(item, 3);
         topItem->addSubProperty(item);
 
-        item = variantManager->addProperty(QtVariantPropertyManager::enumTypeId(),
-            qApp->translate(c_sHostMachine, c_sProperty1_5));
-        QStringList enumNames1_5;
-        enumNames1_5 << "Enum0" << "Enum1" << "Enum2";
-        item->setAttribute(QLatin1String("enumNames"), enumNames1_5);
-        item->setValue(1);
+        item = enumManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_5));
+        QStringList enumNames;
+        enumNames << "Enum0" << "Enum1" << "Enum2" << "Enum3";
+        enumManager->setEnumNames(item, enumNames);
         topItem->addSubProperty(item);
 
         m_pPropertyWgt1->addProperty(topItem);
     }
     // 参数信息
     {
-        QtProperty *topItem = variantManager->addProperty(QtVariantPropertyManager::groupTypeId(),
-            qApp->translate(c_sHostMachine, c_sPropertyGroup1_6));
+        QtProperty *topItem = groupManager->addProperty(qApp->translate(c_sHostMachine, c_sPropertyGroup1_6));
 
-        QtVariantProperty *item = variantManager->addProperty(QtVariantPropertyManager::enumTypeId(),
-            qApp->translate(c_sHostMachine, c_sProperty1_6));
-        QStringList enumNames1_6;
-        enumNames1_6 << "Enum0" << "Enum1" << "Enum2";
-        item->setAttribute(QLatin1String("enumNames"), enumNames1_6);
-        item->setValue(1);
+        QtProperty *item = enumManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_6));
+        QStringList enumNames1;
+        enumNames1 << "Enum0" << "Enum1" << "Enum2" << "Enum3";
+        enumManager->setEnumNames(item, enumNames1);
         topItem->addSubProperty(item);
 
-        item = variantManager->addProperty(QtVariantPropertyManager::enumTypeId(),
-            qApp->translate(c_sHostMachine, c_sProperty1_7));
-        QStringList enumNames1_7;
-        enumNames1_7 << "Enum0" << "Enum1" << "Enum2";
-        item->setAttribute(QLatin1String("enumNames"), enumNames1_7);
-        item->setValue(1);
+        item = enumManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_7));
+        QStringList enumNames2;
+        enumNames2 << "Enum0" << "Enum1" << "Enum2" << "Enum3";
+        enumManager->setEnumNames(item, enumNames2);
         topItem->addSubProperty(item);
 
-        item = variantManager->addProperty(QVariant::Int,
-            qApp->translate(c_sHostMachine, c_sProperty1_8));
-        item->setValue(20);
-        item->setAttribute(QLatin1String("minimum"), 0);
-        item->setAttribute(QLatin1String("maximum"), 100);
-        item->setAttribute(QLatin1String("singleStep"), 10);
-        item->setAttribute(QLatin1String("readOnly"), true);
+        item = intManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_8));
+        intManager->setValue(item, 20);
         topItem->addSubProperty(item);
 
         m_pPropertyWgt1->addProperty(topItem);
     }
+
     m_pPropertyWgt1->setPropertiesWithoutValueMarked(true);
     m_pPropertyWgt1->setRootIsDecorated(false);
-
     m_pPropertyWgt1->setHeaderVisible(false);
 }
 
@@ -1039,7 +1007,15 @@ void HostMachine::slotPlayBack()
 *****************************************************************************/
 void HostMachine::slotImport()
 {
-
+    // 分区号
+    quint32 areano = 0;
+    quint32 filesize = 5;
+    // 开始时间
+    qint64 startTime = QDateTime::currentMSecsSinceEpoch();
+    // 文件名
+    QChar* filename = new QChar[128];
+    QString sFileName(filename);
+    delete filename;
 }
 
 /*****************************************************************************
