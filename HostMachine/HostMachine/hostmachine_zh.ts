@@ -15,9 +15,9 @@
     </message>
     <message>
         <location filename="constdef.h" line="9"/>
-        <source>系统设置</source>
-        <oldsource>系统控制</oldsource>
-        <translation>系统设置</translation>
+        <source>系统配置</source>
+        <oldsource>系统设置</oldsource>
+        <translation>系统配置</translation>
     </message>
     <message>
         <location filename="constdef.h" line="10"/>

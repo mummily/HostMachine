@@ -108,13 +108,15 @@ void HostMachine::initUI()
     // ²Ëµ¥À¸
     m_pActIPSetting = menuBar()->addAction(qApp->translate(c_sHostMachine, c_sIPSetting));
     m_pActIPSetting->setStatusTip(m_pActIPSetting->text());
-    m_pActSystemConfig = menuBar()->addAction(qApp->translate(c_sHostMachine, c_sSystemSetting));
-    m_pActSystemConfig->setStatusTip(m_pActSystemConfig->text());
     m_menuSystemControl = menuBar()->addMenu(qApp->translate(c_sHostMachine, c_sSystemOperation));
     m_menuSystemControl->setStatusTip(m_menuSystemControl->title());
     {
         m_menuSystemControl->addAction(m_pActCheckSelf);
         m_menuSystemControl->addAction(m_pActFormat);
+
+        sIcon = QString("%1/Image/config.png").arg(qApp->applicationDirPath());
+        m_pActSystemConfig = m_menuSystemControl->addAction(QIcon(sIcon), qApp->translate(c_sHostMachine, c_sSystemConfig));
+        m_pActSystemConfig->setStatusTip(m_pActSystemConfig->text());
     }
     m_pActAbout = menuBar()->addAction(qApp->translate(c_sHostMachine, c_sAbout));
     m_pActAbout->setStatusTip(m_pActAbout->text());
@@ -985,7 +987,15 @@ void HostMachine::slotSystemConfig()
 *****************************************************************************/
 void HostMachine::slotRecord()
 {
+    quint32 type = CS_Record;
+    quint32 areano = 0;
+    quint64 time = QDateTime::currentMSecsSinceEpoch();
+    char* filename = new char[128];
+    memset(filename, 0, sizeof(filename));
+    QString sFileName = "D:/123.txt";
+    strcpy(filename, (const char*)sFileName.toLocal8Bit());
 
+    delete[] filename;
 }
 
 /*****************************************************************************
@@ -1128,7 +1138,6 @@ void HostMachine::readSystemConfig(quint32 state)
 *****************************************************************************/
 void HostMachine::readRecord(quint32 area, quint32 state)
 {
-
 }
 
 /*****************************************************************************

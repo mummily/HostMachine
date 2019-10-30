@@ -6,7 +6,7 @@ static const char *c_sTitle = QT_TRANSLATE_NOOP("HostMachine", "网络应用软件");
 
 // 系统菜单
 static const char *c_sIPSetting = QT_TRANSLATE_NOOP("HostMachine", "IP设置");
-static const char *c_sSystemSetting = QT_TRANSLATE_NOOP("HostMachine", "系统设置");
+static const char *c_sSystemConfig = QT_TRANSLATE_NOOP("HostMachine", "系统配置");
 static const char *c_sSystemOperation = QT_TRANSLATE_NOOP("HostMachine", "系统操作");
 static const char *c_sAbout = QT_TRANSLATE_NOOP("HostMachine", "关于");
 
