@@ -2,6 +2,7 @@
 #include "QDataStream"
 #include "QDateTime"
 #include "QMessageBox"
+#include "QThread"
 
 ClientSocket::ClientSocket(QObject *parent)
     : QTcpSocket(parent)
@@ -25,15 +26,15 @@ void ClientSocket::readClient()
 
     quint32 requestType;
     in >> requestType;
-    if (requestType == 0x11) // 自检
+    if (requestType == CS_CheckSelf) // 自检
     {
         respondCheckSelf();
     }
     else if (requestType == CS_Format) // 格式化
     {
-        quint32 size0, size1;
-        in >> size0 >> size1;
-        respondFormat(size0, size1);
+        quint32 size0, size1, size2, size3, size4;
+        in >> size0 >> size1 >> size2 >> size3 >>size4;
+        respondFormat(size0, size1, size2, size3, size4);
     }
     else if (requestType == 0xB1) // 系统配置
     {
@@ -57,11 +58,30 @@ void ClientSocket::readClient()
 
 void ClientSocket::respondCheckSelf()
 {
-
+    QThread::currentThread()->sleep(5);
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out.setVersion(QDataStream::Qt_5_5);
+    out << quint32(SC_CheckSelf); // 类型码
+    for (int nIndex = 0; nIndex < 5; ++nIndex)
+    {
+        out << quint32(nIndex) // 分区号
+            << quint32(100) // 分区大小
+            << quint32(30)  // 分区未使用大小
+            << quint32(10)  // 分区文件个数
+            << quint32(0)   // 分区状态
+            << quint32(0)   // 通道状态
+            << quint32(0)   // 通道选择
+            << quint32(1)   // 带宽
+            << quint32(0)   // 固件版本号
+            << quint32(0);  // FPGA版本号
+    }
+    write(block);
 }
 
-void ClientSocket::respondFormat(quint32 size0, quint32 size1)
+void ClientSocket::respondFormat(quint32 size0, quint32 size1, quint32 size2, quint32 size3, quint32 size4)
 {
+    QThread::currentThread()->sleep(3);
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
     out.setVersion(QDataStream::Qt_5_5);

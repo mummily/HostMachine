@@ -54,15 +54,11 @@ struct tagTaskInfo
 // 自检应答-自检信息
 struct tagCheckSelf
 {
-    quint32 totalsize;
-    quint32 areasize0;
-    quint32 areaunuse0;
-    quint32 areafilenum0;
-    quint32 areastate0;
-    quint32 areasize1;
-    quint32 areaunuse1;
-    quint32 areafilenum1;
-    quint32 areastate1;
+    quint32 area;
+    quint32 areasize;
+    quint32 areaunuse;
+    quint32 areafilenum;
+    quint32 areastate;
     quint32 state;
     quint32 choice;
     quint32 bandwidth;
@@ -135,7 +131,7 @@ private:
         void slotTaskStop();
 
 private:
-    void readCheckSelf(tagCheckSelf& checkSelf);
+    void readCheckSelf();
     void readFormat(quint32 state);
     void readSystemConfig(quint32 state);
     void readRecord(quint32 area, quint32 state);
@@ -147,6 +143,9 @@ private:
     void readRefresh();
     void readTaskQuery(list<tagTaskInfo>& lstTaskInfo);
     void readTaskStop(qint32 tasktype, qint32 taskrespond);
+
+private:
+    list<tagCheckSelf> m_lstCheckSelf;
 
 private:
     QAction                 *m_pActCheckSelf;   // 自检

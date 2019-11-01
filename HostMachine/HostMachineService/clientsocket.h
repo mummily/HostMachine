@@ -47,7 +47,7 @@ public:
     ~ClientSocket();
 
     void respondCheckSelf();
-    void respondFormat(quint32 size0, quint32 size1);
+    void respondFormat(quint32 size0, quint32 size1, quint32 size2, quint32 size3, quint32 size4);
 private slots:
     void readClient();
 };

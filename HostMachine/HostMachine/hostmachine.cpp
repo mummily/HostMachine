@@ -824,12 +824,25 @@ void HostMachine::readyRead()
     in >> respondType;
     if (respondType == SC_CheckSelf)
     {
-        tagCheckSelf checkSelf;
-        in >> checkSelf.totalsize >> checkSelf.areasize0 >> checkSelf.areaunuse0 >> checkSelf.areafilenum0 >> checkSelf.areastate0
-            >> checkSelf.areasize1 >> checkSelf.areaunuse1 >> checkSelf.areafilenum1 >> checkSelf.areastate1 >> checkSelf.state
-            >> checkSelf.choice >> checkSelf.bandwidth >> checkSelf.hardversion >> checkSelf.fpgaversion;
+        m_lstCheckSelf.clear();
+        for (int nIndex = 0; nIndex < 5; ++nIndex)
+        {
+            tagCheckSelf checkSelf;
+            in >> checkSelf.area
+                >> checkSelf.areasize
+                >> checkSelf.areaunuse
+                >> checkSelf.areafilenum
+                >> checkSelf.areastate
+                >> checkSelf.state
+                >> checkSelf.choice
+                >> checkSelf.bandwidth
+                >> checkSelf.hardversion
+                >> checkSelf.fpgaversion;
 
-        readCheckSelf(checkSelf);
+            m_lstCheckSelf.push_back(checkSelf);
+        }
+
+        readCheckSelf();
     }
     else if (respondType == SC_Format)
     {
@@ -942,13 +955,13 @@ void HostMachine::slotIPSetting()
 *****************************************************************************/
 void HostMachine::slotCheckSelf()
 {
+    qDebug() << "HostMachine::slotCheckSelf";
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
-    out << quint32(0) << "slotCheckSelf" << QDateTime::currentDateTime().toString();
-    out.device()->seek(0);
-    out << quint32(block.size() - sizeof(quint32));
+    out << CS_CheckSelf;
 
     m_pTcpSocket->write(block);
+    m_pTcpSocket->waitForReadyRead();
 }
 
 /*****************************************************************************
@@ -959,13 +972,13 @@ void HostMachine::slotCheckSelf()
 *****************************************************************************/
 void HostMachine::slotFormat()
 {
+    qDebug() << "HostMachine::slotFormat";
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
-    out << quint32(0) << CS_Format << quint32(100) << quint32(200);
-    out.device()->seek(0);
-    out << quint32(block.size() - sizeof(quint32));
+    out << CS_Format << quint32(100) << quint32(200) << quint32(300) << quint32(400) << quint32(500);
 
     m_pTcpSocket->write(block);
+    m_pTcpSocket->waitForReadyRead();
 }
 
 /*****************************************************************************
@@ -1100,9 +1113,9 @@ void HostMachine::slotTaskStop()
 * @date    : 2019/10/28
 * @param:  : 
 *****************************************************************************/
-void HostMachine::readCheckSelf(tagCheckSelf& checkSelf)
+void HostMachine::readCheckSelf()
 {
-
+    qDebug() << "HostMachine::readCheckSelf";
 }
 
 /*****************************************************************************
@@ -1113,7 +1126,7 @@ void HostMachine::readCheckSelf(tagCheckSelf& checkSelf)
 *****************************************************************************/
 void HostMachine::readFormat(quint32 state)
 {
-
+    qDebug() << "HostMachine::readFormat";
 }
 
 /*****************************************************************************
