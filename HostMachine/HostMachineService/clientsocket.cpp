@@ -67,15 +67,17 @@ void ClientSocket::respondCheckSelf()
     {
         out << quint32(nIndex) // 分区号
             << quint32(100) // 分区大小
-            << quint32(30)  // 分区未使用大小
-            << quint32(10)  // 分区文件个数
-            << quint32(0)   // 分区状态
-            << quint32(0)   // 通道状态
-            << quint32(0)   // 通道选择
-            << quint32(1)   // 带宽
-            << quint32(0)   // 固件版本号
-            << quint32(0);  // FPGA版本号
+            << quint32(qrand() % 100)  // 分区未使用大小
+            << quint32(qrand() % 10)  // 分区文件个数
+            << quint32(qrand() % 3);  // 分区状态
     }
+
+    out << quint32(qrand() % 1)   // 通道状态
+        << quint32(qrand() % 1)   // 通道选择
+        << quint32(qrand() % 5)   // 带宽
+        << quint32(0)   // 固件版本号
+        << quint32(0);  // FPGA版本号
+
     write(block);
 }
 

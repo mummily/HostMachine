@@ -26,6 +26,7 @@
 #include "dlgipsetting.h"
 #include "constdef.h"
 #include "qtpropertymanager.h"
+#include "decorateddoublepropertymanager.h"
 
 HostMachine::HostMachine(QWidget *parent)
     : QMainWindow(parent)
@@ -35,7 +36,7 @@ HostMachine::HostMachine(QWidget *parent)
     initLayout();
     initConnect();
 
-    QTimer::singleShot(10, this, SLOT(slotIPSetting()));
+    QTimer::singleShot(10, this, SLOT(slotInit()));
 }
 
 HostMachine::~HostMachine()
@@ -230,17 +231,40 @@ void HostMachine::initLayout()
 void HostMachine::initConnect()
 {
     // Menubar & Toolbar
+    connect(m_pActIPSetting, SIGNAL(triggered(bool)), this, SLOT(slotLogRecord()));
     connect(m_pActIPSetting, SIGNAL(triggered(bool)), this, SLOT(slotIPSetting()));
+
+    connect(m_pActCheckSelf, SIGNAL(triggered(bool)), this, SLOT(slotLogRecord()));
     connect(m_pActCheckSelf, SIGNAL(triggered(bool)), this, SLOT(slotCheckSelf()));
+
+    connect(m_pActFormat, SIGNAL(triggered(bool)), this, SLOT(slotLogRecord()));
     connect(m_pActFormat, SIGNAL(triggered(bool)), this, SLOT(slotFormat()));
+
+    connect(m_pActSystemConfig, SIGNAL(triggered(bool)), this, SLOT(slotLogRecord()));
     connect(m_pActSystemConfig, SIGNAL(triggered(bool)), this, SLOT(slotSystemConfig()));
+
+    connect(m_pActRecord, SIGNAL(triggered(bool)), this, SLOT(slotLogRecord()));
     connect(m_pActRecord, SIGNAL(triggered(bool)), this, SLOT(slotRecord()));
+
+    connect(m_pActPlayBack, SIGNAL(triggered(bool)), this, SLOT(slotLogRecord()));
     connect(m_pActPlayBack, SIGNAL(triggered(bool)), this, SLOT(slotPlayBack()));
+
+    connect(m_pActImport, SIGNAL(triggered(bool)), this, SLOT(slotLogRecord()));
     connect(m_pActImport, SIGNAL(triggered(bool)), this, SLOT(slotImport()));
+
+    connect(m_pActExport, SIGNAL(triggered(bool)), this, SLOT(slotLogRecord()));
     connect(m_pActExport, SIGNAL(triggered(bool)), this, SLOT(slotExport()));
+
+    connect(m_pActStop, SIGNAL(triggered(bool)), this, SLOT(slotLogRecord()));
     connect(m_pActStop, SIGNAL(triggered(bool)), this, SLOT(slotStop()));
+
+    connect(m_pActDelete, SIGNAL(triggered(bool)), this, SLOT(slotLogRecord()));
     connect(m_pActDelete, SIGNAL(triggered(bool)), this, SLOT(slotDelete()));
+
+    connect(m_pActRefresh, SIGNAL(triggered(bool)), this, SLOT(slotLogRecord()));
     connect(m_pActRefresh, SIGNAL(triggered(bool)), this, SLOT(slotRefresh()));
+
+
 //     connect(m_pActTaskQuery, SIGNAL(triggered(bool)), this, SLOT(slotTaskQuery()));
 //     connect(m_pActTaskStop, SIGNAL(triggered(bool)), this, SLOT(slotTaskStop()));
 
@@ -392,14 +416,20 @@ void HostMachine::initLogWgt()
         << qApp->translate(c_sHostMachine, c_sLogHeader2);
 
     m_pLogWgt->setColumnCount(headerList.size());
+    m_pLogWgt->setColumnWidth(0, 150);
+
     m_pLogWgt->setHorizontalHeaderLabels(headerList);
     QHeaderView* headerView = m_pLogWgt->horizontalHeader();
     headerView->setDefaultAlignment(Qt::AlignLeft);
     headerView->setStretchLastSection(true);
-    // headerView->setSectionResizeMode(0, QHeaderView::ResizeToContents);
-    // headerView->setSectionResizeMode(1, QHeaderView::Stretch);
+    QHeaderView* verticalHeader = m_pLogWgt->verticalHeader();
+    verticalHeader->hide();                                // 行标题隐藏
+    verticalHeader->setDefaultSectionSize(20);             // 设置默认行高
 
-    m_pLogWgt->setShowGrid(true);
+    m_pLogWgt->setSelectionMode(QAbstractItemView::SingleSelection);    // 设置选择的模式为单选择
+    m_pLogWgt->setSelectionBehavior(QAbstractItemView::SelectRows);     // 设置选择行为时每次选择一行
+    m_pLogWgt->setEditTriggers(QAbstractItemView::NoEditTriggers);      // 设置表格为只读
+    m_pLogWgt->setShowGrid(true);                                       // 设置显示格子线
 }
 
 /*****************************************************************************
@@ -410,253 +440,265 @@ void HostMachine::initLogWgt()
 *****************************************************************************/
 void HostMachine::initPropertyWgt1()
 {
-    QtGroupPropertyManager *groupManager = new QtGroupPropertyManager(m_pPropertyWgt1);
-    QtStringPropertyManager *stringManager = new QtStringPropertyManager(m_pPropertyWgt1);
-    QtDoublePropertyManager *doubleManager = new QtDoublePropertyManager(m_pPropertyWgt1);
-    QtIntPropertyManager *intManager = new QtIntPropertyManager(m_pPropertyWgt1);
-    QtEnumPropertyManager *enumManager = new QtEnumPropertyManager(m_pPropertyWgt1);
+    m_groupManager = new QtGroupPropertyManager(m_pPropertyWgt1);
+    m_stringManager = new QtStringPropertyManager(m_pPropertyWgt1);
+    m_doubleManager = new QtDoublePropertyManager(m_pPropertyWgt1);
+    m_ddoubleManager = new DecoratedDoublePropertyManager(m_pPropertyWgt1);
+    m_intManager = new QtIntPropertyManager(m_pPropertyWgt1);
+    m_enumManager = new QtEnumPropertyManager(m_pPropertyWgt1);
+
+    QStringList enumAreastate;
+    enumAreastate << "" 
+        << qApp->translate(c_sHostMachine, c_sAreaState0)
+        << qApp->translate(c_sHostMachine, c_sAreaState1)
+        << qApp->translate(c_sHostMachine, c_sAreaState2)
+        << qApp->translate(c_sHostMachine, c_sAreaState3);
+
+    QStringList enumChannelstate;
+    enumChannelstate << "" 
+        << qApp->translate(c_sHostMachine, c_sChannelState0)
+        << qApp->translate(c_sHostMachine, c_sChannelState1);
+
+    QStringList enumChannelchoice;
+    enumChannelchoice << "" 
+        << qApp->translate(c_sHostMachine, c_sChannelChoice0)
+        << qApp->translate(c_sHostMachine, c_sChannelChoice1);
+
+    QStringList enumChannelWidth;
+    enumChannelWidth << "" << "1.25G" << "2G" << "2.5G" << "3.125G" << "5G" << "6.25G";
 
     // 原始数据分区
     {
-        QtProperty *topItem = groupManager->addProperty(qApp->translate(c_sHostMachine, c_sPropertyGroup1_1));
+        shared_ptr<tagAreaProperty> areaProperty = make_shared<tagAreaProperty>();
+        m_areaProperties.ldProperty1 = areaProperty;
 
-        QtProperty *item = doubleManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_1));
-        doubleManager->setValue(item, 20);
-        doubleManager->setMinimum(item, 0);
-        doubleManager->setMaximum(item, 100);
-        doubleManager->setSingleStep(item, 10);;
-        doubleManager->setDecimals(item, 3);
-        topItem->addSubProperty(item);
-
-        item = doubleManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_2));
-        doubleManager->setValue(item, 20);
-        doubleManager->setMinimum(item, 0);
-        doubleManager->setMaximum(item, 100);
-        doubleManager->setSingleStep(item, 10);;
-        doubleManager->setDecimals(item, 3);
-        topItem->addSubProperty(item);
-
-        item = doubleManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_3));
-        doubleManager->setValue(item, 20);
-        doubleManager->setMinimum(item, 0);
-        doubleManager->setMaximum(item, 100);
-        doubleManager->setSingleStep(item, 10);;
-        doubleManager->setDecimals(item, 3);
-        topItem->addSubProperty(item);
-
-        item = doubleManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_4));
-        doubleManager->setValue(item, 20);
-        doubleManager->setMinimum(item, 0);
-        doubleManager->setMaximum(item, 100);
-        doubleManager->setSingleStep(item, 10);;
-        doubleManager->setDecimals(item, 3);
-        topItem->addSubProperty(item);
-
-        item = enumManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_5));
-        QStringList enumNames;
-        enumNames << "Enum0" << "Enum1" << "Enum2" << "Enum3";
-        enumManager->setEnumNames(item, enumNames);
-        topItem->addSubProperty(item);
-
+        QtProperty *topItem = m_groupManager->addProperty(qApp->translate(c_sHostMachine, c_sPropertyGroup1_1));
         m_pPropertyWgt1->addProperty(topItem);
+
+        QtProperty *item = m_doubleManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_1));
+        areaProperty->pItem1 = item;
+        m_doubleManager->setValue(item, 0);
+        m_doubleManager->setMinimum(item, 0);
+        m_doubleManager->setDecimals(item, 3);
+        topItem->addSubProperty(item);
+
+        item = m_doubleManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_2));
+        areaProperty->pItem2 = item;
+        m_doubleManager->setValue(item, 0);
+        m_doubleManager->setMinimum(item, 0);
+        m_doubleManager->setDecimals(item, 3);
+        topItem->addSubProperty(item);
+
+        item = m_ddoubleManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_3));
+        areaProperty->pItem3 = item;
+        m_ddoubleManager->setValue(item, 0);
+        m_ddoubleManager->setMinimum(item, 0);
+        m_ddoubleManager->setSuffix(item, "%");
+        topItem->addSubProperty(item);
+
+        item = m_intManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_4));
+        areaProperty->pItem4 = item;
+        m_intManager->setValue(item, 0);
+        m_intManager->setMinimum(item, 0);
+        topItem->addSubProperty(item);
+
+        item = m_enumManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_5));
+        areaProperty->pItem5 = item;
+        m_enumManager->setEnumNames(item, enumAreastate);
+        m_enumManager->setValue(item, 0);
+        topItem->addSubProperty(item);
     }
     // 雷达结果分区
     {
-        QtProperty *topItem = groupManager->addProperty(qApp->translate(c_sHostMachine, c_sPropertyGroup1_2));
+        shared_ptr<tagAreaProperty> areaProperty = make_shared<tagAreaProperty>();
+        m_areaProperties.ldProperty2 = areaProperty;
 
-        QtProperty *item = doubleManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_1));
-        doubleManager->setValue(item, 20);
-        doubleManager->setMinimum(item, 0);
-        doubleManager->setMaximum(item, 100);
-        doubleManager->setSingleStep(item, 10);;
-        doubleManager->setDecimals(item, 3);
-        topItem->addSubProperty(item);
-
-        item = doubleManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_2));
-        doubleManager->setValue(item, 20);
-        doubleManager->setMinimum(item, 0);
-        doubleManager->setMaximum(item, 100);
-        doubleManager->setSingleStep(item, 10);;
-        doubleManager->setDecimals(item, 3);
-        topItem->addSubProperty(item);
-
-        item = doubleManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_3));
-        doubleManager->setValue(item, 20);
-        doubleManager->setMinimum(item, 0);
-        doubleManager->setMaximum(item, 100);
-        doubleManager->setSingleStep(item, 10);;
-        doubleManager->setDecimals(item, 3);
-        topItem->addSubProperty(item);
-
-        item = doubleManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_4));
-        doubleManager->setValue(item, 20);
-        doubleManager->setMinimum(item, 0);
-        doubleManager->setMaximum(item, 100);
-        doubleManager->setSingleStep(item, 10);;
-        doubleManager->setDecimals(item, 3);
-        topItem->addSubProperty(item);
-
-        item = enumManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_5));
-        QStringList enumNames;
-        enumNames << "Enum0" << "Enum1" << "Enum2" << "Enum3";
-        enumManager->setEnumNames(item, enumNames);
-        topItem->addSubProperty(item);
-
+        QtProperty *topItem = m_groupManager->addProperty(qApp->translate(c_sHostMachine, c_sPropertyGroup1_2));
         m_pPropertyWgt1->addProperty(topItem);
+
+        QtProperty *item = m_doubleManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_1));
+        areaProperty->pItem1 = item;
+        m_doubleManager->setValue(item, 0);
+        m_doubleManager->setMinimum(item, 0);
+        m_doubleManager->setDecimals(item, 3);
+        topItem->addSubProperty(item);
+
+        item = m_doubleManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_2));
+        areaProperty->pItem2 = item;
+        m_doubleManager->setValue(item, 0);
+        m_doubleManager->setMinimum(item, 0);
+        m_doubleManager->setDecimals(item, 3);
+        topItem->addSubProperty(item);
+
+        item = m_ddoubleManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_3));
+        areaProperty->pItem3 = item;
+        m_ddoubleManager->setValue(item, 0);
+        m_ddoubleManager->setMinimum(item, 0);
+        m_ddoubleManager->setDecimals(item, 2);
+        m_ddoubleManager->setSuffix(item, "%");
+        topItem->addSubProperty(item);
+
+        item = m_intManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_4));
+        areaProperty->pItem4 = item;
+        m_intManager->setValue(item, 0);
+        m_intManager->setMinimum(item, 0);
+        topItem->addSubProperty(item);
+
+        item = m_enumManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_5));
+        areaProperty->pItem5 = item;
+        m_enumManager->setEnumNames(item, enumAreastate);
+        m_enumManager->setValue(item, 0);
+        topItem->addSubProperty(item);
     }
     // 光电图片分区
     {
-        QtProperty *topItem = groupManager->addProperty(qApp->translate(c_sHostMachine, c_sPropertyGroup1_3));
+        shared_ptr<tagAreaProperty> areaProperty = make_shared<tagAreaProperty>();
+        m_areaProperties.gdProperty1 = areaProperty;
 
-        QtProperty *item = doubleManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_1));
-        doubleManager->setValue(item, 20);
-        doubleManager->setMinimum(item, 0);
-        doubleManager->setMaximum(item, 100);
-        doubleManager->setSingleStep(item, 10);;
-        doubleManager->setDecimals(item, 3);
-        topItem->addSubProperty(item);
-
-        item = doubleManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_2));
-        doubleManager->setValue(item, 20);
-        doubleManager->setMinimum(item, 0);
-        doubleManager->setMaximum(item, 100);
-        doubleManager->setSingleStep(item, 10);;
-        doubleManager->setDecimals(item, 3);
-        topItem->addSubProperty(item);
-
-        item = doubleManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_3));
-        doubleManager->setValue(item, 20);
-        doubleManager->setMinimum(item, 0);
-        doubleManager->setMaximum(item, 100);
-        doubleManager->setSingleStep(item, 10);;
-        doubleManager->setDecimals(item, 3);
-        topItem->addSubProperty(item);
-
-        item = doubleManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_4));
-        doubleManager->setValue(item, 20);
-        doubleManager->setMinimum(item, 0);
-        doubleManager->setMaximum(item, 100);
-        doubleManager->setSingleStep(item, 10);;
-        doubleManager->setDecimals(item, 3);
-        topItem->addSubProperty(item);
-
-        item = enumManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_5));
-        QStringList enumNames;
-        enumNames << "Enum0" << "Enum1" << "Enum2" << "Enum3";
-        enumManager->setEnumNames(item, enumNames);
-        topItem->addSubProperty(item);
-
+        QtProperty *topItem = m_groupManager->addProperty(qApp->translate(c_sHostMachine, c_sPropertyGroup1_3));
         m_pPropertyWgt1->addProperty(topItem);
+
+        QtProperty *item = m_doubleManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_1));
+        areaProperty->pItem1 = item;
+        m_doubleManager->setValue(item, 0);
+        m_doubleManager->setMinimum(item, 0);
+        m_doubleManager->setDecimals(item, 3);
+        topItem->addSubProperty(item);
+
+        item = m_doubleManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_2));
+        areaProperty->pItem2 = item;
+        m_doubleManager->setValue(item, 0);
+        m_doubleManager->setMinimum(item, 0);
+        m_doubleManager->setDecimals(item, 3);
+        topItem->addSubProperty(item);
+
+        item = m_ddoubleManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_3));
+        areaProperty->pItem3 = item;
+        m_ddoubleManager->setValue(item, 0);
+        m_ddoubleManager->setMinimum(item, 0);
+        m_ddoubleManager->setDecimals(item, 2);
+        m_ddoubleManager->setSuffix(item, "%");
+        topItem->addSubProperty(item);
+
+        item = m_intManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_4));
+        areaProperty->pItem4 = item;
+        m_intManager->setValue(item, 0);
+        m_intManager->setMinimum(item, 0);
+        topItem->addSubProperty(item);
+
+        item = m_enumManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_5));
+        areaProperty->pItem5 = item;
+        m_enumManager->setEnumNames(item, enumAreastate);
+        m_enumManager->setValue(item, 0);
+        topItem->addSubProperty(item);
     }
     // 光电视频分区
     {
-        QtProperty *topItem = groupManager->addProperty(qApp->translate(c_sHostMachine, c_sPropertyGroup1_4));
+        shared_ptr<tagAreaProperty> areaProperty = make_shared<tagAreaProperty>();
+        m_areaProperties.gdProperty2 = areaProperty;
 
-        QtProperty *item = doubleManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_1));
-        doubleManager->setValue(item, 20);
-        doubleManager->setMinimum(item, 0);
-        doubleManager->setMaximum(item, 100);
-        doubleManager->setSingleStep(item, 10);;
-        doubleManager->setDecimals(item, 3);
-        topItem->addSubProperty(item);
-
-        item = doubleManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_2));
-        doubleManager->setValue(item, 20);
-        doubleManager->setMinimum(item, 0);
-        doubleManager->setMaximum(item, 100);
-        doubleManager->setSingleStep(item, 10);;
-        doubleManager->setDecimals(item, 3);
-        topItem->addSubProperty(item);
-
-        item = doubleManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_3));
-        doubleManager->setValue(item, 20);
-        doubleManager->setMinimum(item, 0);
-        doubleManager->setMaximum(item, 100);
-        doubleManager->setSingleStep(item, 10);;
-        doubleManager->setDecimals(item, 3);
-        topItem->addSubProperty(item);
-
-        item = doubleManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_4));
-        doubleManager->setValue(item, 20);
-        doubleManager->setMinimum(item, 0);
-        doubleManager->setMaximum(item, 100);
-        doubleManager->setSingleStep(item, 10);;
-        doubleManager->setDecimals(item, 3);
-        topItem->addSubProperty(item);
-
-        item = enumManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_5));
-        QStringList enumNames;
-        enumNames << "Enum0" << "Enum1" << "Enum2" << "Enum3";
-        enumManager->setEnumNames(item, enumNames);
-        topItem->addSubProperty(item);
-
+        QtProperty *topItem = m_groupManager->addProperty(qApp->translate(c_sHostMachine, c_sPropertyGroup1_4));
         m_pPropertyWgt1->addProperty(topItem);
+
+        QtProperty *item = m_doubleManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_1));
+        areaProperty->pItem1 = item;
+        m_doubleManager->setValue(item, 0);
+        m_doubleManager->setMinimum(item, 0);
+        m_doubleManager->setDecimals(item, 3);
+        topItem->addSubProperty(item);
+
+        item = m_doubleManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_2));
+        areaProperty->pItem2 = item;
+        m_doubleManager->setValue(item, 0);
+        m_doubleManager->setMinimum(item, 0);
+        m_doubleManager->setDecimals(item, 3);
+        topItem->addSubProperty(item);
+
+        item = m_ddoubleManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_3));
+        areaProperty->pItem3 = item;
+        m_ddoubleManager->setValue(item, 0);
+        m_ddoubleManager->setMinimum(item, 0);
+        m_ddoubleManager->setSuffix(item, "%");
+        topItem->addSubProperty(item);
+
+        item = m_intManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_4));
+        areaProperty->pItem4 = item;
+        m_intManager->setValue(item, 0);
+        m_intManager->setMinimum(item, 0);
+        topItem->addSubProperty(item);
+
+        item = m_enumManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_5));
+        areaProperty->pItem5 = item;
+        m_enumManager->setEnumNames(item, enumAreastate);
+        m_enumManager->setValue(item, 0);
+        topItem->addSubProperty(item);
     }
     // 混合数据分区
     {
-        QtProperty *topItem = groupManager->addProperty(qApp->translate(c_sHostMachine, c_sPropertyGroup1_5));
+        shared_ptr<tagAreaProperty> areaProperty = make_shared<tagAreaProperty>();
+        m_areaProperties.hhProperty = areaProperty;
 
-        QtProperty *item = doubleManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_1));
-        doubleManager->setValue(item, 20);
-        doubleManager->setMinimum(item, 0);
-        doubleManager->setMaximum(item, 100);
-        doubleManager->setSingleStep(item, 10);;
-        doubleManager->setDecimals(item, 3);
-        topItem->addSubProperty(item);
-
-        item = doubleManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_2));
-        doubleManager->setValue(item, 20);
-        doubleManager->setMinimum(item, 0);
-        doubleManager->setMaximum(item, 100);
-        doubleManager->setSingleStep(item, 10);;
-        doubleManager->setDecimals(item, 3);
-        topItem->addSubProperty(item);
-
-        item = doubleManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_3));
-        doubleManager->setValue(item, 20);
-        doubleManager->setMinimum(item, 0);
-        doubleManager->setMaximum(item, 100);
-        doubleManager->setSingleStep(item, 10);;
-        doubleManager->setDecimals(item, 3);
-        topItem->addSubProperty(item);
-
-        item = doubleManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_4));
-        doubleManager->setValue(item, 20);
-        doubleManager->setMinimum(item, 0);
-        doubleManager->setMaximum(item, 100);
-        doubleManager->setSingleStep(item, 10);;
-        doubleManager->setDecimals(item, 3);
-        topItem->addSubProperty(item);
-
-        item = enumManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_5));
-        QStringList enumNames;
-        enumNames << "Enum0" << "Enum1" << "Enum2" << "Enum3";
-        enumManager->setEnumNames(item, enumNames);
-        topItem->addSubProperty(item);
-
+        QtProperty *topItem = m_groupManager->addProperty(qApp->translate(c_sHostMachine, c_sPropertyGroup1_5));
         m_pPropertyWgt1->addProperty(topItem);
+
+        QtProperty *item = m_doubleManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_1));
+        areaProperty->pItem1 = item;
+        m_doubleManager->setValue(item, 0);
+        m_doubleManager->setMinimum(item, 0);
+        m_doubleManager->setDecimals(item, 3);
+        topItem->addSubProperty(item);
+
+        item = m_doubleManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_2));
+        areaProperty->pItem2 = item;
+        m_doubleManager->setValue(item, 0);
+        m_doubleManager->setMinimum(item, 0);
+        m_doubleManager->setDecimals(item, 3);
+        topItem->addSubProperty(item);
+
+        item = m_ddoubleManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_3));
+        areaProperty->pItem3 = item;
+        m_ddoubleManager->setValue(item, 0);
+        m_ddoubleManager->setMinimum(item, 0);
+        m_ddoubleManager->setSuffix(item, "%");
+        topItem->addSubProperty(item);
+
+        item = m_intManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_4));
+        areaProperty->pItem4 = item;
+        m_intManager->setValue(item, 0);
+        m_intManager->setMinimum(item, 0);
+        topItem->addSubProperty(item);
+
+        item = m_enumManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_5));
+        areaProperty->pItem5 = item;
+        m_enumManager->setEnumNames(item, enumAreastate);
+        m_enumManager->setValue(item, 0);
+        topItem->addSubProperty(item);
     }
     // 参数信息
     {
-        QtProperty *topItem = groupManager->addProperty(qApp->translate(c_sHostMachine, c_sPropertyGroup1_6));
+        shared_ptr<tagChannelProperty> channelProperty = make_shared<tagChannelProperty>();
+        m_areaProperties.channelProperty = channelProperty;
 
-        QtProperty *item = enumManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_6));
-        QStringList enumNames1;
-        enumNames1 << "Enum0" << "Enum1" << "Enum2" << "Enum3";
-        enumManager->setEnumNames(item, enumNames1);
-        topItem->addSubProperty(item);
-
-        item = enumManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_7));
-        QStringList enumNames2;
-        enumNames2 << "Enum0" << "Enum1" << "Enum2" << "Enum3";
-        enumManager->setEnumNames(item, enumNames2);
-        topItem->addSubProperty(item);
-
-        item = intManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_8));
-        intManager->setValue(item, 20);
-        topItem->addSubProperty(item);
-
+        QtProperty *topItem = m_groupManager->addProperty(qApp->translate(c_sHostMachine, c_sPropertyGroup1_6));
         m_pPropertyWgt1->addProperty(topItem);
+
+        QtProperty *item = m_enumManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_6));
+        channelProperty->pItem1 = item;
+        m_enumManager->setEnumNames(item, enumChannelstate);
+        m_enumManager->setValue(item, 0);
+        topItem->addSubProperty(item);
+
+        item = m_enumManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_7));
+        channelProperty->pItem2 = item;
+        m_enumManager->setEnumNames(item, enumChannelchoice);
+        m_enumManager->setValue(item, 0);
+        topItem->addSubProperty(item);
+
+        item = m_enumManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_8));
+        channelProperty->pItem3 = item;
+        m_enumManager->setEnumNames(item, enumChannelWidth);
+        m_enumManager->setValue(item, 0);
+        topItem->addSubProperty(item);
     }
 
     m_pPropertyWgt1->setPropertiesWithoutValueMarked(true);
@@ -824,25 +866,33 @@ void HostMachine::readyRead()
     in >> respondType;
     if (respondType == SC_CheckSelf)
     {
-        m_lstCheckSelf.clear();
-        for (int nIndex = 0; nIndex < 5; ++nIndex)
-        {
-            tagCheckSelf checkSelf;
-            in >> checkSelf.area
-                >> checkSelf.areasize
-                >> checkSelf.areaunuse
-                >> checkSelf.areafilenum
-                >> checkSelf.areastate
-                >> checkSelf.state
-                >> checkSelf.choice
-                >> checkSelf.bandwidth
-                >> checkSelf.hardversion
-                >> checkSelf.fpgaversion;
+        tagCheckSelf checkSelf;
 
-            m_lstCheckSelf.push_back(checkSelf);
-        }
+        shared_ptr<tagAreaInfo> areaInfo = make_shared<tagAreaInfo>();
+        areaInfo->read(in);
+        checkSelf.areaInfo0 = areaInfo;
 
-        readCheckSelf();
+        areaInfo = make_shared<tagAreaInfo>();
+        areaInfo->read(in);
+        checkSelf.areaInfo1 = areaInfo;
+
+        areaInfo = make_shared<tagAreaInfo>();
+        areaInfo->read(in);
+        checkSelf.areaInfo2 = areaInfo;
+
+        areaInfo = make_shared<tagAreaInfo>();
+        areaInfo->read(in);
+        checkSelf.areaInfo3 = areaInfo;
+
+        areaInfo = make_shared<tagAreaInfo>();
+        areaInfo->read(in);
+        checkSelf.areaInfo4 = areaInfo;
+
+        shared_ptr<tagChannelInfo> channelInfo = make_shared<tagChannelInfo>();
+        channelInfo->read(in);
+        checkSelf.channelInfo = channelInfo;
+
+        readCheckSelf(checkSelf);
     }
     else if (respondType == SC_Format)
     {
@@ -955,7 +1005,6 @@ void HostMachine::slotIPSetting()
 *****************************************************************************/
 void HostMachine::slotCheckSelf()
 {
-    qDebug() << "HostMachine::slotCheckSelf";
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
     out << CS_CheckSelf;
@@ -972,7 +1021,6 @@ void HostMachine::slotCheckSelf()
 *****************************************************************************/
 void HostMachine::slotFormat()
 {
-    qDebug() << "HostMachine::slotFormat";
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
     out << CS_Format << quint32(100) << quint32(200) << quint32(300) << quint32(400) << quint32(500);
@@ -1113,9 +1161,26 @@ void HostMachine::slotTaskStop()
 * @date    : 2019/10/28
 * @param:  : 
 *****************************************************************************/
-void HostMachine::readCheckSelf()
+void HostMachine::readCheckSelf(tagCheckSelf &checkSelf)
 {
-    qDebug() << "HostMachine::readCheckSelf";
+    auto updatevalue=[&](shared_ptr<tagAreaProperty> areaProperty, shared_ptr<tagAreaInfo> areaInfo)->void
+    {
+        m_doubleManager->setValue(areaProperty->pItem1, areaInfo->areasize);
+        m_doubleManager->setValue(areaProperty->pItem2, areaInfo->areasize - areaInfo->areaunuse);
+        m_ddoubleManager->setValue(areaProperty->pItem3, areaInfo->areaunuse *100 / areaInfo->areasize);
+        m_intManager->setValue(areaProperty->pItem4, areaInfo->areafilenum);
+        m_enumManager->setValue(areaProperty->pItem5, areaInfo->areastate + 1);
+    };
+
+    updatevalue(m_areaProperties.ldProperty1, checkSelf.areaInfo0);
+    updatevalue(m_areaProperties.ldProperty2, checkSelf.areaInfo1);
+    updatevalue(m_areaProperties.gdProperty1, checkSelf.areaInfo2);
+    updatevalue(m_areaProperties.gdProperty2, checkSelf.areaInfo3);
+    updatevalue(m_areaProperties.hhProperty, checkSelf.areaInfo4);
+
+    m_enumManager->setValue(m_areaProperties.channelProperty->pItem1, checkSelf.channelInfo->state + 1);
+    m_enumManager->setValue(m_areaProperties.channelProperty->pItem2, checkSelf.channelInfo->choice + 1);
+    m_enumManager->setValue(m_areaProperties.channelProperty->pItem3, checkSelf.channelInfo->bandwidth + 1);
 }
 
 /*****************************************************************************
@@ -1239,4 +1304,50 @@ void HostMachine::readTaskQuery(list<tagTaskInfo>& lstTaskInfo)
 void HostMachine::readTaskStop(qint32 tasktype, qint32 taskrespond)
 {
 
+}
+
+/*****************************************************************************
+* @brief   : 点击Action时，日志记录
+* @author  : wb
+* @date    : 2019/11/02
+* @param:  : 无
+*****************************************************************************/
+void HostMachine::slotLogRecord()
+{
+    QAction* pAction = qobject_cast<QAction *>(sender());
+    if (NULL == pAction)
+        return;
+
+    logRecord(pAction->text());
+}
+
+/*****************************************************************************
+* @brief   : 日志记录
+* @author  : wb
+* @date    : 2019/11/02
+* @param:  : 传入的系统信息
+*****************************************************************************/
+void HostMachine::logRecord(QString sText)
+{
+    m_pLogWgt->setRowCount(m_pLogWgt->rowCount() + 1);
+    QTableWidgetItem *pItem0 = new QTableWidgetItem(QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss"));
+    m_pLogWgt->setItem(m_pLogWgt->rowCount() - 1, 0, pItem0);
+    QTableWidgetItem *pItem1 = new QTableWidgetItem(sText);
+    m_pLogWgt->setItem(m_pLogWgt->rowCount() - 1, 1, pItem1);
+    m_pLogWgt->scrollToBottom();
+}
+
+/*****************************************************************************
+* @brief   : 界面初始化后响应的槽函数
+* @author  : wb
+* @date    : 2019/11/02
+* @param:  : 无
+*****************************************************************************/
+void HostMachine::slotInit()
+{
+    // 日志记录：打开软件
+    logRecord(qApp->translate(c_sHostMachine, c_sLogOpenSoftware));
+
+    // 打开IP设置
+    emit m_pActIPSetting->triggered();
 }

@@ -76,6 +76,7 @@
     </message>
     <message>
         <location filename="constdef.h" line="25"/>
+        <location filename="constdef.h" line="110"/>
         <source>未连接</source>
         <translation>未连接</translation>
     </message>
@@ -161,206 +162,246 @@
         <translation>系统信息</translation>
     </message>
     <message>
-        <location filename="constdef.h" line="57"/>
+        <location filename="constdef.h" line="55"/>
+        <source>打开软件</source>
+        <translation>打开软件</translation>
+    </message>
+    <message>
+        <location filename="constdef.h" line="58"/>
         <source>序号</source>
         <translation>序号</translation>
     </message>
     <message>
-        <location filename="constdef.h" line="58"/>
-        <location filename="constdef.h" line="87"/>
+        <location filename="constdef.h" line="59"/>
+        <location filename="constdef.h" line="88"/>
         <source>所属分区</source>
         <translation>所属分区</translation>
     </message>
     <message>
-        <location filename="constdef.h" line="59"/>
+        <location filename="constdef.h" line="60"/>
         <source>任务类型</source>
         <translation>任务类型</translation>
     </message>
     <message>
-        <location filename="constdef.h" line="60"/>
+        <location filename="constdef.h" line="61"/>
         <source>任务开始时间</source>
         <translation>任务开始时间</translation>
     </message>
     <message>
-        <location filename="constdef.h" line="61"/>
+        <location filename="constdef.h" line="62"/>
         <source>总大小(GB)</source>
         <translation>总大小(GB)</translation>
     </message>
     <message>
-        <location filename="constdef.h" line="62"/>
+        <location filename="constdef.h" line="63"/>
         <source>已完成大小(GB)</source>
         <translation>已完成大小(GB)</translation>
     </message>
     <message>
-        <location filename="constdef.h" line="63"/>
+        <location filename="constdef.h" line="64"/>
         <source>百分比</source>
         <translation>百分比</translation>
     </message>
     <message>
-        <location filename="constdef.h" line="64"/>
+        <location filename="constdef.h" line="65"/>
         <source>速率(MB/S)</source>
         <translation>速率(MB/S)</translation>
     </message>
     <message>
-        <location filename="constdef.h" line="65"/>
+        <location filename="constdef.h" line="66"/>
         <source>状态</source>
         <translation>状态</translation>
     </message>
     <message>
-        <location filename="constdef.h" line="66"/>
+        <location filename="constdef.h" line="67"/>
         <source>耗时</source>
         <translation>耗时</translation>
     </message>
     <message>
-        <location filename="constdef.h" line="69"/>
+        <location filename="constdef.h" line="70"/>
         <source>磁盘控制面板</source>
         <translation>磁盘控制面板</translation>
     </message>
     <message>
-        <location filename="constdef.h" line="70"/>
+        <location filename="constdef.h" line="71"/>
         <source>原始数据分区</source>
         <translation>原始数据分区</translation>
     </message>
     <message>
-        <location filename="constdef.h" line="71"/>
+        <location filename="constdef.h" line="72"/>
         <source>雷达结果分区</source>
         <translation>雷达结果分区</translation>
     </message>
     <message>
-        <location filename="constdef.h" line="72"/>
+        <location filename="constdef.h" line="73"/>
         <source>光电图片分区</source>
         <translation>光电图片分区</translation>
     </message>
     <message>
-        <location filename="constdef.h" line="73"/>
+        <location filename="constdef.h" line="74"/>
         <source>光电视频分区</source>
         <translation>光电视频分区</translation>
     </message>
     <message>
-        <location filename="constdef.h" line="74"/>
+        <location filename="constdef.h" line="75"/>
         <source>混合数据分区</source>
         <translation>混合数据分区</translation>
     </message>
     <message>
-        <location filename="constdef.h" line="75"/>
+        <location filename="constdef.h" line="76"/>
         <source>参数信息</source>
         <translation>参数信息</translation>
     </message>
     <message>
-        <location filename="constdef.h" line="76"/>
+        <location filename="constdef.h" line="77"/>
         <source>总大小</source>
         <translation>总大小</translation>
     </message>
     <message>
-        <location filename="constdef.h" line="77"/>
+        <location filename="constdef.h" line="78"/>
         <source>已用大小</source>
         <translation>已用大小</translation>
     </message>
     <message>
-        <location filename="constdef.h" line="78"/>
+        <location filename="constdef.h" line="79"/>
         <source>未用百分比</source>
         <translation>未用百分比</translation>
     </message>
     <message>
-        <location filename="constdef.h" line="79"/>
+        <location filename="constdef.h" line="80"/>
         <source>文件数量</source>
         <translation>文件数量</translation>
     </message>
     <message>
-        <location filename="constdef.h" line="80"/>
+        <location filename="constdef.h" line="81"/>
         <source>当前状态</source>
         <translation>当前状态</translation>
     </message>
     <message>
-        <location filename="constdef.h" line="81"/>
+        <location filename="constdef.h" line="82"/>
         <source>通道连接状态</source>
         <translation>通道连接状态</translation>
     </message>
     <message>
-        <location filename="constdef.h" line="82"/>
+        <location filename="constdef.h" line="83"/>
         <source>通道选择状态</source>
         <translation>通道选择状态</translation>
     </message>
     <message>
-        <location filename="constdef.h" line="83"/>
+        <location filename="constdef.h" line="84"/>
         <source>通道带宽</source>
         <translation>通道带宽</translation>
     </message>
     <message>
-        <location filename="constdef.h" line="84"/>
+        <location filename="constdef.h" line="85"/>
         <source>基本参数</source>
         <translation>基本参数</translation>
     </message>
     <message>
-        <location filename="constdef.h" line="85"/>
+        <location filename="constdef.h" line="86"/>
         <source>导出参数</source>
         <translation>导出参数</translation>
     </message>
     <message>
-        <location filename="constdef.h" line="86"/>
+        <location filename="constdef.h" line="87"/>
         <source>回放参数</source>
         <translation>回放参数</translation>
     </message>
     <message>
-        <location filename="constdef.h" line="88"/>
+        <location filename="constdef.h" line="89"/>
         <source>记录文件名</source>
         <translation>记录文件名</translation>
     </message>
     <message>
-        <location filename="constdef.h" line="89"/>
+        <location filename="constdef.h" line="90"/>
         <source>导出路径</source>
         <translation>导出路径</translation>
     </message>
     <message>
-        <location filename="constdef.h" line="90"/>
-        <location filename="constdef.h" line="94"/>
+        <location filename="constdef.h" line="91"/>
+        <location filename="constdef.h" line="95"/>
         <source>文件编号</source>
         <translation>文件编号</translation>
     </message>
     <message>
-        <location filename="constdef.h" line="91"/>
+        <location filename="constdef.h" line="92"/>
         <source>原始文件大小</source>
         <translation>原始文件大小</translation>
     </message>
     <message>
-        <location filename="constdef.h" line="92"/>
+        <location filename="constdef.h" line="93"/>
         <source>文件偏移</source>
         <translation>文件偏移</translation>
     </message>
     <message>
-        <location filename="constdef.h" line="93"/>
+        <location filename="constdef.h" line="94"/>
         <source>导出文件大小</source>
         <translation>导出文件大小</translation>
     </message>
     <message>
-        <location filename="constdef.h" line="95"/>
+        <location filename="constdef.h" line="96"/>
         <source>PRF_TIME(us)</source>
         <translation>PRF_TIME(us)</translation>
     </message>
     <message>
-        <location filename="constdef.h" line="96"/>
+        <location filename="constdef.h" line="97"/>
         <source>NUM</source>
         <translation>NUM</translation>
     </message>
     <message>
-        <location filename="constdef.h" line="97"/>
+        <location filename="constdef.h" line="98"/>
         <source>HEAD_PRF(H)</source>
         <translation>HEAD_PRF(H)</translation>
     </message>
     <message>
-        <location filename="constdef.h" line="98"/>
+        <location filename="constdef.h" line="99"/>
         <source>HEAD_CPI(H)</source>
         <translation>HEAD_CPI(H)</translation>
     </message>
     <message>
-        <location filename="constdef.h" line="99"/>
+        <location filename="constdef.h" line="100"/>
         <source>确定</source>
         <translation>确定</translation>
     </message>
     <message>
-        <location filename="constdef.h" line="100"/>
+        <location filename="constdef.h" line="101"/>
         <source>取消</source>
         <translation>取消</translation>
+    </message>
+    <message>
+        <location filename="constdef.h" line="104"/>
+        <source>空闲</source>
+        <translation>空闲</translation>
+    </message>
+    <message>
+        <location filename="constdef.h" line="105"/>
+        <source>读</source>
+        <translation>读</translation>
+    </message>
+    <message>
+        <location filename="constdef.h" line="106"/>
+        <source>写</source>
+        <translation>写</translation>
+    </message>
+    <message>
+        <location filename="constdef.h" line="107"/>
+        <source>读写</source>
+        <translation>读写</translation>
+    </message>
+    <message>
+        <location filename="constdef.h" line="111"/>
+        <source>连接</source>
+        <translation>连接</translation>
+    </message>
+    <message>
+        <location filename="constdef.h" line="114"/>
+        <source>选择</source>
+        <translation>选择</translation>
+    </message>
+    <message>
+        <location filename="constdef.h" line="115"/>
+        <source>未选择</source>
+        <translation>未选择</translation>
     </message>
 </context>
 </TS>

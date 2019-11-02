@@ -52,6 +52,7 @@ static const char *c_sHHHeader4 = QT_TRANSLATE_NOOP("HostMachine", "创建时间");
 // 日志输出框
 static const char *c_sLogHeader1 = QT_TRANSLATE_NOOP("HostMachine", "操作时间");
 static const char *c_sLogHeader2 = QT_TRANSLATE_NOOP("HostMachine", "系统信息");
+static const char *c_sLogOpenSoftware = QT_TRANSLATE_NOOP("HostMachine", "打开软件");
 
 // 任务列表框
 static const char *c_sTaskHeader1 = QT_TRANSLATE_NOOP("HostMachine", "序号");
@@ -98,3 +99,17 @@ static const char *c_sProperty2_11 = QT_TRANSLATE_NOOP("HostMachine", "HEAD_PRF(
 static const char *c_sProperty2_12 = QT_TRANSLATE_NOOP("HostMachine", "HEAD_CPI(H)");
 static const char *c_sConfirm = QT_TRANSLATE_NOOP("HostMachine", "确定");
 static const char *c_sCancel = QT_TRANSLATE_NOOP("HostMachine", "取消");
+
+// 分区状态
+static const char *c_sAreaState0 = QT_TRANSLATE_NOOP("HostMachine", "空闲");
+static const char *c_sAreaState1 = QT_TRANSLATE_NOOP("HostMachine", "读");
+static const char *c_sAreaState2 = QT_TRANSLATE_NOOP("HostMachine", "写");
+static const char *c_sAreaState3 = QT_TRANSLATE_NOOP("HostMachine", "读写");
+
+// 通道状态
+static const char *c_sChannelState0 = QT_TRANSLATE_NOOP("HostMachine", "未连接");
+static const char *c_sChannelState1 = QT_TRANSLATE_NOOP("HostMachine", "连接");
+
+// 通道选择
+static const char *c_sChannelChoice0 = QT_TRANSLATE_NOOP("HostMachine", "选择");
+static const char *c_sChannelChoice1 = QT_TRANSLATE_NOOP("HostMachine", "未选择");

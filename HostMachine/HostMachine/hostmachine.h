@@ -3,7 +3,17 @@
 
 #include <QtWidgets/QMainWindow>
 #include <list>
+#include "QDataStream"
 using namespace std;
+
+class QtProperty;
+
+class QtGroupPropertyManager;
+class QtStringPropertyManager;
+class QtDoublePropertyManager;
+class QtIntPropertyManager;
+class QtEnumPropertyManager;
+class DecoratedDoublePropertyManager;
 
 // 请求类型
 enum RequestType
@@ -49,21 +59,113 @@ struct tagTaskInfo
     quint32 speed; // 任务速度
     quint32 percent; // 任务进度百分比
     quint32 state; // 任务状态 0-等待执行 1-执行中 2-已完成
+
+    tagTaskInfo()
+    {
+
+    }
 };
 
-// 自检应答-自检信息
-struct tagCheckSelf
+// 分区信息
+struct tagAreaInfo
 {
     quint32 area;
     quint32 areasize;
     quint32 areaunuse;
     quint32 areafilenum;
     quint32 areastate;
+
+    tagAreaInfo()
+    {
+
+    }
+
+    void read(QDataStream& in)
+    {
+        in >> area
+            >> areasize
+            >> areaunuse
+            >> areafilenum
+            >> areastate;
+    }
+};
+
+// 通道信息
+struct tagChannelInfo
+{
     quint32 state;
     quint32 choice;
     quint32 bandwidth;
     quint32 hardversion;
     quint32 fpgaversion;
+
+    tagChannelInfo()
+    {
+
+    }
+
+    void read(QDataStream& in)
+    {
+        in>> state
+            >> choice
+            >> bandwidth
+            >> hardversion
+            >> fpgaversion;
+    }
+};
+
+// 自检应答-自检信息
+struct tagCheckSelf
+{
+    shared_ptr<tagAreaInfo> areaInfo0, areaInfo1, areaInfo2, areaInfo3, areaInfo4;
+    shared_ptr<tagChannelInfo> channelInfo;
+
+    tagCheckSelf()
+    {
+
+    }
+};
+
+// 分区属性
+struct tagAreaProperty
+{
+    QtProperty* pItem1;
+    QtProperty* pItem2;
+    QtProperty* pItem3;
+    QtProperty* pItem4;
+    QtProperty* pItem5;
+
+    tagAreaProperty()
+    {
+
+    }
+};
+
+struct tagChannelProperty
+{
+    QtProperty* pItem1;
+    QtProperty* pItem2;
+    QtProperty* pItem3;
+    
+    tagChannelProperty()
+    {
+
+    }
+};
+
+struct tagAreaProperties
+{
+    shared_ptr<tagAreaProperty> ldProperty1;
+    shared_ptr<tagAreaProperty> ldProperty2;
+    shared_ptr<tagAreaProperty> gdProperty1;
+    shared_ptr<tagAreaProperty> gdProperty2;
+    shared_ptr<tagAreaProperty> hhProperty;
+    shared_ptr<tagChannelProperty> channelProperty;
+    
+    tagAreaProperties()
+    {
+
+    }
 };
 
 class QTableWidget;
@@ -129,9 +231,13 @@ private:
         void slotTaskQuery();
         // 任务停止
         void slotTaskStop();
+        // 日志记录
+        void slotLogRecord();
+        // Init
+        void slotInit();
 
 private:
-    void readCheckSelf();
+    void readCheckSelf(tagCheckSelf &checkSelf);
     void readFormat(quint32 state);
     void readSystemConfig(quint32 state);
     void readRecord(quint32 area, quint32 state);
@@ -144,8 +250,10 @@ private:
     void readTaskQuery(list<tagTaskInfo>& lstTaskInfo);
     void readTaskStop(qint32 tasktype, qint32 taskrespond);
 
+    void logRecord(QString sText);
+
 private:
-    list<tagCheckSelf> m_lstCheckSelf;
+    tagAreaProperties       m_areaProperties;
 
 private:
     QAction                 *m_pActCheckSelf;   // 自检
@@ -178,6 +286,13 @@ private:
 
     QSplitter               *m_pSplitter;
     QLabel                  *m_pStateLabel;     // 状态
+
+    QtGroupPropertyManager  *m_groupManager;
+    QtStringPropertyManager *m_stringManager;
+    QtDoublePropertyManager *m_doubleManager;
+    DecoratedDoublePropertyManager *m_ddoubleManager;
+    QtIntPropertyManager    *m_intManager;
+    QtEnumPropertyManager   *m_enumManager;
 };
 
 #endif // HOSTMACHINE_H
