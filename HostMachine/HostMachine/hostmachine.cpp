@@ -27,6 +27,7 @@
 #include "constdef.h"
 #include "qtpropertymanager.h"
 #include "decorateddoublepropertymanager.h"
+#include "dlgareaformat.h"
 
 HostMachine::HostMachine(QWidget *parent)
     : QMainWindow(parent)
@@ -1021,9 +1022,17 @@ void HostMachine::slotCheckSelf()
 *****************************************************************************/
 void HostMachine::slotFormat()
 {
+    DlgAreaFormat dlg(this);
+    if (QDialog::Accepted != dlg.exec())
+        return;
+
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
-    out << CS_Format << quint32(100) << quint32(200) << quint32(300) << quint32(400) << quint32(500);
+    out << CS_Format << quint32(dlg.Size1())
+        << quint32(dlg.Size2())
+        << quint32(dlg.Size3())
+        << quint32(dlg.Size4())
+        << quint32(dlg.Size5());
 
     m_pTcpSocket->write(block);
     m_pTcpSocket->waitForReadyRead();
