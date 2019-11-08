@@ -19,6 +19,7 @@
 #include <QPushButton>
 #include <QTimer>
 #include <QMessageBox>
+#include <QFileDialog>
 
 #include <QTcpSocket>
 #include <QTcpServer>
@@ -28,10 +29,23 @@
 #include "qtpropertymanager.h"
 #include "decorateddoublepropertymanager.h"
 #include "dlgareaformat.h"
+#include "dlgsystemconfig.h"
+#include "dlgarearecord.h"
+#include "dlgfileplayblack.h"
+#include "dlgfileexport.h"
+
+static const char *c_sImportFileTip = QT_TRANSLATE_NOOP("HostMachine", "选择要导入的文件");
+static const char *c_sImportFileExt = QT_TRANSLATE_NOOP("HostMachine", "DAT文件 (*.dat)");
+static const char *c_sIsStop = QT_TRANSLATE_NOOP("HostMachine", "是否停止？");
+static const char *c_sIsDelete = QT_TRANSLATE_NOOP("HostMachine", "是否删除？");
+static const char *c_sYes = QT_TRANSLATE_NOOP("HostMachine", "是");
+static const char *c_sNo = QT_TRANSLATE_NOOP("HostMachine", "否");
 
 HostMachine::HostMachine(QWidget *parent)
     : QMainWindow(parent)
 {
+    memset(&m_areaProperties, 0, sizeof(tagAreaProperties));
+
     initUI();
     initTcp();
     initLayout();
@@ -678,6 +692,7 @@ void HostMachine::initPropertyWgt1()
     // 参数信息
     {
         shared_ptr<tagChannelProperty> channelProperty = make_shared<tagChannelProperty>();
+        memset(channelProperty.get(), 0, sizeof(tagChannelProperty));
         m_areaProperties.channelProperty = channelProperty;
 
         QtProperty *topItem = m_groupManager->addProperty(qApp->translate(c_sHostMachine, c_sPropertyGroup1_6));
@@ -868,28 +883,35 @@ void HostMachine::readyRead()
     if (respondType == SC_CheckSelf)
     {
         tagCheckSelf checkSelf;
+        memset(&checkSelf, 0, sizeof(tagCheckSelf));
 
         shared_ptr<tagAreaInfo> areaInfo = make_shared<tagAreaInfo>();
+        memset(areaInfo.get(), 0, sizeof(tagAreaInfo));
         areaInfo->read(in);
         checkSelf.areaInfo0 = areaInfo;
 
         areaInfo = make_shared<tagAreaInfo>();
+        memset(areaInfo.get(), 0, sizeof(tagAreaInfo));
         areaInfo->read(in);
         checkSelf.areaInfo1 = areaInfo;
 
         areaInfo = make_shared<tagAreaInfo>();
+        memset(areaInfo.get(), 0, sizeof(tagAreaInfo));
         areaInfo->read(in);
         checkSelf.areaInfo2 = areaInfo;
 
         areaInfo = make_shared<tagAreaInfo>();
+        memset(areaInfo.get(), 0, sizeof(tagAreaInfo));
         areaInfo->read(in);
         checkSelf.areaInfo3 = areaInfo;
 
         areaInfo = make_shared<tagAreaInfo>();
+        memset(areaInfo.get(), 0, sizeof(tagAreaInfo));
         areaInfo->read(in);
         checkSelf.areaInfo4 = areaInfo;
 
         shared_ptr<tagChannelInfo> channelInfo = make_shared<tagChannelInfo>();
+        memset(channelInfo.get(), 0, sizeof(tagChannelInfo));
         channelInfo->read(in);
         checkSelf.channelInfo = channelInfo;
 
@@ -953,7 +975,31 @@ void HostMachine::readyRead()
     }
     else if (respondType == SC_Refresh)
     {
-        readRefresh();
+        tagAreaFileInfos fileInfos;
+        memset(&fileInfos, 0, sizeof(tagAreaFileInfos));
+        in >> fileInfos.areano >> fileInfos.fileno >> fileInfos.filenum;
+
+        list<shared_ptr<tagAreaFileInfo>> lstFileInfo;
+        for (int nIndex=0;nIndex<fileInfos.filenum;++nIndex)
+        {
+            char* filename = new char[128];
+            memset(filename, 0, sizeof(char)*128);
+
+            quint64 datetime;
+            quint32 fileno;
+            float filesize;
+            in >> filename >> datetime >> fileno >> filesize;
+
+            shared_ptr<tagAreaFileInfo> spFileInfo = make_shared<tagAreaFileInfo>();
+            spFileInfo->sFileName = QString::fromLocal8Bit(filename);
+            spFileInfo->datetime = QDateTime::fromMSecsSinceEpoch(datetime);
+            spFileInfo->fileno = fileno;
+            spFileInfo->filesize = filesize;
+
+            lstFileInfo.push_back(spFileInfo);
+        }
+        fileInfos.lstFileInfo.swap(lstFileInfo);
+        readRefresh(fileInfos);
     }
     else if (respondType == SC_TaskQuery)
     {
@@ -965,6 +1011,7 @@ void HostMachine::readyRead()
             for (int index=0;index<tasknum;++index)
             {
                 tagTaskInfo taskInfo;
+                memset(&taskInfo, 0, sizeof(tagTaskInfo));
                 in >> taskInfo.flag >> taskInfo.area >> taskInfo.type
                     >> taskInfo.finishedsize >> taskInfo.speed >> taskInfo.percent >> taskInfo.state;
                 lstTaskInfo.push_back(taskInfo);
@@ -1046,7 +1093,17 @@ void HostMachine::slotFormat()
 *****************************************************************************/
 void HostMachine::slotSystemConfig()
 {
+    DlgSystemConfig dlg(this);
+    if (QDialog::Accepted != dlg.exec())
+        return;
 
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out << CS_Format << quint32(dlg.Choice())
+        << quint32(dlg.Bandwidth());
+
+    m_pTcpSocket->write(block);
+    m_pTcpSocket->waitForReadyRead();
 }
 
 /*****************************************************************************
@@ -1057,15 +1114,28 @@ void HostMachine::slotSystemConfig()
 *****************************************************************************/
 void HostMachine::slotRecord()
 {
-    quint32 type = CS_Record;
-    quint32 areano = 0;
+    DlgAreaRecord dlg(this);
+    if (QDialog::Accepted != dlg.exec())
+        return;
+
+    quint32 areano = dlg.Area(); 
     quint64 time = QDateTime::currentMSecsSinceEpoch();
     char* filename = new char[128];
-    memset(filename, 0, sizeof(filename));
-    QString sFileName = "D:/123.txt";
-    strcpy(filename, (const char*)sFileName.toLocal8Bit());
+    memset(filename, 0, sizeof(char)*128);
+    QString sFileName = dlg.Filename();
 
-    delete[] filename;
+    QByteArray ba = sFileName.toLatin1();
+    filename = ba.data();
+
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out << CS_Record << areano << time;
+    out.writeBytes(filename, 128-4);
+
+    m_pTcpSocket->write(block);
+    m_pTcpSocket->waitForReadyRead();
+
+    // delete[] filename;
 }
 
 /*****************************************************************************
@@ -1076,7 +1146,18 @@ void HostMachine::slotRecord()
 *****************************************************************************/
 void HostMachine::slotPlayBack()
 {
+    DlgFilePlayblack dlg(this);
+    if (QDialog::Accepted != dlg.exec())
+        return;
 
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+#pragma message("HostMachine::slotPlayBack 完善分区号、文件编号")
+    out << CS_PlayBack << quint32(0) << quint32(0) // 文件编号
+        << dlg.Type() << dlg.Prftime() << dlg.Datanum() << dlg.Prf() << dlg.Cpi();
+
+    m_pTcpSocket->write(block);
+    m_pTcpSocket->waitForReadyRead();
 }
 
 /*****************************************************************************
@@ -1087,15 +1168,36 @@ void HostMachine::slotPlayBack()
 *****************************************************************************/
 void HostMachine::slotImport()
 {
+#pragma message("HostMachine::slotImport 导入是选定一个分区执行导入，可单个可批量")
+
+    QString sFile = QFileDialog::getOpenFileName(
+        this, qApp->translate(c_sHostMachine, c_sImportFileTip),
+        "/",
+        qApp->translate(c_sHostMachine, c_sImportFileExt));
+    if (sFile.isEmpty())
+        return;
+
+    QFileInfo info(sFile);
+
     // 分区号
     quint32 areano = 0;
-    quint32 filesize = 5;
+    float filesize = info.size() / 1024.0;
     // 开始时间
     qint64 startTime = QDateTime::currentMSecsSinceEpoch();
     // 文件名
-    QChar* filename = new QChar[128];
-    QString sFileName(filename);
-    delete filename;
+    char* filename = new char[128];
+    memset(filename, 0, sizeof(char)*128);
+    QByteArray ba = sFile.toLatin1();
+    filename = ba.data();
+
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out << CS_Import << areano << filesize
+        << startTime;
+    out.writeBytes(filename, 128-4);
+
+    m_pTcpSocket->write(block);
+    m_pTcpSocket->waitForReadyRead();
 }
 
 /*****************************************************************************
@@ -1106,7 +1208,34 @@ void HostMachine::slotImport()
 *****************************************************************************/
 void HostMachine::slotExport()
 {
+    // 分区号
+    quint32 areano = 0;
 
+    // 1个执行单个导出 >1个执行多个导出
+    int nCount = 1;
+
+    if (nCount == 1)
+    {
+        float filesize = 1.3;
+        DlgFileExport dlg(filesize, this);
+        if (QDialog::Accepted != dlg.exec())
+            return;
+
+        // 文件编号
+        quint32 fileno = 1;
+
+        QByteArray block;
+        QDataStream out(&block, QIODevice::WriteOnly);
+        out << CS_Export << areano << fileno
+            << dlg.Startpos() << dlg.Exportsize();
+
+        m_pTcpSocket->write(block);
+        m_pTcpSocket->waitForReadyRead();
+    }
+    else
+    {
+#pragma message("HostMachine::slotExport 批量导出")
+    }
 }
 
 /*****************************************************************************
@@ -1117,7 +1246,26 @@ void HostMachine::slotExport()
 *****************************************************************************/
 void HostMachine::slotStop()
 {
+    QMessageBox box(this);
+    box.setWindowTitle(qApp->translate(c_sHostMachine, c_sTitle));
+    box.setText(qApp->translate(c_sHostMachine, c_sIsStop));
+    box.setIcon(QMessageBox::Question);
+    box.addButton(qApp->translate(c_sHostMachine, c_sYes), QMessageBox::RejectRole);
+    box.addButton(qApp->translate(c_sHostMachine, c_sNo), QMessageBox::AcceptRole);
+    if (QMessageBox::AcceptRole != box.exec())
+    {
+        return;
+    }
 
+    // 分区号
+    quint32 areano = 0;
+
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out << CS_Stop << areano;
+
+    m_pTcpSocket->write(block);
+    m_pTcpSocket->waitForReadyRead();
 }
 
 /*****************************************************************************
@@ -1128,7 +1276,30 @@ void HostMachine::slotStop()
 *****************************************************************************/
 void HostMachine::slotDelete()
 {
+#pragma message("HostMachine::slotDelete 批量删除")
+    QMessageBox box(this);
+    box.setWindowTitle(qApp->translate(c_sHostMachine, c_sTitle));
+    box.setText(qApp->translate(c_sHostMachine, c_sIsDelete));
+    box.setIcon(QMessageBox::Question);
+    box.addButton(qApp->translate(c_sHostMachine, c_sYes), QMessageBox::RejectRole);
+    box.addButton(qApp->translate(c_sHostMachine, c_sNo), QMessageBox::AcceptRole);
+    if (QMessageBox::AcceptRole != box.exec())
+    {
+        return;
+    }
 
+    // 分区号
+    quint32 areano = 0;
+
+    // 文件编号
+    quint32 fileno = 1;
+
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out << CS_Delete << areano << fileno;
+
+    m_pTcpSocket->write(block);
+    m_pTcpSocket->waitForReadyRead();
 }
 
 /*****************************************************************************
@@ -1139,7 +1310,20 @@ void HostMachine::slotDelete()
 *****************************************************************************/
 void HostMachine::slotRefresh()
 {
+    // 分区号
+    quint32 areano = 0;
 
+    // 起始文件编号
+    quint32 fileno = 1;
+    // 刷新文件数
+    quint32 filenum = 8;
+
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out << CS_Refresh << areano << fileno << filenum;
+
+    m_pTcpSocket->write(block);
+    m_pTcpSocket->waitForReadyRead();
 }
 
 /*****************************************************************************
@@ -1200,7 +1384,7 @@ void HostMachine::readCheckSelf(tagCheckSelf &checkSelf)
 *****************************************************************************/
 void HostMachine::readFormat(quint32 state)
 {
-    qDebug() << "HostMachine::readFormat";
+    statusBar()->showMessage((state == 0x00) ? "format success" : "format error");
 }
 
 /*****************************************************************************
@@ -1211,10 +1395,7 @@ void HostMachine::readFormat(quint32 state)
 *****************************************************************************/
 void HostMachine::readSystemConfig(quint32 state)
 {
-    if (state == 0x00)
-    {
-        statusBar()->showMessage("format success");
-    }
+    statusBar()->showMessage((state == 0x00) ? "system config success" : "system config error");
 }
 
 /*****************************************************************************
@@ -1225,6 +1406,7 @@ void HostMachine::readSystemConfig(quint32 state)
 *****************************************************************************/
 void HostMachine::readRecord(quint32 area, quint32 state)
 {
+    statusBar()->showMessage((state == 0x00) ? "record success" : "record error");
 }
 
 /*****************************************************************************
@@ -1235,7 +1417,7 @@ void HostMachine::readRecord(quint32 area, quint32 state)
 *****************************************************************************/
 void HostMachine::readPlayBack(quint32 area, quint32 state)
 {
-
+    statusBar()->showMessage((state == 0x00) ? "playback success" : "playback error");
 }
 
 /*****************************************************************************
@@ -1246,7 +1428,7 @@ void HostMachine::readPlayBack(quint32 area, quint32 state)
 *****************************************************************************/
 void HostMachine::readImport(quint32 area, quint32 state)
 {
-
+    statusBar()->showMessage((state == 0x00) ? "import success" : "import error");
 }
 
 /*****************************************************************************
@@ -1257,7 +1439,7 @@ void HostMachine::readImport(quint32 area, quint32 state)
 *****************************************************************************/
 void HostMachine::readExport(quint32 area, quint32 state)
 {
-
+    statusBar()->showMessage((state == 0x00) ? "export success" : "export error");
 }
 
 /*****************************************************************************
@@ -1268,7 +1450,7 @@ void HostMachine::readExport(quint32 area, quint32 state)
 *****************************************************************************/
 void HostMachine::readStop(quint32 area, quint32 state)
 {
-
+    statusBar()->showMessage((state == 0x00) ? "stop success" : "stop error");
 }
 
 /*****************************************************************************
@@ -1279,7 +1461,7 @@ void HostMachine::readStop(quint32 area, quint32 state)
 *****************************************************************************/
 void HostMachine::readDelete(quint32 area, quint32 state)
 {
-
+    statusBar()->showMessage((state == 0x00) ? "delete success" : "delete error");
 }
 
 /*****************************************************************************
@@ -1288,9 +1470,9 @@ void HostMachine::readDelete(quint32 area, quint32 state)
 * @date    : 2019/10/28
 * @param:  : 
 *****************************************************************************/
-void HostMachine::readRefresh()
+void HostMachine::readRefresh(tagAreaFileInfos &fileInfos)
 {
-
+#pragma message("HostMachine::readRefresh 刷新文件列表区界面")
 }
 
 /*****************************************************************************

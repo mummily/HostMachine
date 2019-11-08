@@ -3,7 +3,8 @@
 
 #include <QtWidgets/QMainWindow>
 #include <list>
-#include "QDataStream"
+#include <QDataStream>
+#include <QDateTime>
 using namespace std;
 
 class QtProperty;
@@ -168,6 +169,31 @@ struct tagAreaProperties
     }
 };
 
+struct tagAreaFileInfo
+{
+    QString sFileName;
+    QDateTime datetime;
+    quint32 fileno;
+    float filesize;
+
+    tagAreaFileInfo()
+    {
+
+    }
+};
+
+struct tagAreaFileInfos
+{
+    quint32 areano;
+    quint32 fileno;
+    quint32 filenum;
+    list<shared_ptr<tagAreaFileInfo>> lstFileInfo;
+    tagAreaFileInfos()
+    {
+
+    }
+};
+
 class QTableWidget;
 class QTabWidget;
 class QSplitter;
@@ -246,7 +272,7 @@ private:
     void readExport(quint32 area, quint32 state);
     void readStop(quint32 area, quint32 state);
     void readDelete(quint32 area, quint32 state);
-    void readRefresh();
+    void readRefresh(tagAreaFileInfos &fileInfos);
     void readTaskQuery(list<tagTaskInfo>& lstTaskInfo);
     void readTaskStop(qint32 tasktype, qint32 taskrespond);
 

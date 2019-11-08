@@ -2,6 +2,87 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="zh_CN">
 <context>
+    <name>DlgFileExport</name>
+    <message>
+        <location filename="dlgfileexport.cpp" line="10"/>
+        <source>分段导出配置框</source>
+        <translation>分段导出配置框</translation>
+    </message>
+    <message>
+        <location filename="dlgfileexport.cpp" line="11"/>
+        <source>导出文件偏移</source>
+        <translation>导出文件偏移</translation>
+    </message>
+    <message>
+        <location filename="dlgfileexport.cpp" line="12"/>
+        <source>导出文件大小</source>
+        <translation>导出文件大小</translation>
+    </message>
+    <message>
+        <location filename="dlgfileexport.cpp" line="13"/>
+        <source>确定</source>
+        <translation>确定</translation>
+    </message>
+    <message>
+        <location filename="dlgfileexport.cpp" line="14"/>
+        <source>取消</source>
+        <translation>取消</translation>
+    </message>
+</context>
+<context>
+    <name>DlgFilePlayblack</name>
+    <message>
+        <location filename="dlgfileplayblack.cpp" line="12"/>
+        <source>回放参数</source>
+        <translation>回放参数</translation>
+    </message>
+    <message>
+        <location filename="dlgfileplayblack.cpp" line="13"/>
+        <source>回放类型</source>
+        <translation>回放类型</translation>
+    </message>
+    <message>
+        <location filename="dlgfileplayblack.cpp" line="14"/>
+        <source>主动回放</source>
+        <translation>主动回放</translation>
+    </message>
+    <message>
+        <location filename="dlgfileplayblack.cpp" line="15"/>
+        <source>被动回放</source>
+        <translation>被动回放</translation>
+    </message>
+    <message>
+        <location filename="dlgfileplayblack.cpp" line="16"/>
+        <source>PRF时间</source>
+        <translation>PRF时间</translation>
+    </message>
+    <message>
+        <location filename="dlgfileplayblack.cpp" line="17"/>
+        <source>数据个数</source>
+        <translation>数据个数</translation>
+    </message>
+    <message>
+        <location filename="dlgfileplayblack.cpp" line="18"/>
+        <source>PRF数据帧头</source>
+        <translation>PRF数据帧头</translation>
+    </message>
+    <message>
+        <location filename="dlgfileplayblack.cpp" line="19"/>
+        <source>CPI数据帧头</source>
+        <translation>CPI数据帧头</translation>
+    </message>
+    <message>
+        <location filename="dlgfileplayblack.cpp" line="21"/>
+        <source>确定</source>
+        <translation>确定</translation>
+    </message>
+    <message>
+        <location filename="dlgfileplayblack.cpp" line="22"/>
+        <source>取消</source>
+        <translation>取消</translation>
+    </message>
+</context>
+<context>
     <name>HostMachine</name>
     <message>
         <location filename="constdef.h" line="5"/>
@@ -402,6 +483,51 @@
         <location filename="constdef.h" line="115"/>
         <source>未选择</source>
         <translation>未选择</translation>
+    </message>
+    <message>
+        <location filename="constdef.h" line="118"/>
+        <source>分区号</source>
+        <translation>分区号</translation>
+    </message>
+    <message>
+        <location filename="constdef.h" line="119"/>
+        <source>文件名</source>
+        <translation>文件名</translation>
+    </message>
+    <message>
+        <location filename="constdef.h" line="120"/>
+        <source>请输入文件名</source>
+        <translation>请输入文件名</translation>
+    </message>
+    <message>
+        <location filename="hostmachine.cpp" line="37"/>
+        <source>选择要导入的文件</source>
+        <translation>选择要导入的文件</translation>
+    </message>
+    <message>
+        <location filename="hostmachine.cpp" line="38"/>
+        <source>DAT文件 (*.dat)</source>
+        <translation>DAT文件 (*.dat)</translation>
+    </message>
+    <message>
+        <location filename="hostmachine.cpp" line="39"/>
+        <source>是否停止？</source>
+        <translation>是否停止？</translation>
+    </message>
+    <message>
+        <location filename="hostmachine.cpp" line="40"/>
+        <source>是否删除？</source>
+        <translation>是否删除？</translation>
+    </message>
+    <message>
+        <location filename="hostmachine.cpp" line="41"/>
+        <source>是</source>
+        <translation>是</translation>
+    </message>
+    <message>
+        <location filename="hostmachine.cpp" line="42"/>
+        <source>否</source>
+        <translation>否</translation>
     </message>
 </context>
 </TS>

@@ -48,6 +48,14 @@ public:
 
     void respondCheckSelf();
     void respondFormat(quint32 size0, quint32 size1, quint32 size2, quint32 size3, quint32 size4);
+    void respondPlayBack(quint32 data1, quint32 data2, quint32 data3, quint32 data4, quint32 data5, quint32 data6, quint32 data7);
+    void respondSystemConfig(quint32 choice, quint32 setting);
+    void respondRecord(quint32 areano, quint64 time, QString filename);
+    void respondImport(quint32 areano, float filesize, QDateTime time, QString filename);
+    void respondExport(quint32 areano, float fileno, float startpos, float exportsize);
+    void respondStop(quint32 areano);
+    void respondDelete(quint32 areano, float fileno);
+    void respondRefresh(quint32 areano, quint32 fileno, quint32 filenum);
 private slots:
     void readClient();
 };

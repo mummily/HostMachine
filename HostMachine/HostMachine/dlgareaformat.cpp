@@ -31,30 +31,39 @@ void DlgAreaFormat::initUI()
     setWindowTitle(qApp->translate(c_sHostMachine, c_sFormat));
     setFixedSize(376, 200);
 
-    QLabel* lable1 = new QLabel(qApp->translate(c_sHostMachine, c_sPropertyGroup1_1), this);
-    QLabel* lable2 = new QLabel(qApp->translate(c_sHostMachine, c_sPropertyGroup1_2), this);
-    QLabel* lable3 = new QLabel(qApp->translate(c_sHostMachine, c_sPropertyGroup1_3), this);
-    QLabel* lable4 = new QLabel(qApp->translate(c_sHostMachine, c_sPropertyGroup1_4), this);
-    QLabel* lable5 = new QLabel(qApp->translate(c_sHostMachine, c_sPropertyGroup1_5), this);
+    QLabel* lable1 = new QLabel(qApp->translate(c_sHostMachine, c_sPropertyGroup1_1) + "(1~100)", this);
+    QLabel* lable2 = new QLabel(qApp->translate(c_sHostMachine, c_sPropertyGroup1_2) + "(1~100)", this);
+    QLabel* lable3 = new QLabel(qApp->translate(c_sHostMachine, c_sPropertyGroup1_3) + "(1~100)", this);
+    QLabel* lable4 = new QLabel(qApp->translate(c_sHostMachine, c_sPropertyGroup1_4) + "(1~100)", this);
+    QLabel* lable5 = new QLabel(qApp->translate(c_sHostMachine, c_sPropertyGroup1_5) + "(1~100)", this);
 
     m_spinbox1 = new QSpinBox(this);
-    m_spinbox1->setMinimum(0);
+    m_spinbox1->setSuffix(" LBA");
+    m_spinbox1->setMinimum(1);
     m_spinbox1->setMaximum(100);
     m_spinbox1->setSingleStep(1);
+
     m_spinbox2 = new QSpinBox(this);
-    m_spinbox2->setMinimum(0);
+    m_spinbox2->setSuffix(" LBA");
+    m_spinbox2->setMinimum(1);
     m_spinbox2->setMaximum(100);
     m_spinbox2->setSingleStep(1);
+
     m_spinbox3 = new QSpinBox(this);
-    m_spinbox3->setMinimum(0);
+    m_spinbox3->setSuffix(" LBA");
+    m_spinbox3->setMinimum(1);
     m_spinbox3->setMaximum(100);
     m_spinbox3->setSingleStep(1);
+
     m_spinbox4 = new QSpinBox(this);
-    m_spinbox4->setMinimum(0);
+    m_spinbox4->setSuffix(" LBA");
+    m_spinbox4->setMinimum(1);
     m_spinbox4->setMaximum(100);
     m_spinbox4->setSingleStep(1);
+
     m_spinbox5 = new QSpinBox(this);
-    m_spinbox5->setMinimum(0);
+    m_spinbox5->setSuffix(" LBA");
+    m_spinbox5->setMinimum(1);
     m_spinbox5->setMaximum(100);
     m_spinbox5->setSingleStep(1);
 
@@ -130,7 +139,7 @@ void DlgAreaFormat::initConnect()
     connect(m_slider2, SIGNAL(valueChanged(int)), m_spinbox2, SLOT(setValue(int)));
 
     connect(m_spinbox3, SIGNAL(valueChanged(int)), m_slider3, SLOT(setValue(int)));
-    connect(m_slider4, SIGNAL(valueChanged(int)), m_spinbox3, SLOT(setValue(int)));
+    connect(m_slider3, SIGNAL(valueChanged(int)), m_spinbox3, SLOT(setValue(int)));
 
     connect(m_spinbox4, SIGNAL(valueChanged(int)), m_slider4, SLOT(setValue(int)));
     connect(m_slider4, SIGNAL(valueChanged(int)), m_spinbox4, SLOT(setValue(int)));
