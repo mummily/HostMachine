@@ -142,6 +142,7 @@ struct tagAreaProperty
     }
 };
 
+// 通道属性
 struct tagChannelProperty
 {
     QtProperty* pItem1;
@@ -154,14 +155,15 @@ struct tagChannelProperty
     }
 };
 
+// 界面显示：磁盘控制面板
 struct tagAreaProperties
 {
-    shared_ptr<tagAreaProperty> ldProperty1;
-    shared_ptr<tagAreaProperty> ldProperty2;
-    shared_ptr<tagAreaProperty> gdProperty1;
-    shared_ptr<tagAreaProperty> gdProperty2;
-    shared_ptr<tagAreaProperty> hhProperty;
-    shared_ptr<tagChannelProperty> channelProperty;
+    shared_ptr<tagAreaProperty> ldProperty1;    // 原始数据分区
+    shared_ptr<tagAreaProperty> ldProperty2;    // 雷达结果分区
+    shared_ptr<tagAreaProperty> gdProperty1;    // 光电图片分区
+    shared_ptr<tagAreaProperty> gdProperty2;    // 光电视频分区
+    shared_ptr<tagAreaProperty> hhProperty;     // 混合数据分区
+    shared_ptr<tagChannelProperty> channelProperty; // 参数信息
     
     tagAreaProperties()
     {
@@ -169,12 +171,13 @@ struct tagAreaProperties
     }
 };
 
+// 刷新 - 文件信息
 struct tagAreaFileInfo
 {
-    QString sFileName;
-    QDateTime datetime;
-    quint32 fileno;
-    float filesize;
+    quint32 fileno;     // 文件编号
+    QString sFileName;  // 文件名称
+    float filesize;     // 文件大小
+    QDateTime datetime; // 创建时间
 
     tagAreaFileInfo()
     {
@@ -182,11 +185,12 @@ struct tagAreaFileInfo
     }
 };
 
+// 刷新 - 文件信息
 struct tagAreaFileInfos
 {
-    quint32 areano;
-    quint32 fileno;
-    quint32 filenum;
+    quint32 areano;     // 分区号
+    quint32 fileno;     // 起始文件编号
+    quint32 filenum;    // 文件数
     list<shared_ptr<tagAreaFileInfo>> lstFileInfo;
     tagAreaFileInfos()
     {
