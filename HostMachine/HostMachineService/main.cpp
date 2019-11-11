@@ -4,15 +4,21 @@
 #include "hostmachineserver.h"
 #include "QHostAddress"
 
+const quint16 c_uCommandPort = 6178;
+const quint16 c_uDataPort = 6188;
+
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
 
-    qDebug() <<sizeof(quint32);
-    qDebug() <<sizeof(quint64);
+    HostMachineServer server1;
+    if (!server1.listen(QHostAddress::Any, c_uCommandPort)) // 命令端口
+    {
+        return 1;
+    }
 
-    HostMachineServer server;
-    if (!server.listen(QHostAddress::Any, 6178))
+    HostMachineServer server2;
+    if (!server2.listen(QHostAddress::Any, c_uDataPort)) // 数据端口
     {
         return 1;
     }

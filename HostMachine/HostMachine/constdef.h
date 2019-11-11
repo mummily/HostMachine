@@ -1,6 +1,5 @@
 #pragma once
 
-
 static const char *c_sHostMachine = "HostMachine";
 static const char *c_sTitle = QT_TRANSLATE_NOOP("HostMachine", "网络应用软件");
 
@@ -27,12 +26,15 @@ static const char *c_sReady = QT_TRANSLATE_NOOP("HostMachine", "就绪");
 static const char *c_sContactUs = QT_TRANSLATE_NOOP("HostMachine", "联系我们");
 
 // 文件列表框 - 雷达数据
+static const char *c_sFileNo = QT_TRANSLATE_NOOP("HostMachine", "文件编号");
 static const char *c_sLDData = QT_TRANSLATE_NOOP("HostMachine", "雷达数据");
 static const char *c_sLDHeader1_1 = QT_TRANSLATE_NOOP("HostMachine", "原始数据区文件编号");
 static const char *c_sLDHeader1_2 = QT_TRANSLATE_NOOP("HostMachine", "雷达图片区文件编号");
-static const char *c_sLDHeader2 = QT_TRANSLATE_NOOP("HostMachine", "文件名称");
-static const char *c_sLDHeader3 = QT_TRANSLATE_NOOP("HostMachine", "文件大小");
-static const char *c_sLDHeader4 = QT_TRANSLATE_NOOP("HostMachine", "创建时间");
+static const char *c_sFileSize = QT_TRANSLATE_NOOP("HostMachine", "文件大小");
+static const char *c_sCreateDate = QT_TRANSLATE_NOOP("HostMachine", "创建时间");
+static const char *c_sFileType = QT_TRANSLATE_NOOP("HostMachine", "文件类型");
+static const char *c_sLBASize = QT_TRANSLATE_NOOP("HostMachine", "LBA大小（KB）");
+
 
 // 文件列表框 - 光电数据
 static const char *c_sGDData = QT_TRANSLATE_NOOP("HostMachine", "光电数据");
@@ -118,3 +120,189 @@ static const char *c_sChannelChoice1 = QT_TRANSLATE_NOOP("HostMachine", "未选择"
 static const char *c_sAreaNumber = QT_TRANSLATE_NOOP("HostMachine", "分区号");
 static const char *c_sFileName = QT_TRANSLATE_NOOP("HostMachine", "文件名");
 static const char *c_sFileNameTip = QT_TRANSLATE_NOOP("HostMachine", "请输入文件名");
+
+
+using namespace std;
+#include <QDateTime>
+class QtProperty;
+// 请求类型
+enum RequestType
+{
+    CS_CheckSelf = 0x11,    // 自检
+    CS_Format = 0xA1,       // 格式化
+    CS_SystemConfig = 0xB1, // 系统配置
+    CS_Record = 0x21,       // 记录
+    CS_PlayBack = 0x31,     // 回放
+    CS_Import = 0x41,       // 导入
+    CS_Export = 0x51,       // 导出
+    CS_Stop = 0x61,         // 停止
+    CS_Delete = 0x71,       // 删除
+    CS_Refresh = 0x81,      // 刷新
+    CS_TaskQuery = 0x91,    // 任务查询
+    CS_TaskStop = 0xC1,     // 任务停止
+};
+
+// 应答类型
+enum RespondType
+{
+    SC_CheckSelf = 0x1011,      // 自检
+    SC_Format = 0x10A1,         // 格式化
+    SC_SystemConfig = 0x10B1,   // 系统配置
+    SC_Record = 0x1021,         // 记录
+    SC_PlayBack = 0x1031,       // 回放
+    SC_Import = 0x1041,         // 导入
+    SC_Export = 0x1051,         // 导出
+    SC_Stop = 0x1061,           // 停止
+    SC_Delete = 0x1071,         // 删除
+    SC_Refresh = 0x1081,        // 刷新
+    SC_TaskQuery = 0x1091,      // 任务查询
+    SC_TaskStop = 0x10C1,       // 任务停止
+};
+
+// 任务查询应答-任务信息
+struct tagTaskInfo
+{
+    quint32 flag; // 标记 1-有效任务 0-无效任务
+    quint32 area; // 分区 0-0分区 1-1分区
+    quint32 type; // 任务类型 0-数据0 1-数据1 2-导入导出 3-回放
+    quint32 finishedsize; // 任务已完成大小
+    quint32 speed; // 任务速度
+    quint32 percent; // 任务进度百分比
+    quint32 state; // 任务状态 0-等待执行 1-执行中 2-已完成
+
+    tagTaskInfo()
+    {
+
+    }
+};
+
+// 分区信息
+struct tagAreaInfo
+{
+    quint32 area;
+    quint32 areasize;
+    quint32 areaunuse;
+    quint32 areafilenum;
+    quint32 areastate;
+
+    tagAreaInfo()
+    {
+
+    }
+
+    void read(QDataStream& in)
+    {
+        in >> area
+            >> areasize
+            >> areaunuse
+            >> areafilenum
+            >> areastate;
+    }
+};
+
+// 通道信息
+struct tagChannelInfo
+{
+    quint32 state;
+    quint32 choice;
+    quint32 bandwidth;
+    quint32 hardversion;
+    quint32 fpgaversion;
+
+    tagChannelInfo()
+    {
+
+    }
+
+    void read(QDataStream& in)
+    {
+        in>> state
+            >> choice
+            >> bandwidth
+            >> hardversion
+            >> fpgaversion;
+    }
+};
+
+// 自检应答-自检信息
+struct tagCheckSelf
+{
+    shared_ptr<tagAreaInfo> areaInfo0, areaInfo1, areaInfo2, areaInfo3, areaInfo4;
+    shared_ptr<tagChannelInfo> channelInfo;
+
+    tagCheckSelf()
+    {
+
+    }
+};
+
+// 分区属性
+struct tagAreaProperty
+{
+    QtProperty* pItem1;
+    QtProperty* pItem2;
+    QtProperty* pItem3;
+    QtProperty* pItem4;
+    QtProperty* pItem5;
+
+    tagAreaProperty()
+    {
+
+    }
+};
+
+// 通道属性
+struct tagChannelProperty
+{
+    QtProperty* pItem1;
+    QtProperty* pItem2;
+    QtProperty* pItem3;
+
+    tagChannelProperty()
+    {
+
+    }
+};
+
+// 界面显示：磁盘控制面板
+struct tagAreaProperties
+{
+    shared_ptr<tagAreaProperty> ldProperty1;    // 原始数据分区
+    shared_ptr<tagAreaProperty> ldProperty2;    // 雷达结果分区
+    shared_ptr<tagAreaProperty> gdProperty1;    // 光电图片分区
+    shared_ptr<tagAreaProperty> gdProperty2;    // 光电视频分区
+    shared_ptr<tagAreaProperty> hhProperty;     // 混合数据分区
+    shared_ptr<tagChannelProperty> channelProperty; // 参数信息
+
+    tagAreaProperties()
+    {
+
+    }
+};
+
+// 刷新 - 文件信息
+struct tagAreaFileInfo
+{
+    quint32 fileno;     // 文件编号
+    QString sFileName;  // 文件名称
+    float filesize;     // 文件大小
+    QDateTime datetime; // 创建时间
+
+    tagAreaFileInfo()
+    {
+
+    }
+};
+
+// 刷新 - 文件信息
+struct tagAreaFileInfos
+{
+    quint32 areano;     // 分区号
+    quint32 fileno;     // 起始文件编号
+    quint32 filenum;    // 文件数
+    list<shared_ptr<tagAreaFileInfo>> lstFileInfo;
+    tagAreaFileInfos()
+    {
+
+    }
+};

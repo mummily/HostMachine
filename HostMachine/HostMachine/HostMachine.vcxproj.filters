@@ -136,6 +136,15 @@
     <ClCompile Include="GeneratedFiles\Release\moc_dlgfileexport.cpp">
       <Filter>Generated Files\Release</Filter>
     </ClCompile>
+    <ClCompile Include="mwfilelist.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_mwfilelist.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_mwfilelist.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="hostmachine.h">
@@ -169,6 +178,9 @@
       <Filter>Header Files</Filter>
     </CustomBuild>
     <CustomBuild Include="dlgfileexport.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="mwfilelist.h">
       <Filter>Header Files</Filter>
     </CustomBuild>
   </ItemGroup>
