@@ -2,37 +2,9 @@
 #include <QApplication>
 #include <QMenuBar>
 #include <QToolBar>
-#include <QLabel>
 #include <QStatusBar>
 #include <QTableWidget>
-#include <QTabWidget>
-#include <QHBoxLayout>
-#include <QVBoxLayout>
-#include <QSplitter>
 #include <QHeaderView>
-#include "qttreepropertybrowser.h"
-#include "qtvariantproperty.h"
-#include "QDateTime"
-#include <QFrame>
-#include <QGroupBox>
-#include <QPushButton>
-#include <QTimer>
-#include <QMessageBox>
-#include <QFileDialog>
-#include <QDockWidget>
-
-#include <QTcpSocket>
-#include <QTcpServer>
-
-#include "dlgipsetting.h"
-#include "constdef.h"
-#include "qtpropertymanager.h"
-#include "decorateddoublepropertymanager.h"
-#include "dlgareaformat.h"
-#include "dlgsystemconfig.h"
-#include "dlgarearecord.h"
-#include "dlgfileplayblack.h"
-#include "dlgfileexport.h"
 
 static const char *c_sImportFileTip = QT_TRANSLATE_NOOP("MWFileList", "选择要导入的文件");
 static const char *c_sImportFileExt = QT_TRANSLATE_NOOP("MWFileList", "DAT文件 (*.dat)");
@@ -43,8 +15,8 @@ static const char *c_sNo = QT_TRANSLATE_NOOP("MWFileList", "否");
 static const char *c_sToolBar = QT_TRANSLATE_NOOP("MWFileList", "工具栏");
 static const char *c_sFileName1 = QT_TRANSLATE_NOOP("MWFileList", "文件名称");
 
-MWFileList::MWFileList(QTcpSocket *pCmdSocket, QTcpSocket *pDataSocket, QWidget *parent)
-    : QMainWindow(parent), m_pCmdSocket(pCmdSocket), m_pDataSocket(pDataSocket)
+MWFileList::MWFileList(QWidget *parent)
+    : QMainWindow(parent)
 {
     initUI();
     initConnect();
@@ -117,28 +89,25 @@ void MWFileList::initUI()
 void MWFileList::initConnect()
 {
     connect(m_pActRecord, SIGNAL(triggered(bool)), this, SLOT(slotLogRecord()));
-    connect(m_pActRecord, SIGNAL(triggered(bool)), this, SLOT(slotRecord()));
+    connect(m_pActRecord, SIGNAL(triggered(bool)), parentWidget(), SLOT(slotRecord()));
 
     connect(m_pActPlayBack, SIGNAL(triggered(bool)), this, SLOT(slotLogRecord()));
-    connect(m_pActPlayBack, SIGNAL(triggered(bool)), this, SLOT(slotPlayBack()));
+    connect(m_pActPlayBack, SIGNAL(triggered(bool)), parentWidget(), SLOT(slotPlayBack()));
 
     connect(m_pActImport, SIGNAL(triggered(bool)), this, SLOT(slotLogRecord()));
-    connect(m_pActImport, SIGNAL(triggered(bool)), this, SLOT(slotImport()));
+    connect(m_pActImport, SIGNAL(triggered(bool)), parentWidget(), SLOT(slotImport()));
 
     connect(m_pActExport, SIGNAL(triggered(bool)), this, SLOT(slotLogRecord()));
-    connect(m_pActExport, SIGNAL(triggered(bool)), this, SLOT(slotExport()));
+    connect(m_pActExport, SIGNAL(triggered(bool)), parentWidget(), SLOT(slotExport()));
 
     connect(m_pActStop, SIGNAL(triggered(bool)), this, SLOT(slotLogRecord()));
-    connect(m_pActStop, SIGNAL(triggered(bool)), this, SLOT(slotStop()));
+    connect(m_pActStop, SIGNAL(triggered(bool)), parentWidget(), SLOT(slotStop()));
 
     connect(m_pActDelete, SIGNAL(triggered(bool)), this, SLOT(slotLogRecord()));
-    connect(m_pActDelete, SIGNAL(triggered(bool)), this, SLOT(slotDelete()));
+    connect(m_pActDelete, SIGNAL(triggered(bool)), parentWidget(), SLOT(slotDelete()));
 
     connect(m_pActRefresh, SIGNAL(triggered(bool)), this, SLOT(slotLogRecord()));
-    connect(m_pActRefresh, SIGNAL(triggered(bool)), this, SLOT(slotRefresh()));
-
-    connect(m_pCmdSocket, SIGNAL(readyRead()), this, SLOT(slotCmdReadyRead()));
-    connect(m_pCmdSocket, SIGNAL(readyRead()), this, SLOT(slotDataReadyRead()));
+    connect(m_pActRefresh, SIGNAL(triggered(bool)), parentWidget(), SLOT(slotRefresh()));
 }
 
 /*****************************************************************************
@@ -164,332 +133,6 @@ void MWFileList::initFileListWgt()
     QHeaderView* headerView = m_pFileListWgt->horizontalHeader();
     headerView->setDefaultAlignment(Qt::AlignLeft);
     headerView->setStretchLastSection(true);
-}
-
-/*****************************************************************************
-* @brief   : 应答消息响应
-* @author  : wb
-* @date    : 2019/10/27
-* @param:  : 
-*****************************************************************************/
-void MWFileList::slotCmdReadyRead()
-{
-    QDataStream in(m_pCmdSocket);
-    in.setVersion(QDataStream::Qt_5_5);
-
-    if (m_pCmdSocket->bytesAvailable() < sizeof(quint32))
-        return;
-
-    quint32 respondType;
-    in >> respondType;
-    if (respondType == SC_Record)
-    {
-        quint32 area, state;
-        in >> area >> state;
-
-        readRecord(area, state);
-    }
-    else if (respondType == SC_PlayBack)
-    {
-        quint32 area, state;
-        in >> area >> state;
-
-        readPlayBack(area, state);
-    }
-    else if (respondType == SC_Stop)
-    {
-        quint32 area, state;
-        in >> area >> state;
-
-        readStop(area, state);
-    }
-    else if (respondType == SC_Delete)
-    {
-        quint32 area, state;
-        in >> area >> state;
-
-        readDelete(area, state);
-    }
-    else if (respondType == SC_Refresh)
-    {
-        tagAreaFileInfos fileInfos;
-        memset(&fileInfos, 0, sizeof(tagAreaFileInfos));
-        in >> fileInfos.areano >> fileInfos.fileno >> fileInfos.filenum;
-
-        list<shared_ptr<tagAreaFileInfo>> lstFileInfo;
-        for (int nIndex=0;nIndex<fileInfos.filenum;++nIndex)
-        {
-            char* filename = new char[128];
-            memset(filename, 0, sizeof(char)*128);
-
-            quint64 datetime;
-            quint32 fileno;
-            float filesize;
-            in >> filename >> datetime >> fileno >> filesize;
-
-            shared_ptr<tagAreaFileInfo> spFileInfo = make_shared<tagAreaFileInfo>();
-            spFileInfo->sFileName = QString::fromLocal8Bit(filename);
-            spFileInfo->datetime = QDateTime::fromMSecsSinceEpoch(datetime);
-            spFileInfo->fileno = fileno;
-            spFileInfo->filesize = filesize;
-
-            lstFileInfo.push_back(spFileInfo);
-        }
-        fileInfos.lstFileInfo.swap(lstFileInfo);
-        readRefresh(fileInfos);
-    }
-}
-
-/*****************************************************************************
-* @brief   : 
-* @author  : wb
-* @date    : 2019/11/10
-* @param:  : 
-*****************************************************************************/
-void MWFileList::slotDataReadyRead()
-{
-    QDataStream in(m_pDataSocket);
-    in.setVersion(QDataStream::Qt_5_5);
-
-    if (m_pDataSocket->bytesAvailable() < sizeof(quint32))
-        return;
-
-    quint32 respondType;
-    in >> respondType;
-    if (respondType == SC_Import)
-    {
-        quint32 area, state;
-        in >> area >> state;
-
-        readImport(area, state);
-    }
-    else if (respondType == SC_Export)
-    {
-        quint32 area, state;
-        in >> area >> state;
-
-        readExport(area, state);
-    }
-}
-
-/*****************************************************************************
-* @brief   : 请求-记录
-* @author  : wb
-* @date    : 2019/10/28
-* @param:  : 
-*****************************************************************************/
-void MWFileList::slotRecord()
-{
-    DlgAreaRecord dlg(this);
-    if (QDialog::Accepted != dlg.exec())
-        return;
-
-    quint32 areano = dlg.Area(); 
-    quint64 time = QDateTime::currentMSecsSinceEpoch();
-    char* filename = new char[128];
-    memset(filename, 0, sizeof(char)*128);
-    QString sFileName = dlg.Filename();
-
-    QByteArray ba = sFileName.toLatin1();
-    filename = ba.data();
-
-    QByteArray block;
-    QDataStream out(&block, QIODevice::WriteOnly);
-    out << CS_Record << areano << time;
-    out.writeBytes(filename, 128-4);
-
-    m_pCmdSocket->write(block);
-    m_pCmdSocket->waitForReadyRead();
-
-    // delete[] filename;
-}
-
-/*****************************************************************************
-* @brief   : 请求-回放
-* @author  : wb
-* @date    : 2019/10/28
-* @param:  : 
-*****************************************************************************/
-void MWFileList::slotPlayBack()
-{
-    DlgFilePlayblack dlg(this);
-    if (QDialog::Accepted != dlg.exec())
-        return;
-
-    QByteArray block;
-    QDataStream out(&block, QIODevice::WriteOnly);
-#pragma message("MWFileList::slotPlayBack 完善分区号、文件编号")
-    out << CS_PlayBack << quint32(0) << quint32(0) // 文件编号
-        << dlg.Type() << dlg.Prftime() << dlg.Datanum() << dlg.Prf() << dlg.Cpi();
-
-    m_pCmdSocket->write(block);
-    m_pCmdSocket->waitForReadyRead();
-}
-
-/*****************************************************************************
-* @brief   : 请求-导入
-* @author  : wb
-* @date    : 2019/10/28
-* @param:  : 
-*****************************************************************************/
-void MWFileList::slotImport()
-{
-#pragma message("MWFileList::slotImport 导入是选定一个分区执行导入，可单个可批量")
-
-    QString sFile = QFileDialog::getOpenFileName(
-        this, qApp->translate(c_sHostMachine, c_sImportFileTip),
-        "/",
-        qApp->translate(c_sHostMachine, c_sImportFileExt));
-    if (sFile.isEmpty())
-        return;
-
-    QFileInfo info(sFile);
-
-    // 分区号
-    quint32 areano = 0;
-    float filesize = info.size() / 1024.0;
-    // 开始时间
-    qint64 startTime = QDateTime::currentMSecsSinceEpoch();
-    // 文件名
-    char* filename = new char[128];
-    memset(filename, 0, sizeof(char)*128);
-    QByteArray ba = sFile.toLatin1();
-    filename = ba.data();
-
-    QByteArray block;
-    QDataStream out(&block, QIODevice::WriteOnly);
-    out << CS_Import << areano << filesize
-        << startTime;
-    out.writeBytes(filename, 128-4);
-
-    m_pDataSocket->write(block);
-    m_pDataSocket->waitForReadyRead();
-}
-
-/*****************************************************************************
-* @brief   : 请求-导出
-* @author  : wb
-* @date    : 2019/10/28
-* @param:  : 
-*****************************************************************************/
-void MWFileList::slotExport()
-{
-    // 分区号
-    quint32 areano = 0;
-
-    // 1个执行单个导出 >1个执行多个导出
-    int nCount = 1;
-
-    if (nCount == 1)
-    {
-        float filesize = 1.3;
-        DlgFileExport dlg(filesize, this);
-        if (QDialog::Accepted != dlg.exec())
-            return;
-
-        // 文件编号
-        quint32 fileno = 1;
-
-        QByteArray block;
-        QDataStream out(&block, QIODevice::WriteOnly);
-        out << CS_Export << areano << fileno
-            << dlg.Startpos() << dlg.Exportsize();
-
-        m_pDataSocket->write(block);
-        m_pDataSocket->waitForReadyRead();
-    }
-    else
-    {
-#pragma message("MWFileList::slotExport 批量导出")
-    }
-}
-
-/*****************************************************************************
-* @brief   : 请求-停止
-* @author  : wb
-* @date    : 2019/10/28
-* @param:  : 
-*****************************************************************************/
-void MWFileList::slotStop()
-{
-    QMessageBox box(this);
-    box.setWindowTitle(qApp->translate(c_sHostMachine, c_sTitle));
-    box.setText(qApp->translate(c_sHostMachine, c_sIsStop));
-    box.setIcon(QMessageBox::Question);
-    box.addButton(qApp->translate(c_sHostMachine, c_sYes), QMessageBox::RejectRole);
-    box.addButton(qApp->translate(c_sHostMachine, c_sNo), QMessageBox::AcceptRole);
-    if (QMessageBox::AcceptRole != box.exec())
-    {
-        return;
-    }
-
-    // 分区号
-    quint32 areano = 0;
-
-    QByteArray block;
-    QDataStream out(&block, QIODevice::WriteOnly);
-    out << CS_Stop << areano;
-
-    m_pCmdSocket->write(block);
-    m_pCmdSocket->waitForReadyRead();
-}
-
-/*****************************************************************************
-* @brief   : 请求-删除
-* @author  : wb
-* @date    : 2019/10/28
-* @param:  : 
-*****************************************************************************/
-void MWFileList::slotDelete()
-{
-#pragma message("MWFileList::slotDelete 批量删除")
-    QMessageBox box(this);
-    box.setWindowTitle(qApp->translate(c_sHostMachine, c_sTitle));
-    box.setText(qApp->translate(c_sHostMachine, c_sIsDelete));
-    box.setIcon(QMessageBox::Question);
-    box.addButton(qApp->translate(c_sHostMachine, c_sYes), QMessageBox::RejectRole);
-    box.addButton(qApp->translate(c_sHostMachine, c_sNo), QMessageBox::AcceptRole);
-    if (QMessageBox::AcceptRole != box.exec())
-    {
-        return;
-    }
-
-    // 分区号
-    quint32 areano = 0;
-
-    // 文件编号
-    quint32 fileno = 1;
-
-    QByteArray block;
-    QDataStream out(&block, QIODevice::WriteOnly);
-    out << CS_Delete << areano << fileno;
-
-    m_pCmdSocket->write(block);
-    m_pCmdSocket->waitForReadyRead();
-}
-
-/*****************************************************************************
-* @brief   : 请求-刷新
-* @author  : wb
-* @date    : 2019/10/28
-* @param:  : 
-*****************************************************************************/
-void MWFileList::slotRefresh()
-{
-    // 分区号
-    quint32 areano = 0;
-
-    // 起始文件编号
-    quint32 fileno = 1;
-    // 刷新文件数
-    quint32 filenum = 8;
-
-    QByteArray block;
-    QDataStream out(&block, QIODevice::WriteOnly);
-    out << CS_Refresh << areano << fileno << filenum;
-
-    m_pCmdSocket->write(block);
-    m_pCmdSocket->waitForReadyRead();
 }
 
 /*****************************************************************************

@@ -41,14 +41,15 @@ private:
 
     private slots:
         // TCP
-        void slotCmdConnected();
-        void slotCmdDisconnect();
-        void slotCmdReadyRead();
-        void slotCmdError();
+        void connectedCmd();
+        void disconnectCmd();
+        void readyReadCmd();
+        void errorCmd();
 
-        void slotDataConnected();
-        void slotDataDisconnect();
-        void slotDataError();
+        void connectedData();
+        void disconnectData();
+        void readyReadData();
+        void errorData();
 
         // Menu
         // IP设置
@@ -63,6 +64,21 @@ private:
         void slotTaskQuery();
         // 日志记录
         void slotLogRecord();
+        // 记录
+        void slotRecord();
+        // 回放
+        void slotPlayBack();
+        // 导入
+        void slotImport();
+        // 导出
+        void slotExport();
+        // 停止
+        void slotStop();
+        // 删除
+        void slotDelete();
+        // 刷新
+        void slotRefresh();
+
         // Init
         void slotInit();
         // Tab Changed
@@ -73,7 +89,6 @@ private:
     void readFormat(quint32 state);
     void readSystemConfig(quint32 state);
     void readTaskQuery(list<tagTaskInfo>& lstTaskInfo);
-
     void logRecord(QString sText);
 
 private:

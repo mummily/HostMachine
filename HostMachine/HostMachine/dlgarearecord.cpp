@@ -8,6 +8,7 @@
 #include <QVBoxLayout>
 #include <QGridLayout>
 #include <QPushButton>
+#include <QCheckBox>
 #include <QMessageBox>
 #include "constdef.h"
 
@@ -31,31 +32,31 @@ void DlgAreaRecord::initUI()
     QLabel* lable1 = new QLabel(qApp->translate(c_sHostMachine, c_sAreaNumber), this);
     QLabel* lable2 = new QLabel(qApp->translate(c_sHostMachine, c_sFileName), this);
 
-    m_comboBox = new QComboBox(this);
-    m_comboBox->addItems(QStringList() << qApp->translate(c_sHostMachine, c_sPropertyGroup1_1)
-        << qApp->translate(c_sHostMachine, c_sPropertyGroup1_2)
-        << qApp->translate(c_sHostMachine, c_sPropertyGroup1_3)
-        << qApp->translate(c_sHostMachine, c_sPropertyGroup1_4)
-        << qApp->translate(c_sHostMachine, c_sPropertyGroup1_5));
+    m_checkBox1 = new QCheckBox(this);
+    m_checkBox1->setText(qApp->translate(c_sHostMachine, c_sPropertyGroup1_1));
+    m_checkBox2 = new QCheckBox(this);
+    m_checkBox2->setText(qApp->translate(c_sHostMachine, c_sPropertyGroup1_2));
+    m_checkBox3 = new QCheckBox(this);
+    m_checkBox3->setText(qApp->translate(c_sHostMachine, c_sPropertyGroup1_3));
+    m_checkBox4 = new QCheckBox(this);
+    m_checkBox4->setText(qApp->translate(c_sHostMachine, c_sPropertyGroup1_4));
+    m_checkBox5 = new QCheckBox(this);
+    m_checkBox5->setText(qApp->translate(c_sHostMachine, c_sPropertyGroup1_5));
 
     m_lineEdit = new QLineEdit(this);
     m_lineEdit->setText(QDateTime::currentDateTime().toString("yyyyMMddhhmmss"));
     QLabel* lable3 = new QLabel(".dat", this);
 
-    // QHBoxLayout* hLayout1 = new QHBoxLayout();
-    // hLayout1->addWidget(lable1);
-    // hLayout1->addWidget(m_comboBox);
-
-    // QHBoxLayout* hLayout2 = new QHBoxLayout();
-    // hLayout2->addWidget(lable2);
-    // hLayout2->addWidget(m_lineEdit);
-    // hLayout2->addWidget(lable3);
     QGridLayout* gridLayout = new QGridLayout();
     gridLayout->addWidget(lable1, 0, 0);
-    gridLayout->addWidget(m_comboBox, 0, 1);
-    gridLayout->addWidget(lable2, 1, 0);
-    gridLayout->addWidget(m_lineEdit, 1, 1);
-    gridLayout->addWidget(lable3, 1, 2);
+    gridLayout->addWidget(m_checkBox1, 0, 1);
+    gridLayout->addWidget(m_checkBox2, 1, 1);
+    gridLayout->addWidget(m_checkBox3, 2, 1);
+    gridLayout->addWidget(m_checkBox4, 3, 1);
+    gridLayout->addWidget(m_checkBox5, 4, 1);
+    gridLayout->addWidget(lable2, 5, 0);
+    gridLayout->addWidget(m_lineEdit, 5, 1);
+    gridLayout->addWidget(lable3, 5, 2);
 
     m_btnOk = new QPushButton(qApp->translate(c_sHostMachine, c_sConfirm), this);
     m_btnCancel = new QPushButton(qApp->translate(c_sHostMachine, c_sCancel), this);
@@ -88,7 +89,27 @@ void DlgAreaRecord::slotOk()
         return;
     }
 
-    area = m_comboBox->currentIndex();
+    if (m_checkBox1->isChecked())
+    {
+        lstArea.push_back(0);
+    }
+    if (m_checkBox2->isChecked())
+    {
+        lstArea.push_back(1);
+    }
+    if (m_checkBox3->isChecked())
+    {
+        lstArea.push_back(2);
+    }
+    if (m_checkBox4->isChecked())
+    {
+        lstArea.push_back(3);
+    }
+    if (m_checkBox5->isChecked())
+    {
+        lstArea.push_back(4);
+    }
+
     filename = m_lineEdit->text() + ".dat";
 
     accept();

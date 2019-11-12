@@ -2,9 +2,11 @@
 #define DLGAREARECORD_H
 
 #include <QDialog>
+#include <QList>
 class QPushButton;
 class QComboBox;
 class QLineEdit;
+class QCheckBox;
 class DlgAreaRecord : public QDialog
 {
     Q_OBJECT
@@ -14,7 +16,7 @@ public:
     ~DlgAreaRecord();
 
 public:
-    quint32 Area() const { return area; }
+    QList<quint32> Areas() const { return lstArea; }
     QString Filename() const { return filename; }
 
 private:
@@ -26,10 +28,14 @@ private:
 
 private:
     QPushButton     *m_btnOk, *m_btnCancel;
-    QComboBox *m_comboBox;
     QLineEdit *m_lineEdit;
+    QCheckBox* m_checkBox1;
+    QCheckBox* m_checkBox2;
+    QCheckBox* m_checkBox3;
+    QCheckBox* m_checkBox4;
+    QCheckBox* m_checkBox5;
 
-    quint32 area;
+    QList<quint32> lstArea;
     QString filename;
 };
 

@@ -26,6 +26,9 @@
 #include "dlgareaformat.h"
 #include "dlgsystemconfig.h"
 #include "mwfilelist.h"
+#include "dlgarearecord.h"
+#include "dlgfileexport.h"
+#include "dlgfileplayblack.h"
 
 const quint16 c_uCommandPort = 6178;
 const quint16 c_uDataPort = 6188;
@@ -110,11 +113,11 @@ void HostMachine::initUI()
     m_pTabWgt->setTabPosition(QTabWidget::South);
     m_pTabWgt->setDocumentMode(true);
 
-    m_pLDOriginalWgt = new MWFileList(m_pCmdSocket, m_pDataSocket, this);
-    m_pLDResultWgt = new MWFileList(m_pCmdSocket, m_pDataSocket, this);
-    m_pGDImgWgt = new MWFileList(m_pCmdSocket, m_pDataSocket, this);
-    m_pGDVidioWgt = new MWFileList(m_pCmdSocket, m_pDataSocket, this);
-    m_pHHDataWgt = new MWFileList(m_pCmdSocket, m_pDataSocket, this);
+    m_pLDOriginalWgt = new MWFileList(this);
+    m_pLDResultWgt = new MWFileList(this);
+    m_pGDImgWgt = new MWFileList(this);
+    m_pGDVidioWgt = new MWFileList(this);
+    m_pHHDataWgt = new MWFileList(this);
 
     m_pTabWgt->addTab(m_pLDOriginalWgt, qApp->translate(c_sHostMachine, c_sPropertyGroup1_1));
     m_pTabWgt->addTab(m_pLDResultWgt, qApp->translate(c_sHostMachine, c_sPropertyGroup1_2));
@@ -202,14 +205,14 @@ void HostMachine::initConnect()
     connect(m_pTabWgt, SIGNAL(currentChanged(int)), this, SLOT(slotTabChanged(int)));
 
     // TCP
-    connect(m_pCmdSocket, SIGNAL(connected()), this, SLOT(slotCmdConnected()));
-    connect(m_pCmdSocket, SIGNAL(disconnect()), this, SLOT(slotCmdDisconnect()));
-    connect(m_pCmdSocket, SIGNAL(readyRead()), this, SLOT(slotCmdReadyRead()));
-    connect(m_pCmdSocket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(slotCmdError()));
+    connect(m_pCmdSocket, SIGNAL(connected()), this, SLOT(connectedCmd()));
+    connect(m_pCmdSocket, SIGNAL(disconnect()), this, SLOT(disconnectCmd()));
+    connect(m_pCmdSocket, SIGNAL(readyRead()), this, SLOT(readyReadCmd()));
+    connect(m_pCmdSocket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(errorCmd()));
 
-    connect(m_pDataSocket, SIGNAL(connected()), this, SLOT(slotDataConnected()));
-    connect(m_pDataSocket, SIGNAL(disconnect()), this, SLOT(slotDataDisconnect()));
-    connect(m_pDataSocket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(slotDataError()));
+    connect(m_pDataSocket, SIGNAL(connected()), this, SLOT(connectedData()));
+    connect(m_pDataSocket, SIGNAL(disconnect()), this, SLOT(disconnectData()));
+    connect(m_pDataSocket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(errorData()));
 }
 
 /*****************************************************************************
@@ -521,13 +524,13 @@ void HostMachine::initPropertyWgt()
 * @date    : 2019/10/27
 * @param:  : 
 *****************************************************************************/
-void HostMachine::slotCmdConnected()
+void HostMachine::connectedCmd()
 {
     QString sLabel = QString("%0 %1").arg(c_uCommandPort).arg(qApp->translate(c_sHostMachine, c_sReady));
     m_pCmdLabel->setText(sLabel);
 }
 
-void HostMachine::slotDataConnected()
+void HostMachine::connectedData()
 {
     QString sLabel = QString("%0 %1").arg(c_uDataPort).arg(qApp->translate(c_sHostMachine, c_sReady));
     m_pDataLabel->setText(sLabel);
@@ -539,7 +542,7 @@ void HostMachine::slotDataConnected()
 * @date    : 2019/10/27
 * @param:  : 
 *****************************************************************************/
-void HostMachine::slotCmdDisconnect()
+void HostMachine::disconnectCmd()
 {
     // 状态
     m_pCmdLabel->setText(qApp->translate(c_sHostMachine, c_sDisConnect));
@@ -551,7 +554,7 @@ void HostMachine::slotCmdDisconnect()
 * @date    : 2019/11/10
 * @param:  : 
 *****************************************************************************/
-void HostMachine::slotDataDisconnect()
+void HostMachine::disconnectData()
 {
     // 状态
     m_pDataLabel->setText(qApp->translate(c_sHostMachine, c_sDisConnect));
@@ -563,7 +566,7 @@ void HostMachine::slotDataDisconnect()
 * @date    : 2019/10/27
 * @param:  : 
 *****************************************************************************/
-void HostMachine::slotCmdError()
+void HostMachine::errorCmd()
 {
     statusBar()->showMessage(m_pCmdSocket->errorString());
 }
@@ -574,7 +577,7 @@ void HostMachine::slotCmdError()
 * @date    : 2019/11/10
 * @param:  : 
 *****************************************************************************/
-void HostMachine::slotDataError()
+void HostMachine::errorData()
 {
     statusBar()->showMessage(m_pDataSocket->errorString());
 }
@@ -585,7 +588,7 @@ void HostMachine::slotDataError()
 * @date    : 2019/10/27
 * @param:  : 
 *****************************************************************************/
-void HostMachine::slotCmdReadyRead()
+void HostMachine::readyReadCmd()
 {
     QDataStream in(m_pCmdSocket);
     in.setVersion(QDataStream::Qt_5_5);
@@ -665,6 +668,102 @@ void HostMachine::slotCmdReadyRead()
             readTaskQuery(lstTaskInfo);
         }
     }
+    else if (respondType == SC_Record)
+    {
+        quint32 area, state;
+        in >> area >> state;
+
+        MWFileList* pWMFileList = (MWFileList*)m_pTabWgt->widget(area);
+        pWMFileList->readRecord(area, state);
+    }
+    else if (respondType == SC_PlayBack)
+    {
+        quint32 area, state;
+        in >> area >> state;
+
+        MWFileList* pWMFileList = (MWFileList*)m_pTabWgt->widget(area);
+        pWMFileList->readPlayBack(area, state);
+    }
+    else if (respondType == SC_Stop)
+    {
+        quint32 area, state;
+        in >> area >> state;
+
+        MWFileList* pWMFileList = (MWFileList*)m_pTabWgt->widget(area);
+        pWMFileList->readStop(area, state);
+    }
+    else if (respondType == SC_Delete)
+    {
+        quint32 area, state;
+        in >> area >> state;
+
+        MWFileList* pWMFileList = (MWFileList*)m_pTabWgt->widget(area);
+        pWMFileList->readDelete(area, state);
+    }
+    else if (respondType == SC_Refresh)
+    {
+        tagAreaFileInfos fileInfos;
+        memset(&fileInfos, 0, sizeof(tagAreaFileInfos));
+        in >> fileInfos.areano >> fileInfos.fileno >> fileInfos.filenum;
+
+        list<shared_ptr<tagAreaFileInfo>> lstFileInfo;
+        for (int nIndex=0;nIndex<fileInfos.filenum;++nIndex)
+        {
+            char* filename = new char[128];
+            memset(filename, 0, sizeof(char)*128);
+
+            quint64 datetime;
+            quint32 fileno;
+            float filesize;
+            in >> filename >> datetime >> fileno >> filesize;
+
+            shared_ptr<tagAreaFileInfo> spFileInfo = make_shared<tagAreaFileInfo>();
+            spFileInfo->sFileName = QString::fromLocal8Bit(filename);
+            spFileInfo->datetime = QDateTime::fromMSecsSinceEpoch(datetime);
+            spFileInfo->fileno = fileno;
+            spFileInfo->filesize = filesize;
+
+            lstFileInfo.push_back(spFileInfo);
+        }
+        fileInfos.lstFileInfo.swap(lstFileInfo);
+
+        MWFileList* pWMFileList = (MWFileList*)m_pTabWgt->widget(fileInfos.areano);
+        pWMFileList->readRefresh(fileInfos);
+    }
+}
+
+/*****************************************************************************
+* @brief   : 
+* @author  : wb
+* @date    : 2019/11/10
+* @param:  : 
+*****************************************************************************/
+void HostMachine::readyReadData()
+{
+    QDataStream in(m_pDataSocket);
+    in.setVersion(QDataStream::Qt_5_5);
+
+    if (m_pDataSocket->bytesAvailable() < sizeof(quint32))
+        return;
+
+    quint32 respondType;
+    in >> respondType;
+    if (respondType == SC_Import)
+    {
+        quint32 area, state;
+        in >> area >> state;
+
+        MWFileList* pWMFileList = (MWFileList*)m_pTabWgt->widget(area);
+        pWMFileList->readImport(area, state);
+    }
+    else if (respondType == SC_Export)
+    {
+        quint32 area, state;
+        in >> area >> state;
+
+        MWFileList* pWMFileList = (MWFileList*)m_pTabWgt->widget(area);
+        pWMFileList->readExport(area, state);
+    }
 }
 
 /*****************************************************************************
@@ -738,7 +837,7 @@ void HostMachine::slotSystemConfig()
 
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
-    out << CS_Format << quint32(dlg.Choice())
+    out << CS_SystemConfig << quint32(dlg.Choice())
         << quint32(dlg.Bandwidth());
 
     m_pCmdSocket->write(block);
@@ -754,6 +853,231 @@ void HostMachine::slotSystemConfig()
 void HostMachine::slotTaskQuery()
 {
 
+}
+
+
+
+/*****************************************************************************
+* @brief   : 请求-记录
+* @author  : wb
+* @date    : 2019/10/28
+* @param:  : 
+*****************************************************************************/
+void HostMachine::slotRecord()
+{
+    DlgAreaRecord dlg(this);
+    if (QDialog::Accepted != dlg.exec())
+        return;
+
+    QString sFileName = dlg.Filename();
+    QList<quint32> lstAreano = dlg.Areas();
+    foreach(quint32 areano, lstAreano)
+    {
+        quint64 time = QDateTime::currentMSecsSinceEpoch();
+        char* filename = new char[128];
+        memset(filename, 0, sizeof(char)*128);
+
+        QByteArray ba = sFileName.toLatin1();
+        filename = ba.data();
+
+        QByteArray block;
+        QDataStream out(&block, QIODevice::WriteOnly);
+        out << CS_Record << areano << time;
+        out.writeRawData(filename, 128);
+
+        m_pCmdSocket->write(block);
+        m_pCmdSocket->waitForReadyRead();
+
+        // delete[] filename;
+    }
+}
+
+/*****************************************************************************
+* @brief   : 请求-回放
+* @author  : wb
+* @date    : 2019/10/28
+* @param:  : 
+*****************************************************************************/
+void HostMachine::slotPlayBack()
+{
+    DlgFilePlayblack dlg(this);
+    if (QDialog::Accepted != dlg.exec())
+        return;
+
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+#pragma message("MWFileList::slotPlayBack 完善分区号、文件编号")
+    out << CS_PlayBack << quint32(0) << quint32(0) // 文件编号
+        << dlg.Type() << dlg.Prftime() << dlg.Datanum() << dlg.Prf() << dlg.Cpi();
+
+    m_pCmdSocket->write(block);
+    m_pCmdSocket->waitForReadyRead();
+}
+
+/*****************************************************************************
+* @brief   : 请求-导入
+* @author  : wb
+* @date    : 2019/10/28
+* @param:  : 
+*****************************************************************************/
+void HostMachine::slotImport()
+{
+#pragma message("MWFileList::slotImport 导入是选定一个分区执行导入，可单个可批量")
+
+    QString sFile = QFileDialog::getOpenFileName(
+        this, qApp->translate(c_sHostMachine, c_sImportFileTip),
+        "/",
+        qApp->translate(c_sHostMachine, c_sImportFileExt));
+    if (sFile.isEmpty())
+        return;
+
+    QFileInfo info(sFile);
+
+    // 分区号
+    quint32 areano = 0;
+    float filesize = info.size() / 1024.0;
+    // 开始时间
+    qint64 startTime = QDateTime::currentMSecsSinceEpoch();
+    // 文件名
+    char* filename = new char[128];
+    memset(filename, 0, sizeof(char)*128);
+    QByteArray ba = sFile.toLatin1();
+    filename = ba.data();
+
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out << CS_Import << areano << filesize
+        << startTime;
+    out.writeBytes(filename, 128-4);
+
+    m_pCmdSocket->write(block);
+    m_pCmdSocket->waitForReadyRead();
+}
+
+/*****************************************************************************
+* @brief   : 请求-导出
+* @author  : wb
+* @date    : 2019/10/28
+* @param:  : 
+*****************************************************************************/
+void HostMachine::slotExport()
+{
+    // 分区号
+    quint32 areano = 0;
+
+    // 1个执行单个导出 >1个执行多个导出
+    int nCount = 1;
+
+    if (nCount == 1)
+    {
+        float filesize = 1.3;
+        DlgFileExport dlg(filesize, this);
+        if (QDialog::Accepted != dlg.exec())
+            return;
+
+        // 文件编号
+        quint32 fileno = 1;
+
+        QByteArray block;
+        QDataStream out(&block, QIODevice::WriteOnly);
+        out << CS_Export << areano << fileno
+            << dlg.Startpos() << dlg.Exportsize();
+
+        m_pCmdSocket->write(block);
+        m_pCmdSocket->waitForReadyRead();
+    }
+    else
+    {
+#pragma message("MWFileList::slotExport 批量导出")
+    }
+}
+
+/*****************************************************************************
+* @brief   : 请求-停止
+* @author  : wb
+* @date    : 2019/10/28
+* @param:  : 
+*****************************************************************************/
+void HostMachine::slotStop()
+{
+    QMessageBox box(this);
+    box.setWindowTitle(qApp->translate(c_sHostMachine, c_sTitle));
+    box.setText(qApp->translate(c_sHostMachine, c_sIsStop));
+    box.setIcon(QMessageBox::Question);
+    box.addButton(qApp->translate(c_sHostMachine, c_sYes), QMessageBox::RejectRole);
+    box.addButton(qApp->translate(c_sHostMachine, c_sNo), QMessageBox::AcceptRole);
+    if (QMessageBox::AcceptRole != box.exec())
+    {
+        return;
+    }
+
+    // 分区号
+    quint32 areano = 0;
+
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out << CS_Stop << areano;
+
+    m_pCmdSocket->write(block);
+    m_pCmdSocket->waitForReadyRead();
+}
+
+/*****************************************************************************
+* @brief   : 请求-删除
+* @author  : wb
+* @date    : 2019/10/28
+* @param:  : 
+*****************************************************************************/
+void HostMachine::slotDelete()
+{
+#pragma message("MWFileList::slotDelete 批量删除")
+    QMessageBox box(this);
+    box.setWindowTitle(qApp->translate(c_sHostMachine, c_sTitle));
+    box.setText(qApp->translate(c_sHostMachine, c_sIsDelete));
+    box.setIcon(QMessageBox::Question);
+    box.addButton(qApp->translate(c_sHostMachine, c_sYes), QMessageBox::RejectRole);
+    box.addButton(qApp->translate(c_sHostMachine, c_sNo), QMessageBox::AcceptRole);
+    if (QMessageBox::AcceptRole != box.exec())
+    {
+        return;
+    }
+
+    // 分区号
+    quint32 areano = 0;
+
+    // 文件编号
+    quint32 fileno = 1;
+
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out << CS_Delete << areano << fileno;
+
+    m_pCmdSocket->write(block);
+    m_pCmdSocket->waitForReadyRead();
+}
+
+/*****************************************************************************
+* @brief   : 请求-刷新
+* @author  : wb
+* @date    : 2019/10/28
+* @param:  : 
+*****************************************************************************/
+void HostMachine::slotRefresh()
+{
+    // 分区号
+    quint32 areano = 0;
+
+    // 起始文件编号
+    quint32 fileno = 1;
+    // 刷新文件数
+    quint32 filenum = 8;
+
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out << CS_Refresh << areano << fileno << filenum;
+
+    m_pCmdSocket->write(block);
+    m_pCmdSocket->waitForReadyRead();
 }
 
 /*****************************************************************************

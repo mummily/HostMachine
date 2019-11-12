@@ -97,7 +97,6 @@ void ClientSocket::readClient()
 
 void ClientSocket::respondCheckSelf()
 {
-    QThread::currentThread()->sleep(5);
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
     out.setVersion(QDataStream::Qt_5_5);
@@ -118,97 +117,80 @@ void ClientSocket::respondCheckSelf()
         << quint32(0);  // FPGA版本号
 
     write(block);
-    waitForReadyRead();
 }
 
 void ClientSocket::respondFormat(quint32 size0, quint32 size1, quint32 size2, quint32 size3, quint32 size4)
 {
-    QThread::currentThread()->sleep(3);
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
     out.setVersion(QDataStream::Qt_5_5);
     out << quint32(SC_Format) << quint32(qrand() % 1); // 0x00 成功 0x01 失败 其它 保留
     write(block);
-    waitForReadyRead();
 }
 
 void ClientSocket::respondSystemConfig(quint32 choice, quint32 setting)
 {
-    QThread::currentThread()->sleep(3);
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
     out.setVersion(QDataStream::Qt_5_5);
     out << quint32(SC_SystemConfig) << quint32(qrand() % 1); // 0x00 成功 0x01 失败 其它 保留
     write(block);
-    waitForReadyRead();
 }
 
 void ClientSocket::respondRecord(quint32 areano, quint64 time, QString filename)
 {
     QDateTime datetime = QDateTime::fromMSecsSinceEpoch(time);
-    QThread::currentThread()->sleep(3);
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
     out.setVersion(QDataStream::Qt_5_5);
     out << quint32(SC_Record) << areano << quint32(qrand() % 1); // 0x00 成功 0x01 失败 其它 保留
     write(block);
-    waitForReadyRead();
 }
 
 void ClientSocket::respondPlayBack(quint32 data1, quint32 data2, 
     quint32 data3, quint32 data4, quint32 data5, quint32 data6, quint32 data7)
 {
-    QThread::currentThread()->sleep(3);
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
     out.setVersion(QDataStream::Qt_5_5);
     out << quint32(SC_PlayBack) << data1 << quint32(qrand() % 1); // 0x00 成功 0x01 失败 其它 保留
     write(block);
-    waitForReadyRead();
 }
 
 void ClientSocket::respondImport(quint32 areano, float filesize, QDateTime time, QString filename)
 {
-    QThread::currentThread()->sleep(3);
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
     out.setVersion(QDataStream::Qt_5_5);
     out << quint32(SC_Import) << areano << quint32(qrand() % 1); // 0x00 成功 0x01 失败 其它 保留
     write(block);
-    waitForReadyRead();
 }
 
 void ClientSocket::respondExport(quint32 areano, float fileno, float startpos, float exportsize)
 {
-    QThread::currentThread()->sleep(3);
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
     out.setVersion(QDataStream::Qt_5_5);
     out << quint32(SC_Export) << areano << quint32(qrand() % 1); // 0x00 成功 0x01 失败 其它 保留
     write(block);
-    waitForReadyRead();
 }
 
 void ClientSocket::respondStop(quint32 areano)
 {
-    QThread::currentThread()->sleep(3);
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
     out.setVersion(QDataStream::Qt_5_5);
     out << quint32(SC_Stop) << areano << quint32(qrand() % 1); // 0x00 成功 0x01 失败 其它 保留
     write(block);
-    waitForReadyRead();
 }
 
 void ClientSocket::respondDelete(quint32 areano, float fileno)
 {
-    QThread::currentThread()->sleep(3);
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
     out.setVersion(QDataStream::Qt_5_5);
     out << quint32(SC_Delete) << areano << quint32(qrand() % 1); // 0x00 成功 0x01 失败 其它 保留
     write(block);
-    waitForReadyRead();
 }
 
 void ClientSocket::respondRefresh(quint32 areano, quint32 fileno, quint32 filenum)
@@ -230,5 +212,4 @@ void ClientSocket::respondRefresh(quint32 areano, quint32 fileno, quint32 filenu
         out << QDateTime::currentDateTime().currentMSecsSinceEpoch() << quint32(nIndex+1) << float(nIndex+0.123);
     }
     write(block);
-    waitForReadyRead();
 }
