@@ -44,6 +44,8 @@ static const char *c_sToolBar = QT_TRANSLATE_NOOP("HostMachine", "¹¤¾ßÀ¸");
 HostMachine::HostMachine(QWidget *parent)
     : QMainWindow(parent)
 {
+    m_spcheckSelf = make_shared<tagCheckSelf>();
+    memset(m_spcheckSelf.get(), 0, sizeof(tagCheckSelf));
     memset(&m_areaProperties, 0, sizeof(tagAreaProperties));
 
     initTcp();
@@ -600,40 +602,37 @@ void HostMachine::readyReadCmd()
     in >> respondType;
     if (respondType == SC_CheckSelf)
     {
-        tagCheckSelf checkSelf;
-        memset(&checkSelf, 0, sizeof(tagCheckSelf));
-
         shared_ptr<tagAreaInfo> areaInfo = make_shared<tagAreaInfo>();
         memset(areaInfo.get(), 0, sizeof(tagAreaInfo));
         areaInfo->read(in);
-        checkSelf.areaInfo0 = areaInfo;
+        m_spcheckSelf->areaInfo0 = areaInfo;
 
         areaInfo = make_shared<tagAreaInfo>();
         memset(areaInfo.get(), 0, sizeof(tagAreaInfo));
         areaInfo->read(in);
-        checkSelf.areaInfo1 = areaInfo;
+        m_spcheckSelf->areaInfo1 = areaInfo;
 
         areaInfo = make_shared<tagAreaInfo>();
         memset(areaInfo.get(), 0, sizeof(tagAreaInfo));
         areaInfo->read(in);
-        checkSelf.areaInfo2 = areaInfo;
+        m_spcheckSelf->areaInfo2 = areaInfo;
 
         areaInfo = make_shared<tagAreaInfo>();
         memset(areaInfo.get(), 0, sizeof(tagAreaInfo));
         areaInfo->read(in);
-        checkSelf.areaInfo3 = areaInfo;
+        m_spcheckSelf->areaInfo3 = areaInfo;
 
         areaInfo = make_shared<tagAreaInfo>();
         memset(areaInfo.get(), 0, sizeof(tagAreaInfo));
         areaInfo->read(in);
-        checkSelf.areaInfo4 = areaInfo;
+        m_spcheckSelf->areaInfo4 = areaInfo;
 
         shared_ptr<tagChannelInfo> channelInfo = make_shared<tagChannelInfo>();
         memset(channelInfo.get(), 0, sizeof(tagChannelInfo));
         channelInfo->read(in);
-        checkSelf.channelInfo = channelInfo;
+        m_spcheckSelf->channelInfo = channelInfo;
 
-        readCheckSelf(checkSelf);
+        readCheckSelf();
     }
     else if (respondType == SC_Format)
     {
@@ -644,10 +643,10 @@ void HostMachine::readyReadCmd()
     }
     else if (respondType == SC_SystemConfig)
     {
-        quint32 state;
-        in >> state;
+        quint32 choice, state;
+        in >> choice >> state;
 
-        readSystemConfig(state);
+        readSystemConfig(choice, state);
     }
     else if (respondType == SC_TaskQuery)
     {
@@ -807,7 +806,11 @@ void HostMachine::slotCheckSelf()
 *****************************************************************************/
 void HostMachine::slotFormat()
 {
-    DlgAreaFormat dlg(this);
+    emit m_pActCheckSelf->triggered();
+
+    DlgAreaFormat dlg(m_spcheckSelf->areaInfo0->areasize, m_spcheckSelf->areaInfo1->areasize,
+        m_spcheckSelf->areaInfo2->areasize, m_spcheckSelf->areaInfo3->areasize,
+        m_spcheckSelf->areaInfo4->areasize, this);
     if (QDialog::Accepted != dlg.exec())
         return;
 
@@ -835,13 +838,17 @@ void HostMachine::slotSystemConfig()
     if (QDialog::Accepted != dlg.exec())
         return;
 
-    QByteArray block;
-    QDataStream out(&block, QIODevice::WriteOnly);
-    out << CS_SystemConfig << quint32(dlg.Choice())
-        << quint32(dlg.Bandwidth());
+    quint32 bandwidth = dlg.Bandwidth();
+    QList<quint32> lstChannel = dlg.ChannelChoice();
+    foreach(quint32 channel, lstChannel)
+    {
+        QByteArray block;
+        QDataStream out(&block, QIODevice::WriteOnly);
+        out << CS_SystemConfig << channel << bandwidth;
 
-    m_pCmdSocket->write(block);
-    m_pCmdSocket->waitForReadyRead();
+        m_pCmdSocket->write(block);
+        m_pCmdSocket->waitForReadyRead();
+    }
 }
 
 /*****************************************************************************
@@ -865,7 +872,7 @@ void HostMachine::slotTaskQuery()
 *****************************************************************************/
 void HostMachine::slotRecord()
 {
-    DlgAreaRecord dlg(this);
+    DlgAreaRecord dlg(m_pTabWgt->currentIndex(), this);
     if (QDialog::Accepted != dlg.exec())
         return;
 
@@ -1086,7 +1093,7 @@ void HostMachine::slotRefresh()
 * @date    : 2019/10/28
 * @param:  : 
 *****************************************************************************/
-void HostMachine::readCheckSelf(tagCheckSelf &checkSelf)
+void HostMachine::readCheckSelf()
 {
     auto updatevalue=[&](shared_ptr<tagAreaProperty> areaProperty, shared_ptr<tagAreaInfo> areaInfo)->void
     {
@@ -1097,15 +1104,15 @@ void HostMachine::readCheckSelf(tagCheckSelf &checkSelf)
         m_enumManager->setValue(areaProperty->pItem5, areaInfo->areastate + 1);
     };
 
-    updatevalue(m_areaProperties.ldProperty1, checkSelf.areaInfo0);
-    updatevalue(m_areaProperties.ldProperty2, checkSelf.areaInfo1);
-    updatevalue(m_areaProperties.gdProperty1, checkSelf.areaInfo2);
-    updatevalue(m_areaProperties.gdProperty2, checkSelf.areaInfo3);
-    updatevalue(m_areaProperties.hhProperty, checkSelf.areaInfo4);
+    updatevalue(m_areaProperties.ldProperty1, m_spcheckSelf->areaInfo0);
+    updatevalue(m_areaProperties.ldProperty2, m_spcheckSelf->areaInfo1);
+    updatevalue(m_areaProperties.gdProperty1, m_spcheckSelf->areaInfo2);
+    updatevalue(m_areaProperties.gdProperty2, m_spcheckSelf->areaInfo3);
+    updatevalue(m_areaProperties.hhProperty, m_spcheckSelf->areaInfo4);
 
-    m_enumManager->setValue(m_areaProperties.channelProperty->pItem1, checkSelf.channelInfo->state + 1);
-    m_enumManager->setValue(m_areaProperties.channelProperty->pItem2, checkSelf.channelInfo->choice + 1);
-    m_enumManager->setValue(m_areaProperties.channelProperty->pItem3, checkSelf.channelInfo->bandwidth + 1);
+    m_enumManager->setValue(m_areaProperties.channelProperty->pItem1, m_spcheckSelf->channelInfo->state + 1);
+    m_enumManager->setValue(m_areaProperties.channelProperty->pItem2, m_spcheckSelf->channelInfo->choice + 1);
+    m_enumManager->setValue(m_areaProperties.channelProperty->pItem3, m_spcheckSelf->channelInfo->bandwidth + 1);
 }
 
 /*****************************************************************************
@@ -1125,9 +1132,10 @@ void HostMachine::readFormat(quint32 state)
 * @date    : 2019/10/28
 * @param:  : 
 *****************************************************************************/
-void HostMachine::readSystemConfig(quint32 state)
+void HostMachine::readSystemConfig(quint32 choice, quint32 state)
 {
-    statusBar()->showMessage((state == 0x00) ? "system config success" : "system config error");
+    QString sMsg = QString("Channel %0 Config %1").arg(choice).arg((state == 0x00) ? "success" : "error");
+    statusBar()->showMessage(sMsg);
 }
 
 /*****************************************************************************

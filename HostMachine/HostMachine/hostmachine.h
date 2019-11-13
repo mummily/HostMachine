@@ -85,14 +85,15 @@ private:
         void slotTabChanged(int index);
 
 private:
-    void readCheckSelf(tagCheckSelf &checkSelf);
+    void readCheckSelf();
     void readFormat(quint32 state);
-    void readSystemConfig(quint32 state);
+    void readSystemConfig(quint32 choice, quint32 state);
     void readTaskQuery(list<tagTaskInfo>& lstTaskInfo);
     void logRecord(QString sText);
 
 private:
     tagAreaProperties       m_areaProperties;
+    shared_ptr<tagCheckSelf> m_spcheckSelf;
 
 private:
     QAction                 *m_pActCheckSelf;   // вт╪Л

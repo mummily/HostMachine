@@ -133,7 +133,7 @@ void ClientSocket::respondSystemConfig(quint32 choice, quint32 setting)
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
     out.setVersion(QDataStream::Qt_5_5);
-    out << quint32(SC_SystemConfig) << quint32(qrand() % 1); // 0x00 成功 0x01 失败 其它 保留
+    out << quint32(SC_SystemConfig) << choice << quint32(qrand() % 1); // 0x00 成功 0x01 失败 其它 保留
     write(block);
 }
 

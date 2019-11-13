@@ -2,6 +2,113 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="zh_CN">
 <context>
+    <name>DlgAreaFormat</name>
+    <message>
+        <location filename="dlgareaformat.cpp" line="11"/>
+        <source>格式化</source>
+        <translation>格式化</translation>
+    </message>
+    <message>
+        <location filename="dlgareaformat.cpp" line="12"/>
+        <source>原始数据分区</source>
+        <translation>原始数据分区</translation>
+    </message>
+    <message>
+        <location filename="dlgareaformat.cpp" line="13"/>
+        <source>雷达结果分区</source>
+        <translation>雷达结果分区</translation>
+    </message>
+    <message>
+        <location filename="dlgareaformat.cpp" line="14"/>
+        <source>光电图片分区</source>
+        <translation>光电图片分区</translation>
+    </message>
+    <message>
+        <location filename="dlgareaformat.cpp" line="15"/>
+        <source>光电视频分区</source>
+        <translation>光电视频分区</translation>
+    </message>
+    <message>
+        <location filename="dlgareaformat.cpp" line="16"/>
+        <source>混合数据分区</source>
+        <translation>混合数据分区</translation>
+    </message>
+    <message>
+        <location filename="dlgareaformat.cpp" line="18"/>
+        <source>确定</source>
+        <translation>确定</translation>
+    </message>
+    <message>
+        <location filename="dlgareaformat.cpp" line="19"/>
+        <source>取消</source>
+        <translation>取消</translation>
+    </message>
+</context>
+<context>
+    <name>DlgAreaRecord</name>
+    <message>
+        <location filename="dlgarearecord.cpp" line="16"/>
+        <source>记录</source>
+        <translation>记录</translation>
+    </message>
+    <message>
+        <location filename="dlgarearecord.cpp" line="17"/>
+        <source>分区选择</source>
+        <translation>分区选择</translation>
+    </message>
+    <message>
+        <location filename="dlgarearecord.cpp" line="18"/>
+        <source>文件名</source>
+        <translation>文件名</translation>
+    </message>
+    <message>
+        <location filename="dlgarearecord.cpp" line="19"/>
+        <source>原始数据分区</source>
+        <translation>原始数据分区</translation>
+    </message>
+    <message>
+        <location filename="dlgarearecord.cpp" line="20"/>
+        <source>雷达结果分区</source>
+        <translation>雷达结果分区</translation>
+    </message>
+    <message>
+        <location filename="dlgarearecord.cpp" line="21"/>
+        <source>光电图片分区</source>
+        <translation>光电图片分区</translation>
+    </message>
+    <message>
+        <location filename="dlgarearecord.cpp" line="22"/>
+        <source>光电视频分区</source>
+        <translation>光电视频分区</translation>
+    </message>
+    <message>
+        <location filename="dlgarearecord.cpp" line="23"/>
+        <source>混合数据分区</source>
+        <translation>混合数据分区</translation>
+    </message>
+    <message>
+        <location filename="dlgarearecord.cpp" line="24"/>
+        <source>请选择记录分区！</source>
+        <oldsource>请输入文件名</oldsource>
+        <translation>请选择记录分区！</translation>
+    </message>
+    <message>
+        <location filename="dlgarearecord.cpp" line="25"/>
+        <source>请输入文件名！</source>
+        <translation>请输入文件名！</translation>
+    </message>
+    <message>
+        <location filename="dlgarearecord.cpp" line="26"/>
+        <source>确定</source>
+        <translation>确定</translation>
+    </message>
+    <message>
+        <location filename="dlgarearecord.cpp" line="27"/>
+        <source>取消</source>
+        <translation>取消</translation>
+    </message>
+</context>
+<context>
     <name>DlgFileExport</name>
     <message>
         <location filename="dlgfileexport.cpp" line="10"/>
@@ -80,6 +187,149 @@
         <location filename="dlgfileplayblack.cpp" line="22"/>
         <source>取消</source>
         <translation>取消</translation>
+    </message>
+</context>
+<context>
+    <name>DlgSystemConfig</name>
+    <message>
+        <location filename="dlgsystemconfig.cpp" line="11"/>
+        <source>系统配置</source>
+        <translation>系统配置</translation>
+    </message>
+    <message>
+        <location filename="dlgsystemconfig.cpp" line="12"/>
+        <source>通道选择</source>
+        <translation>通道选择</translation>
+    </message>
+    <message>
+        <location filename="dlgsystemconfig.cpp" line="13"/>
+        <source>带宽选择</source>
+        <translation>带宽选择</translation>
+    </message>
+    <message>
+        <location filename="dlgsystemconfig.cpp" line="14"/>
+        <source>确定</source>
+        <translation>确定</translation>
+    </message>
+    <message>
+        <location filename="dlgsystemconfig.cpp" line="15"/>
+        <source>取消</source>
+        <translation>取消</translation>
+    </message>
+    <message>
+        <location filename="dlgsystemconfig.cpp" line="17"/>
+        <source>单通道1</source>
+        <translation>单通道1</translation>
+    </message>
+    <message>
+        <location filename="dlgsystemconfig.cpp" line="18"/>
+        <source>单通道2</source>
+        <translation>单通道2</translation>
+    </message>
+    <message>
+        <location filename="dlgsystemconfig.cpp" line="19"/>
+        <source>单通道3</source>
+        <translation>单通道3</translation>
+    </message>
+    <message>
+        <location filename="dlgsystemconfig.cpp" line="20"/>
+        <source>单通道4</source>
+        <translation>单通道4</translation>
+    </message>
+    <message>
+        <location filename="dlgsystemconfig.cpp" line="21"/>
+        <source>单通道5</source>
+        <translation>单通道5</translation>
+    </message>
+    <message>
+        <location filename="dlgsystemconfig.cpp" line="22"/>
+        <source>单通道6</source>
+        <translation>单通道6</translation>
+    </message>
+    <message>
+        <location filename="dlgsystemconfig.cpp" line="23"/>
+        <source>单通道7</source>
+        <translation>单通道7</translation>
+    </message>
+    <message>
+        <location filename="dlgsystemconfig.cpp" line="24"/>
+        <source>单通道8</source>
+        <translation>单通道8</translation>
+    </message>
+    <message>
+        <location filename="dlgsystemconfig.cpp" line="25"/>
+        <source>双通道(1&amp;2)</source>
+        <translation>双通道(1&amp;2)</translation>
+    </message>
+    <message>
+        <location filename="dlgsystemconfig.cpp" line="26"/>
+        <source>双通道(3&amp;4)</source>
+        <translation>双通道(3&amp;4)</translation>
+    </message>
+    <message>
+        <location filename="dlgsystemconfig.cpp" line="27"/>
+        <source>双通道(5&amp;6)</source>
+        <translation>双通道(5&amp;6)</translation>
+    </message>
+    <message>
+        <location filename="dlgsystemconfig.cpp" line="28"/>
+        <source>双通道(7&amp;8)</source>
+        <translation>双通道(7&amp;8)</translation>
+    </message>
+    <message>
+        <location filename="dlgsystemconfig.cpp" line="29"/>
+        <source>四通道(1&amp;2&amp;3&amp;4)</source>
+        <translation>四通道(1&amp;2&amp;3&amp;4)</translation>
+    </message>
+    <message>
+        <location filename="dlgsystemconfig.cpp" line="30"/>
+        <source>四通道(5&amp;6&amp;7&amp;8)</source>
+        <translation>四通道(5&amp;6&amp;7&amp;8)</translation>
+    </message>
+    <message>
+        <location filename="dlgsystemconfig.cpp" line="31"/>
+        <source>八通道</source>
+        <translation>八通道</translation>
+    </message>
+    <message>
+        <location filename="dlgsystemconfig.cpp" line="33"/>
+        <source>通道1</source>
+        <translation>通道1</translation>
+    </message>
+    <message>
+        <location filename="dlgsystemconfig.cpp" line="34"/>
+        <source>通道2</source>
+        <translation>通道2</translation>
+    </message>
+    <message>
+        <location filename="dlgsystemconfig.cpp" line="35"/>
+        <source>通道3</source>
+        <translation>通道3</translation>
+    </message>
+    <message>
+        <location filename="dlgsystemconfig.cpp" line="36"/>
+        <source>通道4</source>
+        <translation>通道4</translation>
+    </message>
+    <message>
+        <location filename="dlgsystemconfig.cpp" line="37"/>
+        <source>通道5</source>
+        <translation>通道5</translation>
+    </message>
+    <message>
+        <location filename="dlgsystemconfig.cpp" line="38"/>
+        <source>通道6</source>
+        <translation>通道6</translation>
+    </message>
+    <message>
+        <location filename="dlgsystemconfig.cpp" line="39"/>
+        <source>通道7</source>
+        <translation>通道7</translation>
+    </message>
+    <message>
+        <location filename="dlgsystemconfig.cpp" line="40"/>
+        <source>通道8</source>
+        <translation>通道8</translation>
     </message>
 </context>
 <context>
@@ -495,52 +745,49 @@
         <translation>未选择</translation>
     </message>
     <message>
-        <location filename="constdef.h" line="120"/>
         <source>分区号</source>
-        <translation>分区号</translation>
+        <translation type="vanished">分区号</translation>
     </message>
     <message>
-        <location filename="constdef.h" line="121"/>
         <source>文件名</source>
-        <translation>文件名</translation>
+        <translation type="vanished">文件名</translation>
     </message>
     <message>
-        <location filename="constdef.h" line="122"/>
         <source>请输入文件名</source>
-        <translation>请输入文件名</translation>
+        <translation type="vanished">请输入文件名</translation>
     </message>
     <message>
-        <location filename="hostmachine.cpp" line="42"/>
+        <location filename="hostmachine.cpp" line="36"/>
         <source>选择要导入的文件</source>
         <translation>选择要导入的文件</translation>
     </message>
     <message>
-        <location filename="hostmachine.cpp" line="43"/>
+        <location filename="hostmachine.cpp" line="37"/>
         <source>DAT文件 (*.dat)</source>
         <translation>DAT文件 (*.dat)</translation>
     </message>
     <message>
-        <location filename="hostmachine.cpp" line="44"/>
+        <location filename="hostmachine.cpp" line="38"/>
         <source>是否停止？</source>
         <translation>是否停止？</translation>
     </message>
     <message>
-        <location filename="hostmachine.cpp" line="45"/>
+        <location filename="hostmachine.cpp" line="39"/>
         <source>是否删除？</source>
         <translation>是否删除？</translation>
     </message>
     <message>
-        <location filename="hostmachine.cpp" line="46"/>
+        <location filename="hostmachine.cpp" line="40"/>
         <source>是</source>
         <translation>是</translation>
     </message>
     <message>
-        <location filename="hostmachine.cpp" line="47"/>
+        <location filename="hostmachine.cpp" line="41"/>
         <source>否</source>
         <translation>否</translation>
     </message>
     <message>
-        <location filename="hostmachine.cpp" line="48"/>
+        <location filename="hostmachine.cpp" line="42"/>
         <source>工具栏</source>
         <translation>工具栏</translation>
     </message>
@@ -548,42 +795,42 @@
 <context>
     <name>MWFileList</name>
     <message>
-        <location filename="mwfilelist.cpp" line="37"/>
+        <location filename="mwfilelist.cpp" line="9"/>
         <source>选择要导入的文件</source>
         <translation>选择要导入的文件</translation>
     </message>
     <message>
-        <location filename="mwfilelist.cpp" line="38"/>
+        <location filename="mwfilelist.cpp" line="10"/>
         <source>DAT文件 (*.dat)</source>
         <translation>DAT文件 (*.dat)</translation>
     </message>
     <message>
-        <location filename="mwfilelist.cpp" line="39"/>
+        <location filename="mwfilelist.cpp" line="11"/>
         <source>是否停止？</source>
         <translation>是否停止？</translation>
     </message>
     <message>
-        <location filename="mwfilelist.cpp" line="40"/>
+        <location filename="mwfilelist.cpp" line="12"/>
         <source>是否删除？</source>
         <translation>是否删除？</translation>
     </message>
     <message>
-        <location filename="mwfilelist.cpp" line="41"/>
+        <location filename="mwfilelist.cpp" line="13"/>
         <source>是</source>
         <translation>是</translation>
     </message>
     <message>
-        <location filename="mwfilelist.cpp" line="42"/>
+        <location filename="mwfilelist.cpp" line="14"/>
         <source>否</source>
         <translation>否</translation>
     </message>
     <message>
-        <location filename="mwfilelist.cpp" line="43"/>
+        <location filename="mwfilelist.cpp" line="15"/>
         <source>工具栏</source>
         <translation>工具栏</translation>
     </message>
     <message>
-        <location filename="mwfilelist.cpp" line="44"/>
+        <location filename="mwfilelist.cpp" line="16"/>
         <source>文件名称</source>
         <translation>文件名称</translation>
     </message>

@@ -11,7 +11,7 @@ class DlgAreaFormat : public QDialog
     Q_OBJECT
 
 public:
-    DlgAreaFormat(QWidget *parent = 0);
+    DlgAreaFormat(int nSize1, int nSize2, int nSize3, int nSize4, int nSize5, QWidget *parent = 0);
     ~DlgAreaFormat();
 
 public:
@@ -24,6 +24,7 @@ public:
 private:
     void initUI();
     void initConnect();
+    void initData();
 
 private slots:
     void slotOk();

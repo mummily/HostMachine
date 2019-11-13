@@ -116,12 +116,6 @@ static const char *c_sChannelState1 = QT_TRANSLATE_NOOP("HostMachine", "连接");
 static const char *c_sChannelChoice0 = QT_TRANSLATE_NOOP("HostMachine", "选择");
 static const char *c_sChannelChoice1 = QT_TRANSLATE_NOOP("HostMachine", "未选择");
 
-// 记录请求
-static const char *c_sAreaNumber = QT_TRANSLATE_NOOP("HostMachine", "分区号");
-static const char *c_sFileName = QT_TRANSLATE_NOOP("HostMachine", "文件名");
-static const char *c_sFileNameTip = QT_TRANSLATE_NOOP("HostMachine", "请输入文件名");
-
-
 using namespace std;
 #include <QDateTime>
 class QtProperty;
