@@ -2,15 +2,36 @@
 #define MWFILELIST_H
 
 #include <QtWidgets/QMainWindow>
+#include <QDateTime>
 #include <list>
+#include <memory>
 using namespace std;
 
-#include "constdef.h"
 class QTableWidget;
 class QTabWidget;
 class QSplitter;
 class QFrame;
 class QLabel;
+
+
+// 刷新 - 文件信息
+struct tagAreaFileInfo
+{
+    quint32 fileno;     // 文件编号
+    QString sFileName;  // 文件名称
+    float filesize;     // 文件大小
+    QDateTime datetime; // 创建时间
+};
+
+// 刷新 - 文件信息
+struct tagAreaFileInfos
+{
+    quint32 areano;     // 分区号
+    quint32 fileno;     // 起始文件编号
+    quint32 filenum;    // 文件数
+    list<shared_ptr<tagAreaFileInfo>> lstFileInfo;
+};
+
 class MWFileList : public QMainWindow
 {
     Q_OBJECT
@@ -33,9 +54,15 @@ private:
     void initFileListWgt();
     void logRecord(QString sText);
 
+signals:
+    void sigDelete(QList<quint32>);
+    void sigPlayback(quint32, quint32, quint32, quint32, quint32, quint32);
+
     private slots:
          // 日志记录
          void slotLogRecord();
+         void slotDelete();
+         void slotPlayback();
 
 private:
     QAction                 *m_pActImport;      // 导入

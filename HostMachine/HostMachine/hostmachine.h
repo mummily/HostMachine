@@ -67,7 +67,7 @@ private:
         // 记录
         void slotRecord();
         // 回放
-        void slotPlayBack();
+        void slotPlayBack(quint32 fileno, quint32 type, quint32 prftime, quint32 datanum, quint32 prf, quint32 cpi);
         // 导入
         void slotImport();
         // 导出
@@ -75,7 +75,7 @@ private:
         // 停止
         void slotStop();
         // 删除
-        void slotDelete();
+        void slotDelete(QList<quint32> fileNos);
         // 刷新
         void slotRefresh();
 

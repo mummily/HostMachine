@@ -28,7 +28,6 @@
 #include "mwfilelist.h"
 #include "dlgarearecord.h"
 #include "dlgfileexport.h"
-#include "dlgfileplayblack.h"
 
 const quint16 c_uCommandPort = 6178;
 const quint16 c_uDataPort = 6188;
@@ -905,17 +904,12 @@ void HostMachine::slotRecord()
 * @date    : 2019/10/28
 * @param:  : 
 *****************************************************************************/
-void HostMachine::slotPlayBack()
+void HostMachine::slotPlayBack(quint32 fileno, quint32 type, quint32 prftime, quint32 datanum, quint32 prf, quint32 cpi)
 {
-    DlgFilePlayblack dlg(this);
-    if (QDialog::Accepted != dlg.exec())
-        return;
-
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
-#pragma message("MWFileList::slotPlayBack 完善分区号、文件编号")
-    out << CS_PlayBack << quint32(0) << quint32(0) // 文件编号
-        << dlg.Type() << dlg.Prftime() << dlg.Datanum() << dlg.Prf() << dlg.Cpi();
+    out << CS_PlayBack << m_pTabWgt->currentIndex() << fileno // 文件编号
+        << type << prftime << prftime << datanum << cpi;
 
     m_pCmdSocket->write(block);
     m_pCmdSocket->waitForReadyRead();
@@ -1035,32 +1029,17 @@ void HostMachine::slotStop()
 * @date    : 2019/10/28
 * @param:  : 
 *****************************************************************************/
-void HostMachine::slotDelete()
+void HostMachine::slotDelete(QList<quint32> fileNos)
 {
-#pragma message("MWFileList::slotDelete 批量删除")
-    QMessageBox box(this);
-    box.setWindowTitle(qApp->translate(c_sHostMachine, c_sTitle));
-    box.setText(qApp->translate(c_sHostMachine, c_sIsDelete));
-    box.setIcon(QMessageBox::Question);
-    box.addButton(qApp->translate(c_sHostMachine, c_sYes), QMessageBox::RejectRole);
-    box.addButton(qApp->translate(c_sHostMachine, c_sNo), QMessageBox::AcceptRole);
-    if (QMessageBox::AcceptRole != box.exec())
+    foreach(quint32 fileno, fileNos)
     {
-        return;
+        QByteArray block;
+        QDataStream out(&block, QIODevice::WriteOnly);
+        out << CS_Delete << m_pTabWgt->currentIndex() << fileno;
+
+        m_pCmdSocket->write(block);
+        m_pCmdSocket->waitForReadyRead();
     }
-
-    // 分区号
-    quint32 areano = 0;
-
-    // 文件编号
-    quint32 fileno = 1;
-
-    QByteArray block;
-    QDataStream out(&block, QIODevice::WriteOnly);
-    out << CS_Delete << areano << fileno;
-
-    m_pCmdSocket->write(block);
-    m_pCmdSocket->waitForReadyRead();
 }
 
 /*****************************************************************************

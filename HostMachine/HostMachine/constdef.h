@@ -273,30 +273,3 @@ struct tagAreaProperties
 
     }
 };
-
-// 刷新 - 文件信息
-struct tagAreaFileInfo
-{
-    quint32 fileno;     // 文件编号
-    QString sFileName;  // 文件名称
-    float filesize;     // 文件大小
-    QDateTime datetime; // 创建时间
-
-    tagAreaFileInfo()
-    {
-
-    }
-};
-
-// 刷新 - 文件信息
-struct tagAreaFileInfos
-{
-    quint32 areano;     // 分区号
-    quint32 fileno;     // 起始文件编号
-    quint32 filenum;    // 文件数
-    list<shared_ptr<tagAreaFileInfo>> lstFileInfo;
-    tagAreaFileInfos()
-    {
-
-    }
-};
