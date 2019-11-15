@@ -1,8 +1,5 @@
-#ifndef CLIENTSOCKET_H
-#define CLIENTSOCKET_H
-
-#include <QTcpSocket>
-
+#pragma once
+#include "QMap"
 
 // 请求类型
 enum RequestType
@@ -38,26 +35,14 @@ enum RespondType
     SC_TaskStop = 0x10C1,       // 任务停止
 };
 
-class ClientSocket : public QTcpSocket
+class TaskType
 {
-    Q_OBJECT
+public:
+    TaskType(void);
+    ~TaskType(void);
 
 public:
-    ClientSocket(QObject *parent);
-    ~ClientSocket();
-
-    void respondCheckSelf();
-    void respondFormat(quint32 size0, quint32 size1, quint32 size2, quint32 size3, quint32 size4);
-    void respondPlayBack(quint32 data1, quint32 data2, quint32 data3, quint32 data4, quint32 data5, quint32 data6, quint32 data7);
-    void respondSystemConfig(quint32 choice, quint32 setting);
-    void respondRecord(quint32 areano, quint64 time, QString filename);
-    void respondImport(quint32 areano, float filesize, QDateTime time, QString filename);
-    void respondExport(quint32 areano, float fileno, float startpos, float exportsize);
-    void respondTaskStop(quint32 areano, quint32 tasktype);
-    void respondDelete(quint32 areano, float fileno);
-    void respondRefresh(quint32 areano, quint32 fileno, quint32 filenum);
-private slots:
-    void readClient();
+    QMap<quint32, QString>  m_mapClientTaskType;
+    QMap<quint32, quint32>  m_mapClientServerTaskType;
 };
 
-#endif // CLIENTSOCKET_H

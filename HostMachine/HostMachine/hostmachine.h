@@ -5,6 +5,7 @@
 
 using namespace std;
 #include "constdef.h"
+#include "tasktype.h"
 
 class QtProperty;
 
@@ -35,6 +36,7 @@ private:
     void initTcp();
     void initLayout();
     void initConnect();
+    void initData();
 
     void initTaskWgt();
     void initPropertyWgt();
@@ -94,6 +96,7 @@ private:
 private:
     tagAreaProperties       m_areaProperties;
     shared_ptr<tagCheckSelf> m_spcheckSelf;
+    shared_ptr<TaskType>    m_spTaskType;
 
 private:
     QAction                 *m_pActCheckSelf;   // вт╪Л

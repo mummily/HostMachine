@@ -35,6 +35,7 @@ const quint16 c_uDataPort = 6188;
 static const char *c_sImportFileTip = QT_TRANSLATE_NOOP("HostMachine", "选择要导入的文件");
 static const char *c_sImportFileExt = QT_TRANSLATE_NOOP("HostMachine", "DAT文件 (*.dat)");
 static const char *c_sIsStop = QT_TRANSLATE_NOOP("HostMachine", "是否停止？");
+static const char *c_sIsStopTip = QT_TRANSLATE_NOOP("HostMachine", "请选择要停止的任务！");
 static const char *c_sIsDelete = QT_TRANSLATE_NOOP("HostMachine", "是否删除？");
 static const char *c_sYes = QT_TRANSLATE_NOOP("HostMachine", "是");
 static const char *c_sNo = QT_TRANSLATE_NOOP("HostMachine", "否");
@@ -51,6 +52,7 @@ HostMachine::HostMachine(QWidget *parent)
     initUI();
     initLayout();
     initConnect();
+    initData();
 
     QTimer::singleShot(10, this, SLOT(slotInit()));
 }
@@ -682,13 +684,13 @@ void HostMachine::readyReadCmd()
         MWFileList* pWMFileList = (MWFileList*)m_pTabWgt->widget(area);
         pWMFileList->readPlayBack(area, state);
     }
-    else if (respondType == SC_Stop)
+    else if (respondType == SC_TaskStop)
     {
-        quint32 area, state;
-        in >> area >> state;
+        quint32 area, tasktype, state;
+        in >> area >> tasktype, state;
 
         MWFileList* pWMFileList = (MWFileList*)m_pTabWgt->widget(area);
-        pWMFileList->readStop(area, state);
+        pWMFileList->readTaskStop(area, tasktype, state);
     }
     else if (respondType == SC_Delete)
     {
@@ -1001,6 +1003,19 @@ void HostMachine::slotExport()
 *****************************************************************************/
 void HostMachine::slotStop()
 {
+    QList<QTableWidgetItem*> selectedItems = m_pTaskWgt->selectedItems();
+    QList<quint32> rowNos;
+    foreach(QTableWidgetItem* pItem, selectedItems)
+    {
+        rowNos.push_back(pItem->row());
+    }
+
+    if (rowNos.size() < 1)
+    {
+        QMessageBox::information(this, qApp->translate(c_sHostMachine, c_sTitle), qApp->translate(c_sHostMachine, c_sIsStopTip));
+        return;
+    }
+
     QMessageBox box(this);
     box.setWindowTitle(qApp->translate(c_sHostMachine, c_sTitle));
     box.setText(qApp->translate(c_sHostMachine, c_sIsStop));
@@ -1012,15 +1027,17 @@ void HostMachine::slotStop()
         return;
     }
 
-    // 分区号
-    quint32 areano = 0;
+    foreach (quint32 rowNo, rowNos)
+    {
+        quint32 tasktype = m_pTaskWgt->item(rowNo, 0)->text().toInt();
 
-    QByteArray block;
-    QDataStream out(&block, QIODevice::WriteOnly);
-    out << CS_Stop << areano;
+        QByteArray block;
+        QDataStream out(&block, QIODevice::WriteOnly);
+        out << CS_TaskStop << m_pTabWgt->currentIndex() << tasktype;
 
-    m_pCmdSocket->write(block);
-    m_pCmdSocket->waitForReadyRead();
+        m_pCmdSocket->write(block);
+        m_pCmdSocket->waitForReadyRead();
+    }
 }
 
 /*****************************************************************************
@@ -1186,4 +1203,8 @@ void HostMachine::slotTabChanged(int index)
             m_pPropertyWgt->setExpanded(pBrowserItem, false);
         }
     }
+}
+
+void HostMachine::initData()
+{
 }

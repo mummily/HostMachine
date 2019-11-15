@@ -52,9 +52,6 @@
     <ClCompile Include="GeneratedFiles\Release\moc_hostmachine.cpp">
       <Filter>Generated Files\Release</Filter>
     </ClCompile>
-    <ClCompile Include="GeneratedFiles\qrc_hostmachine.cpp">
-      <Filter>Generated Files</Filter>
-    </ClCompile>
     <ClCompile Include="dlgipsetting.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -145,13 +142,13 @@
     <ClCompile Include="GeneratedFiles\Release\moc_mwfilelist.cpp">
       <Filter>Generated Files\Release</Filter>
     </ClCompile>
+    <ClCompile Include="tasktype.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="hostmachine.h">
       <Filter>Header Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="hostmachine.qrc">
-      <Filter>Resource Files</Filter>
     </CustomBuild>
     <CustomBuild Include="dlgipsetting.h">
       <Filter>Header Files</Filter>
@@ -194,6 +191,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="constdef.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="tasktype.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

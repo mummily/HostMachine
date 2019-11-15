@@ -75,11 +75,11 @@ void ClientSocket::readClient()
         in >> areano >> fileno >> startpos >> exportsize;
         respondExport(areano, fileno, startpos, exportsize);
     }
-    else if (requestType == CS_Stop) // 分区停止
+    else if (requestType == CS_TaskStop) // 任务停止
     {
-        quint32 areano;
-        in >> areano;
-        respondStop(areano);
+        quint32 areano, tasktype;
+        in >> areano >> tasktype;
+        respondTaskStop(areano, tasktype);
     }
     else if (requestType == CS_Delete) // 分区文件删除
     {
@@ -110,8 +110,8 @@ void ClientSocket::respondCheckSelf()
             << quint32(qrand() % 3);  // 分区状态
     }
 
-    out << quint32(qrand() % 1)   // 通道状态
-        << quint32(qrand() % 1)   // 通道选择
+    out << quint32(qrand() % 2)   // 通道状态
+        << quint32(qrand() % 2)   // 通道选择
         << quint32(qrand() % 5)   // 带宽
         << quint32(0)   // 固件版本号
         << quint32(0);  // FPGA版本号
@@ -124,7 +124,7 @@ void ClientSocket::respondFormat(quint32 size0, quint32 size1, quint32 size2, qu
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
     out.setVersion(QDataStream::Qt_5_5);
-    out << quint32(SC_Format) << quint32(qrand() % 1); // 0x00 成功 0x01 失败 其它 保留
+    out << quint32(SC_Format) << quint32(qrand() % 2); // 0x00 成功 0x01 失败 其它 保留
     write(block);
 }
 
@@ -133,7 +133,7 @@ void ClientSocket::respondSystemConfig(quint32 choice, quint32 setting)
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
     out.setVersion(QDataStream::Qt_5_5);
-    out << quint32(SC_SystemConfig) << choice << quint32(qrand() % 1); // 0x00 成功 0x01 失败 其它 保留
+    out << quint32(SC_SystemConfig) << choice << quint32(qrand() % 2); // 0x00 成功 0x01 失败 其它 保留
     write(block);
 }
 
@@ -143,7 +143,7 @@ void ClientSocket::respondRecord(quint32 areano, quint64 time, QString filename)
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
     out.setVersion(QDataStream::Qt_5_5);
-    out << quint32(SC_Record) << areano << quint32(qrand() % 1); // 0x00 成功 0x01 失败 其它 保留
+    out << quint32(SC_Record) << areano << quint32(qrand() % 2); // 0x00 成功 0x01 失败 其它 保留
     write(block);
 }
 
@@ -153,7 +153,7 @@ void ClientSocket::respondPlayBack(quint32 data1, quint32 data2,
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
     out.setVersion(QDataStream::Qt_5_5);
-    out << quint32(SC_PlayBack) << data1 << quint32(qrand() % 1); // 0x00 成功 0x01 失败 其它 保留
+    out << quint32(SC_PlayBack) << data1 << quint32(qrand() % 2); // 0x00 成功 0x01 失败 其它 保留
     write(block);
 }
 
@@ -162,7 +162,7 @@ void ClientSocket::respondImport(quint32 areano, float filesize, QDateTime time,
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
     out.setVersion(QDataStream::Qt_5_5);
-    out << quint32(SC_Import) << areano << quint32(qrand() % 1); // 0x00 成功 0x01 失败 其它 保留
+    out << quint32(SC_Import) << areano << quint32(qrand() % 2); // 0x00 成功 0x01 失败 其它 保留
     write(block);
 }
 
@@ -171,16 +171,16 @@ void ClientSocket::respondExport(quint32 areano, float fileno, float startpos, f
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
     out.setVersion(QDataStream::Qt_5_5);
-    out << quint32(SC_Export) << areano << quint32(qrand() % 1); // 0x00 成功 0x01 失败 其它 保留
+    out << quint32(SC_Export) << areano << quint32(qrand() % 2); // 0x00 成功 0x01 失败 其它 保留
     write(block);
 }
 
-void ClientSocket::respondStop(quint32 areano)
+void ClientSocket::respondTaskStop(quint32 areano, quint32 tasktype)
 {
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
     out.setVersion(QDataStream::Qt_5_5);
-    out << quint32(SC_Stop) << areano << quint32(qrand() % 1); // 0x00 成功 0x01 失败 其它 保留
+    out << quint32(SC_TaskStop) << areano << tasktype << quint32(qrand() % 2); // 0x00 成功 0x01 失败 其它 保留
     write(block);
 }
 
@@ -189,7 +189,7 @@ void ClientSocket::respondDelete(quint32 areano, float fileno)
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
     out.setVersion(QDataStream::Qt_5_5);
-    out << quint32(SC_Delete) << areano << quint32(qrand() % 1); // 0x00 成功 0x01 失败 其它 保留
+    out << quint32(SC_Delete) << areano << quint32(qrand() % 2); // 0x00 成功 0x01 失败 其它 保留
     write(block);
 }
 

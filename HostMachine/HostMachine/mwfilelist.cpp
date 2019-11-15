@@ -15,7 +15,7 @@ static const char *c_sExport = QT_TRANSLATE_NOOP("MWFileList", "µ¼³ö");
 static const char *c_sRecord = QT_TRANSLATE_NOOP("MWFileList", "¼ÇÂ¼");
 static const char *c_sDelete = QT_TRANSLATE_NOOP("MWFileList", "É¾³ý");
 static const char *c_sRefresh = QT_TRANSLATE_NOOP("MWFileList", "Ë¢ÐÂ");
-static const char *c_sPlayback = QT_TRANSLATE_NOOP("MWFileList", "»Ø·Å");
+static const char *c_sPlayBack = QT_TRANSLATE_NOOP("MWFileList", "»Ø·Å");
 static const char *c_sStop = QT_TRANSLATE_NOOP("MWFileList", "Í£Ö¹");
 static const char *c_sFileNo = QT_TRANSLATE_NOOP("MWFileList", "ÎÄ¼þ±àºÅ");
 static const char *c_sFileName1 = QT_TRANSLATE_NOOP("MWFileList", "ÎÄ¼þÃû³Æ");
@@ -27,7 +27,7 @@ static const char *c_sImportFileTip = QT_TRANSLATE_NOOP("MWFileList", "Ñ¡ÔñÒªµ¼È
 static const char *c_sImportFileExt = QT_TRANSLATE_NOOP("MWFileList", "DATÎÄ¼þ (*.dat)");
 static const char *c_sIsStop = QT_TRANSLATE_NOOP("MWFileList", "ÊÇ·ñÍ£Ö¹£¿");
 static const char *c_sIsDelete = QT_TRANSLATE_NOOP("MWFileList", "ÊÇ·ñÉ¾³ý£¿");
-static const char *c_sPlaybackTip = QT_TRANSLATE_NOOP("MWFileList", "ÇëÑ¡ÔñÒ»¸öÎÄ¼þ»Ø·Å£¡");
+static const char *c_sPlayBackTip = QT_TRANSLATE_NOOP("MWFileList", "ÇëÑ¡ÔñÒ»¸öÎÄ¼þ»Ø·Å£¡");
 static const char *c_sYes = QT_TRANSLATE_NOOP("MWFileList", "ÊÇ");
 static const char *c_sNo = QT_TRANSLATE_NOOP("MWFileList", "·ñ");
 static const char *c_sToolBar = QT_TRANSLATE_NOOP("MWFileList", "¹¤¾ßÀ¸");
@@ -80,7 +80,7 @@ void MWFileList::initUI()
     m_pActRefresh->setStatusTip(m_pActRefresh->text());
 
     sIcon = QString("%1/Image/playback.png").arg(qApp->applicationDirPath());
-    m_pActPlayBack = toolBar->addAction(QIcon(sIcon), qApp->translate(c_sMWFileList, c_sPlayback));
+    m_pActPlayBack = toolBar->addAction(QIcon(sIcon), qApp->translate(c_sMWFileList, c_sPlayBack));
     m_pActPlayBack->setStatusTip(m_pActPlayBack->text());
 
     sIcon = QString("%1/Image/stop.png").arg(qApp->applicationDirPath());
@@ -127,8 +127,8 @@ void MWFileList::initConnect()
     connect(m_pActRefresh, SIGNAL(triggered(bool)), parentWidget(), SLOT(slotRefresh()));
 
     connect(this, SIGNAL(sigDelete(QList<quint32>)), parentWidget(), SLOT(slotDelete(QList<quint32>)));
-    connect(this, SIGNAL(sigPlayback(quint32, quint32, quint32, quint32, quint32, quint32)),
-        parentWidget(), SLOT(slotPlayback(quint32, quint32, quint32, quint32, quint32, quint32)));
+    connect(this, SIGNAL(sigPlayBack(quint32, quint32, quint32, quint32, quint32, quint32)),
+        parentWidget(), SLOT(slotPlayBack(quint32, quint32, quint32, quint32, quint32, quint32)));
 }
 
 /*****************************************************************************
@@ -206,7 +206,7 @@ void MWFileList::readExport(quint32 area, quint32 state)
 * @date    : 2019/10/28
 * @param:  : 
 *****************************************************************************/
-void MWFileList::readStop(quint32 area, quint32 state)
+void MWFileList::readTaskStop(quint32 area, quint32 tasktype, quint32 state)
 {
     statusBar()->showMessage((state == 0x00) ? "stop success" : "stop error");
 }
@@ -289,7 +289,7 @@ void MWFileList::slotDelete()
     emit sigDelete(fileNos);
 }
 
-void MWFileList::slotPlayback()
+void MWFileList::slotPlayBack()
 {
     QList<QTableWidgetItem*> selectedItems = m_pFileListWgt->selectedItems();
     QList<quint32> fileNos;
@@ -304,7 +304,7 @@ void MWFileList::slotPlayback()
 
     if (fileNos.size() !=  1)
     {
-        QMessageBox::information(this, qApp->translate(c_sMWFileList, c_sPlayback), qApp->translate(c_sMWFileList, c_sPlaybackTip));
+        QMessageBox::information(this, qApp->translate(c_sMWFileList, c_sPlayBack), qApp->translate(c_sMWFileList, c_sPlayBackTip));
         return;
     }
 
@@ -312,5 +312,5 @@ void MWFileList::slotPlayback()
     if (QDialog::Accepted != dlg.exec())
         return;
 
-    emit sigPlayback(fileNos.first(), dlg.Type(), dlg.Prftime(), dlg.Datanum(), dlg.Prf(), dlg.Cpi());
+    emit sigPlayBack(fileNos.first(), dlg.Type(), dlg.Prftime(), dlg.Datanum(), dlg.Prf(), dlg.Cpi());
 }

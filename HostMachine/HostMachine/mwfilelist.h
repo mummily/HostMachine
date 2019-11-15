@@ -44,7 +44,7 @@ public:
     void readPlayBack(quint32 area, quint32 state);
     void readImport(quint32 area, quint32 state);
     void readExport(quint32 area, quint32 state);
-    void readStop(quint32 area, quint32 state);
+    void readTaskStop(quint32 area, quint32 tasktype, quint32 state);
     void readDelete(quint32 area, quint32 state);
     void readRefresh(tagAreaFileInfos &fileInfos);
 
@@ -56,13 +56,13 @@ private:
 
 signals:
     void sigDelete(QList<quint32>);
-    void sigPlayback(quint32, quint32, quint32, quint32, quint32, quint32);
+    void sigPlayBack(quint32, quint32, quint32, quint32, quint32, quint32);
 
     private slots:
          // 日志记录
          void slotLogRecord();
          void slotDelete();
-         void slotPlayback();
+         void slotPlayBack();
 
 private:
     QAction                 *m_pActImport;      // 导入

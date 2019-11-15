@@ -773,21 +773,26 @@
     </message>
     <message>
         <location filename="hostmachine.cpp" line="38"/>
+        <source>请选择要停止的任务！</source>
+        <translation>请选择要停止的任务！</translation>
+    </message>
+    <message>
+        <location filename="hostmachine.cpp" line="39"/>
         <source>是否删除？</source>
         <translation>是否删除？</translation>
     </message>
     <message>
-        <location filename="hostmachine.cpp" line="39"/>
+        <location filename="hostmachine.cpp" line="40"/>
         <source>是</source>
         <translation>是</translation>
     </message>
     <message>
-        <location filename="hostmachine.cpp" line="40"/>
+        <location filename="hostmachine.cpp" line="41"/>
         <source>否</source>
         <translation>否</translation>
     </message>
     <message>
-        <location filename="hostmachine.cpp" line="41"/>
+        <location filename="hostmachine.cpp" line="42"/>
         <source>工具栏</source>
         <translation>工具栏</translation>
     </message>
@@ -899,6 +904,74 @@
         <location filename="mwfilelist.cpp" line="21"/>
         <source>文件名称</source>
         <translation>文件名称</translation>
+    </message>
+</context>
+<context>
+    <name>TaskType</name>
+    <message>
+        <location filename="tasktype.cpp" line="5"/>
+        <source>系统配置</source>
+        <translation>系统配置</translation>
+    </message>
+    <message>
+        <location filename="tasktype.cpp" line="6"/>
+        <source>系统操作</source>
+        <translation>系统操作</translation>
+    </message>
+    <message>
+        <location filename="tasktype.cpp" line="8"/>
+        <source>自检</source>
+        <translation>自检</translation>
+    </message>
+    <message>
+        <location filename="tasktype.cpp" line="9"/>
+        <source>格式化</source>
+        <translation>格式化</translation>
+    </message>
+    <message>
+        <location filename="tasktype.cpp" line="10"/>
+        <source>导入</source>
+        <translation>导入</translation>
+    </message>
+    <message>
+        <location filename="tasktype.cpp" line="11"/>
+        <source>导出</source>
+        <translation>导出</translation>
+    </message>
+    <message>
+        <location filename="tasktype.cpp" line="12"/>
+        <source>记录</source>
+        <translation>记录</translation>
+    </message>
+    <message>
+        <location filename="tasktype.cpp" line="13"/>
+        <source>删除</source>
+        <translation>删除</translation>
+    </message>
+    <message>
+        <location filename="tasktype.cpp" line="14"/>
+        <source>刷新</source>
+        <translation>刷新</translation>
+    </message>
+    <message>
+        <location filename="tasktype.cpp" line="15"/>
+        <source>回放</source>
+        <translation>回放</translation>
+    </message>
+    <message>
+        <location filename="tasktype.cpp" line="16"/>
+        <source>停止</source>
+        <translation>停止</translation>
+    </message>
+    <message>
+        <location filename="tasktype.cpp" line="17"/>
+        <source>任务停止</source>
+        <translation>任务停止</translation>
+    </message>
+    <message>
+        <location filename="tasktype.cpp" line="18"/>
+        <source>任务查询</source>
+        <translation>任务查询</translation>
     </message>
 </context>
 </TS>
