@@ -6,8 +6,130 @@
 using namespace std;
 #include "constdef.h"
 #include "tasktype.h"
+#include "QNetworkReply"
 
 class QtProperty;
+
+// 任务查询应答-任务信息
+struct tagTaskInfo
+{
+    quint32 flag; // 标记 1-有效任务 0-无效任务
+    quint32 area; // 分区 0-0分区 1-1分区
+    quint32 type; // 任务类型 0-数据0 1-数据1 2-导入导出 3-回放
+    quint32 finishedsize; // 任务已完成大小
+    quint32 speed; // 任务速度
+    quint32 percent; // 任务进度百分比
+    quint32 state; // 任务状态 0-等待执行 1-执行中 2-已完成
+
+    tagTaskInfo()
+    {
+
+    }
+};
+
+// 分区信息
+struct tagAreaInfo
+{
+    quint32 area;
+    quint32 areasize;
+    quint32 areaunuse;
+    quint32 areafilenum;
+    quint32 areastate;
+
+    tagAreaInfo()
+    {
+
+    }
+
+    void read(QDataStream& in)
+    {
+        in >> area
+            >> areasize
+            >> areaunuse
+            >> areafilenum
+            >> areastate;
+    }
+};
+
+// 通道信息
+struct tagChannelInfo
+{
+    quint32 state;
+    quint32 choice;
+    quint32 bandwidth;
+    quint32 hardversion;
+    quint32 fpgaversion;
+
+    tagChannelInfo()
+    {
+
+    }
+
+    void read(QDataStream& in)
+    {
+        in>> state
+            >> choice
+            >> bandwidth
+            >> hardversion
+            >> fpgaversion;
+    }
+};
+
+// 自检应答-自检信息
+struct tagCheckSelf
+{
+    shared_ptr<tagAreaInfo> areaInfo0, areaInfo1, areaInfo2, areaInfo3, areaInfo4;
+    shared_ptr<tagChannelInfo> channelInfo;
+
+    tagCheckSelf()
+    {
+
+    }
+};
+
+// 分区属性
+struct tagAreaProperty
+{
+    QtProperty* pItem1;
+    QtProperty* pItem2;
+    QtProperty* pItem3;
+    QtProperty* pItem4;
+    QtProperty* pItem5;
+
+    tagAreaProperty()
+    {
+
+    }
+};
+
+// 通道属性
+struct tagChannelProperty
+{
+    QtProperty* pItem1;
+    QtProperty* pItem2;
+    QtProperty* pItem3;
+
+    tagChannelProperty()
+    {
+
+    }
+};
+
+// 界面显示：磁盘控制面板
+struct tagAreaProperties
+{
+    shared_ptr<tagAreaProperty> ldProperty1;    // 原始数据分区
+    shared_ptr<tagAreaProperty> ldProperty2;    // 雷达结果分区
+    shared_ptr<tagAreaProperty> gdProperty1;    // 光电图片分区
+    shared_ptr<tagAreaProperty> gdProperty2;    // 光电视频分区
+    shared_ptr<tagAreaProperty> hhProperty;     // 混合数据分区
+    shared_ptr<tagChannelProperty> channelProperty; // 参数信息
+
+    tagAreaProperties()
+    {
+
+    }
+};
 
 class QtGroupPropertyManager;
 class QtStringPropertyManager;
@@ -23,6 +145,8 @@ class QtTreePropertyBrowser;
 class QLabel;
 class QTcpSocket;
 class MWFileList;
+class QFile;
+class QNetworkReply;
 class HostMachine : public QMainWindow
 {
     Q_OBJECT
@@ -47,6 +171,9 @@ private:
         void disconnectCmd();
         void readyReadCmd();
         void errorCmd();
+        void readContent();
+        void replyFinished(QNetworkReply*);
+        void loadError(QNetworkReply::NetworkError code);
 
         void connectedData();
         void disconnectData();
@@ -92,7 +219,6 @@ private:
     void readSystemConfig(quint32 choice, quint32 state);
     void readTaskQuery(list<tagTaskInfo>& lstTaskInfo);
     void logRecord(QString sText);
-
 private:
     tagAreaProperties       m_areaProperties;
     shared_ptr<tagCheckSelf> m_spcheckSelf;
@@ -108,6 +234,7 @@ private:
 
     QTcpSocket              *m_pCmdSocket;      // 命令Socket
     QTcpSocket              *m_pDataSocket;     // 数据Socket
+    QNetworkReply           *m_pNetworkReply;
 
     MWFileList              *m_pLDOriginalWgt;  // 雷达原始数据分区
     MWFileList              *m_pLDResultWgt;    // 雷达结果数据分区
@@ -123,6 +250,7 @@ private:
     QSplitter               *m_pSplitter;
     QLabel                  *m_pCmdLabel;       // 状态
     QLabel                  *m_pDataLabel;      // 状态
+    QFile                   *m_pFile;
 
     QtGroupPropertyManager  *m_groupManager;
     QtStringPropertyManager *m_stringManager;

@@ -7,6 +7,10 @@
 #include <QHeaderView>
 #include <QMessageBox>
 #include "dlgfileplayblack.h"
+#include "QNetworkAccessManager"
+#include "QNetworkRequest"
+#include "QNetworkReply"
+#include "QFile"
 
 static const char *c_sMWFileList = "MWFileList";
 static const char *c_sTitle = QT_TRANSLATE_NOOP("MWFileList", "删除");
@@ -43,11 +47,34 @@ MWFileList::~MWFileList()
 {
 }
 
+
+void formatSize(qint64 oldBytes, float& newBytes, QString& sUnit)
+{
+    newBytes = oldBytes;
+    sUnit = "B";
+
+    if (oldBytes / c_mSizeMax > 0)
+    {
+        newBytes = oldBytes / (float)c_mSizeMax;
+        sUnit = "GB";
+    }
+    else if (oldBytes / c_kSizeMax > 0)
+    {
+        newBytes = oldBytes / (float)c_kSizeMax;
+        sUnit = "MB";
+    }
+    else if (oldBytes / c_bSizeMax > 0)
+    {
+        newBytes = oldBytes / (float)c_bSizeMax;
+        sUnit = "KB";
+    }
+}
+
 /*****************************************************************************
 * @brief   : 初始化UI
 * @author  : wb
 * @date    : 2019/10/19
-* @param:  : 
+* @param:  :
 *****************************************************************************/
 void MWFileList::initUI()
 {
@@ -101,7 +128,7 @@ void MWFileList::initUI()
 * @brief   : 初始化信号槽
 * @author  : wb
 * @date    : 2019/10/19
-* @param:  : 
+* @param:  :
 *****************************************************************************/
 void MWFileList::initConnect()
 {
@@ -135,12 +162,12 @@ void MWFileList::initConnect()
 * @brief   : 初始化：雷达数据
 * @author  : wb
 * @date    : 2019/10/19
-* @param:  : 
+* @param:  :
 *****************************************************************************/
 void MWFileList::initFileListWgt()
 {
     QStringList headerList;
-    headerList << qApp->translate(c_sMWFileList, c_sFileNo) 
+    headerList << qApp->translate(c_sMWFileList, c_sFileNo)
         << qApp->translate(c_sMWFileList, c_sFileName1)
         << qApp->translate(c_sMWFileList, c_sFileSize)
         << qApp->translate(c_sMWFileList, c_sCreateDate)
@@ -149,18 +176,25 @@ void MWFileList::initFileListWgt()
 
     m_pFileListWgt->setColumnCount(headerList.size());
     m_pFileListWgt->setHorizontalHeaderLabels(headerList);
-    m_pFileListWgt->setShowGrid(true);
+    m_pFileListWgt->setSelectionBehavior(QAbstractItemView::SelectRows);     // 设置选择行为时每次选择一行
+    m_pFileListWgt->setEditTriggers(QAbstractItemView::NoEditTriggers);      // 设置表格为只读
+    m_pFileListWgt->setShowGrid(true);                                       // 设置显示格子线
+
 
     QHeaderView* headerView = m_pFileListWgt->horizontalHeader();
     headerView->setDefaultAlignment(Qt::AlignLeft);
     headerView->setStretchLastSection(true);
+    for (int nColumn = 0; nColumn < m_pFileListWgt->columnCount(); ++nColumn)
+    {
+        headerView->setSectionResizeMode(nColumn, QHeaderView::ResizeToContents);
+    }
 }
 
 /*****************************************************************************
 * @brief   : 应答-记录
 * @author  : wb
 * @date    : 2019/10/28
-* @param:  : 
+* @param:  :
 *****************************************************************************/
 void MWFileList::readRecord(quint32 area, quint32 state)
 {
@@ -171,7 +205,7 @@ void MWFileList::readRecord(quint32 area, quint32 state)
 * @brief   : 应答-回放
 * @author  : wb
 * @date    : 2019/10/28
-* @param:  : 
+* @param:  :
 *****************************************************************************/
 void MWFileList::readPlayBack(quint32 area, quint32 state)
 {
@@ -182,18 +216,62 @@ void MWFileList::readPlayBack(quint32 area, quint32 state)
 * @brief   : 应答-导入
 * @author  : wb
 * @date    : 2019/10/28
-* @param:  : 
+* @param:  :
 *****************************************************************************/
-void MWFileList::readImport(quint32 area, quint32 state)
+void MWFileList::readImport(quint32 area, char* filename, quint32 state)
 {
-    statusBar()->showMessage((state == 0x00) ? "import success" : "import error");
+//     if (state != 0x00)
+//     {
+//         statusBar()->showMessage("import error");
+//         return;
+//     }
+
+    QString sFileName = QString::fromLocal8Bit(filename);
+    m_pFile = new QFile(sFileName);
+    m_pFile->open(QIODevice::ReadOnly);
+    QByteArray data = m_pFile->readAll ();
+    m_pFile->close ();
+
+    QNetworkAccessManager *accessManager = new QNetworkAccessManager(this);    //往该目录中上传文件
+    accessManager->setNetworkAccessible(QNetworkAccessManager::Accessible);
+    QByteArray bytefile = m_pFile->readAll();
+
+    //QString sUrl = QString("http://%0:%1/%2/%3").arg(m_pDataSocket->localAddress().toString()).arg(c_uDataPort).arg(m_pTabWgt->currentIndex()).arg(sFileName);
+    QUrl url("http://127.0.0.1:6188/0/1.txt");    //如这里指定的上传文件至HTTP服务器目录中的upload目录中
+    url.setUserName("wangbin");
+    url.setPassword("5tgb6yhn");
+    QNetworkRequest request(url);
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/octet-stream");
+    QNetworkReply* pNetworkReply = accessManager->post(request, data);
+
+    connect(accessManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(replyFinished(QNetworkReply*)));
+    connect(pNetworkReply, SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(loadError(QNetworkReply::NetworkError)));
+    connect(pNetworkReply, SIGNAL(uploadProgress(qint64, qint64)), this, SLOT(loadProgress(qint64, qint64)));
+}
+
+
+void MWFileList::replyFinished(QNetworkReply* pNetworkReply)
+{
+    if (pNetworkReply->error() == QNetworkReply::NoError)
+    {
+        pNetworkReply->deleteLater();
+    }
+    else
+    {
+        QMessageBox::critical(NULL, tr("Error"), "Failed!!!");
+    }
+}
+
+void MWFileList::loadError(QNetworkReply::NetworkError code)
+{
+    qDebug() << "Error: ";
 }
 
 /*****************************************************************************
 * @brief   : 应答-导出
 * @author  : wb
 * @date    : 2019/10/28
-* @param:  : 
+* @param:  :
 *****************************************************************************/
 void MWFileList::readExport(quint32 area, quint32 state)
 {
@@ -204,7 +282,7 @@ void MWFileList::readExport(quint32 area, quint32 state)
 * @brief   : 应答-停止
 * @author  : wb
 * @date    : 2019/10/28
-* @param:  : 
+* @param:  :
 *****************************************************************************/
 void MWFileList::readTaskStop(quint32 area, quint32 tasktype, quint32 state)
 {
@@ -215,7 +293,7 @@ void MWFileList::readTaskStop(quint32 area, quint32 tasktype, quint32 state)
 * @brief   : 应答-删除
 * @author  : wb
 * @date    : 2019/10/28
-* @param:  : 
+* @param:  :
 *****************************************************************************/
 void MWFileList::readDelete(quint32 area, quint32 state)
 {
@@ -226,11 +304,36 @@ void MWFileList::readDelete(quint32 area, quint32 state)
 * @brief   : 应答-刷新
 * @author  : wb
 * @date    : 2019/10/28
-* @param:  : 
+* @param:  :
 *****************************************************************************/
 void MWFileList::readRefresh(tagAreaFileInfos &fileInfos)
 {
-#pragma message("MWFileList::readRefresh 刷新文件列表区界面")
+    while (m_pFileListWgt->rowCount() > 0)
+    {
+        m_pFileListWgt->removeRow(m_pFileListWgt->rowCount() - 1);
+    }
+    foreach(shared_ptr<tagAreaFileInfo> spFileInfo, fileInfos.lstFileInfo)
+    {
+        m_pFileListWgt->setRowCount(m_pFileListWgt->rowCount() + 1);
+
+        QString sFileName = spFileInfo->sFileName;
+        int nIndex = sFileName.lastIndexOf('.');
+        QString sExt = sFileName.right(sFileName.count() - nIndex - 1);
+        sFileName = sFileName.left(nIndex);
+
+        QString sFileNo = QString("%0").arg(spFileInfo->fileno);
+        m_pFileListWgt->setItem(m_pFileListWgt->rowCount() - 1, 0, new QTableWidgetItem(sFileNo));
+        m_pFileListWgt->setItem(m_pFileListWgt->rowCount() - 1, 1, new QTableWidgetItem(sFileName));
+        float newFileSize = spFileInfo->filesize;
+        QString sUnit = "";
+        formatSize(spFileInfo->filesize, newFileSize, sUnit);
+        QString sFileSize = QString("%0%1").arg(newFileSize).arg(sUnit);
+        m_pFileListWgt->setItem(m_pFileListWgt->rowCount() - 1, 2, new QTableWidgetItem(sFileSize));
+        m_pFileListWgt->setItem(m_pFileListWgt->rowCount() - 1, 3, new QTableWidgetItem(spFileInfo->datetime.toString("yyyy-MM-dd hh:mm:ss")));
+        m_pFileListWgt->setItem(m_pFileListWgt->rowCount() - 1, 4, new QTableWidgetItem(sExt));
+        QString sFileLBA = QString("%0").arg(spFileInfo->filesize / c_bSizeMax);
+        m_pFileListWgt->setItem(m_pFileListWgt->rowCount() - 1, 5, new QTableWidgetItem(sFileLBA));
+    }
 }
 
 /*****************************************************************************
@@ -302,7 +405,7 @@ void MWFileList::slotPlayBack()
     fileNos.push_back(0);
     // Test End
 
-    if (fileNos.size() !=  1)
+    if (fileNos.size() != 1)
     {
         QMessageBox::information(this, qApp->translate(c_sMWFileList, c_sPlayBack), qApp->translate(c_sMWFileList, c_sPlayBackTip));
         return;
@@ -313,4 +416,17 @@ void MWFileList::slotPlayBack()
         return;
 
     emit sigPlayBack(fileNos.first(), dlg.Type(), dlg.Prftime(), dlg.Datanum(), dlg.Prf(), dlg.Cpi());
+}
+
+void MWFileList::loadProgress(qint64 bytesSent, qint64 bytesTotal)
+{
+    QString sSentUnit = "";
+    QString sTotalUnit = "";
+    float newBytesSent = bytesSent;
+    float newBytesTotal = bytesTotal;
+    formatSize(bytesSent, newBytesSent, sSentUnit);
+    formatSize(bytesTotal, newBytesTotal, sTotalUnit);
+
+    QString sMessage = QString("%0%1/%2%3").arg(newBytesSent).arg(sSentUnit).arg(newBytesTotal).arg(sTotalUnit);
+    statusBar()->showMessage(sMessage);
 }

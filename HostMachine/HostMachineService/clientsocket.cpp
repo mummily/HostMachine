@@ -3,6 +3,7 @@
 #include "QDateTime"
 #include "QMessageBox"
 #include "QThread"
+#include <QDir>
 
 ClientSocket::ClientSocket(QObject *parent)
     : QTcpSocket(parent)
@@ -63,10 +64,13 @@ void ClientSocket::readClient()
         quint32 areano;
         float filesize;
         quint64 time;
+        in >> areano >> filesize >> time;
+
         char* filename = new char[128];
         memset(filename, 0, sizeof(char)*128);
-        in >> areano >> filesize >> time >> filename;
-        respondImport(areano, filesize, QDateTime::fromMSecsSinceEpoch(time), QString::fromLocal8Bit(filename));
+        in.readRawData(filename, 128);
+        
+        respondImport(areano, filesize, QDateTime::fromMSecsSinceEpoch(time), filename);
     }
     else if (requestType == CS_Export) // 导出
     {
@@ -97,16 +101,24 @@ void ClientSocket::readClient()
 
 void ClientSocket::respondCheckSelf()
 {
+    QStringList filter;
+    filter<<"*.*";
+
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
     out.setVersion(QDataStream::Qt_5_5);
     out << quint32(SC_CheckSelf); // 类型码
     for (int nIndex = 0; nIndex < 5; ++nIndex)
     {
+        QString sDir = QString("D:/HostMachine/%0").arg(nIndex);
+        QDir dir(sDir);
+        dir.setNameFilters(filter);
+        QList<QFileInfo> fileInfo(dir.entryInfoList(filter, QDir::Files));
+
         out << quint32(nIndex) // 分区号
             << quint32(100) // 分区大小
             << quint32(qrand() % 100)  // 分区未使用大小
-            << quint32(qrand() % 10)  // 分区文件个数
+            << quint32(fileInfo.count())  // 分区文件个数
             << quint32(qrand() % 3);  // 分区状态
     }
 
@@ -157,12 +169,14 @@ void ClientSocket::respondPlayBack(quint32 data1, quint32 data2,
     write(block);
 }
 
-void ClientSocket::respondImport(quint32 areano, float filesize, QDateTime time, QString filename)
+void ClientSocket::respondImport(quint32 areano, float filesize, QDateTime time, char* filename)
 {
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
     out.setVersion(QDataStream::Qt_5_5);
-    out << quint32(SC_Import) << areano << quint32(qrand() % 2); // 0x00 成功 0x01 失败 其它 保留
+    out << quint32(SC_Import) << areano; // 0x00 成功 0x01 资源不足 0x02 其它
+    out.writeRawData(filename, 128);
+    out << quint32(qrand() % 3);
     write(block);
 }
 
@@ -195,21 +209,25 @@ void ClientSocket::respondDelete(quint32 areano, float fileno)
 
 void ClientSocket::respondRefresh(quint32 areano, quint32 fileno, quint32 filenum)
 {
+    QString sDir = QString("D:/HostMachine/%0").arg(areano);
+    QDir dir(sDir);
+
+    QList<QFileInfo> fileInfos(dir.entryInfoList(QDir::Files));
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
     out.setVersion(QDataStream::Qt_5_5);
-    out << quint32(SC_Refresh) << areano << fileno << filenum; // 0x00 成功 0x01 失败 其它 保留
-    for (int nIndex=0; nIndex<filenum;++nIndex)
+    out << quint32(SC_Refresh) << areano << fileno << fileInfos.count(); // 0x00 成功 0x01 失败 其它 保留
+    int nIndex = 1;
+    foreach(QFileInfo fileInfo, fileInfos)
     {
         char* filename = new char[128];
         memset(filename, 0, sizeof(char)*128);
 
-        QString sFileName = QString("File%1").arg(nIndex+1);
-        QByteArray ba = sFileName.toLatin1();
+        QByteArray ba = fileInfo.fileName().toLatin1();
         filename = ba.data();
 
         out.writeRawData(filename, 128);
-        out << QDateTime::currentDateTime().currentMSecsSinceEpoch() << quint32(nIndex+1) << float(nIndex+0.123);
+        out << fileInfo.created().toMSecsSinceEpoch() << quint32(nIndex++) << quint64(fileInfo.size());
     }
     write(block);
 }

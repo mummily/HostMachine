@@ -20,6 +20,10 @@
 #include <QTcpSocket>
 #include <QTcpServer>
 
+#include <QNetworkAccessManager>
+#include <QNetworkRequest>
+#include <QNetworkReply>
+
 #include "dlgipsetting.h"
 #include "qtpropertymanager.h"
 #include "decorateddoublepropertymanager.h"
@@ -32,6 +36,8 @@
 const quint16 c_uCommandPort = 6178;
 const quint16 c_uDataPort = 6188;
 
+static const char *c_sHostMachine = "HostMachine";
+static const char *c_sTitle = QT_TRANSLATE_NOOP("HostMachine", "网络应用软件");
 static const char *c_sImportFileTip = QT_TRANSLATE_NOOP("HostMachine", "选择要导入的文件");
 static const char *c_sImportFileExt = QT_TRANSLATE_NOOP("HostMachine", "DAT文件 (*.dat)");
 static const char *c_sIsStop = QT_TRANSLATE_NOOP("HostMachine", "是否停止？");
@@ -40,13 +46,80 @@ static const char *c_sIsDelete = QT_TRANSLATE_NOOP("HostMachine", "是否删除？");
 static const char *c_sYes = QT_TRANSLATE_NOOP("HostMachine", "是");
 static const char *c_sNo = QT_TRANSLATE_NOOP("HostMachine", "否");
 static const char *c_sToolBar = QT_TRANSLATE_NOOP("HostMachine", "工具栏");
+static const char *c_sIsExportTip = QT_TRANSLATE_NOOP("HostMachine", "请选择要导出的文件！");
+static const char *c_sIPSetting = QT_TRANSLATE_NOOP("HostMachine", "IP设置");
+
+// 系统菜单
+static const char *c_sSystemConfig = QT_TRANSLATE_NOOP("HostMachine", "系统配置");
+static const char *c_sSystemOperation = QT_TRANSLATE_NOOP("HostMachine", "系统操作");
+static const char *c_sAbout = QT_TRANSLATE_NOOP("HostMachine", "关于");
+
+// 工具栏
+static const char *c_sCheckSelf = QT_TRANSLATE_NOOP("HostMachine", "自检");
+static const char *c_sFormat = QT_TRANSLATE_NOOP("HostMachine", "格式化");
+static const char *c_sImport = QT_TRANSLATE_NOOP("HostMachine", "导入");
+static const char *c_sExport = QT_TRANSLATE_NOOP("HostMachine", "导出");
+static const char *c_sRecord = QT_TRANSLATE_NOOP("HostMachine", "记录");
+static const char *c_sDelete = QT_TRANSLATE_NOOP("HostMachine", "删除");
+static const char *c_sRefresh = QT_TRANSLATE_NOOP("HostMachine", "刷新");
+static const char *c_sPlayBack = QT_TRANSLATE_NOOP("HostMachine", "回放");
+static const char *c_sStop = QT_TRANSLATE_NOOP("HostMachine", "停止");
+
+// 属性区
+static const char *c_sPropertyTitle1 = QT_TRANSLATE_NOOP("HostMachine", "磁盘控制面板");
+static const char *c_sPropertyGroup1_1 = QT_TRANSLATE_NOOP("HostMachine", "原始数据分区");
+static const char *c_sPropertyGroup1_2 = QT_TRANSLATE_NOOP("HostMachine", "雷达结果分区");
+static const char *c_sPropertyGroup1_3 = QT_TRANSLATE_NOOP("HostMachine", "光电图片分区");
+static const char *c_sPropertyGroup1_4 = QT_TRANSLATE_NOOP("HostMachine", "光电视频分区");
+static const char *c_sPropertyGroup1_5 = QT_TRANSLATE_NOOP("HostMachine", "混合数据分区");
+static const char *c_sPropertyGroup1_6 = QT_TRANSLATE_NOOP("HostMachine", "参数信息");
+static const char *c_sProperty1_1 = QT_TRANSLATE_NOOP("HostMachine", "总大小");
+static const char *c_sProperty1_2 = QT_TRANSLATE_NOOP("HostMachine", "已用大小");
+static const char *c_sProperty1_3 = QT_TRANSLATE_NOOP("HostMachine", "未用百分比");
+static const char *c_sProperty1_4 = QT_TRANSLATE_NOOP("HostMachine", "文件数量");
+static const char *c_sProperty1_5 = QT_TRANSLATE_NOOP("HostMachine", "当前状态");
+static const char *c_sProperty1_6 = QT_TRANSLATE_NOOP("HostMachine", "通道连接状态");
+static const char *c_sProperty1_7 = QT_TRANSLATE_NOOP("HostMachine", "通道选择状态");
+static const char *c_sProperty1_8 = QT_TRANSLATE_NOOP("HostMachine", "通道带宽");
+
+// 任务列表框
+static const char *c_sTaskHeader1 = QT_TRANSLATE_NOOP("HostMachine", "序号");
+static const char *c_sTaskHeader2 = QT_TRANSLATE_NOOP("HostMachine", "所属分区");
+static const char *c_sTaskHeader3 = QT_TRANSLATE_NOOP("HostMachine", "任务类型");
+static const char *c_sTaskHeader4 = QT_TRANSLATE_NOOP("HostMachine", "任务开始时间");
+static const char *c_sTaskHeader5 = QT_TRANSLATE_NOOP("HostMachine", "总大小(GB)");
+static const char *c_sTaskHeader6 = QT_TRANSLATE_NOOP("HostMachine", "已完成大小(GB)");
+static const char *c_sTaskHeader7 = QT_TRANSLATE_NOOP("HostMachine", "百分比");
+static const char *c_sTaskHeader8 = QT_TRANSLATE_NOOP("HostMachine", "速率(MB/S)");
+static const char *c_sTaskHeader9 = QT_TRANSLATE_NOOP("HostMachine", "状态");
+static const char *c_sTaskHeader10 = QT_TRANSLATE_NOOP("HostMachine", "耗时");
+
+// 日志输出
+static const char *c_sOpenSoftware = QT_TRANSLATE_NOOP("HostMachine", "打开软件");
+
+// 状态栏
+static const char *c_sDisConnect = QT_TRANSLATE_NOOP("HostMachine", "未连接");
+static const char *c_sReady = QT_TRANSLATE_NOOP("HostMachine", "就绪");
+static const char *c_sContactUs = QT_TRANSLATE_NOOP("HostMachine", "联系我们");
+
+// 分区状态
+static const char *c_sAreaState0 = QT_TRANSLATE_NOOP("HostMachine", "空闲");
+static const char *c_sAreaState1 = QT_TRANSLATE_NOOP("HostMachine", "读");
+static const char *c_sAreaState2 = QT_TRANSLATE_NOOP("HostMachine", "写");
+static const char *c_sAreaState3 = QT_TRANSLATE_NOOP("HostMachine", "读写");
+
+// 通道状态
+static const char *c_sChannelState0 = QT_TRANSLATE_NOOP("HostMachine", "未连接");
+static const char *c_sChannelState1 = QT_TRANSLATE_NOOP("HostMachine", "连接");
+
+// 通道选择
+static const char *c_sChannelChoice0 = QT_TRANSLATE_NOOP("HostMachine", "选择");
+static const char *c_sChannelChoice1 = QT_TRANSLATE_NOOP("HostMachine", "未选择");
 
 HostMachine::HostMachine(QWidget *parent)
     : QMainWindow(parent)
 {
     m_spcheckSelf = make_shared<tagCheckSelf>();
-    memset(m_spcheckSelf.get(), 0, sizeof(tagCheckSelf));
-    memset(&m_areaProperties, 0, sizeof(tagAreaProperties));
 
     initTcp();
     initUI();
@@ -284,7 +357,6 @@ void HostMachine::initPropertyWgt()
     // 参数信息
     {
         shared_ptr<tagChannelProperty> channelProperty = make_shared<tagChannelProperty>();
-        memset(channelProperty.get(), 0, sizeof(tagChannelProperty));
         m_areaProperties.channelProperty = channelProperty;
 
         QtProperty *topItem = m_groupManager->addProperty(qApp->translate(c_sHostMachine, c_sPropertyGroup1_6));
@@ -604,32 +676,26 @@ void HostMachine::readyReadCmd()
     if (respondType == SC_CheckSelf)
     {
         shared_ptr<tagAreaInfo> areaInfo = make_shared<tagAreaInfo>();
-        memset(areaInfo.get(), 0, sizeof(tagAreaInfo));
         areaInfo->read(in);
         m_spcheckSelf->areaInfo0 = areaInfo;
 
         areaInfo = make_shared<tagAreaInfo>();
-        memset(areaInfo.get(), 0, sizeof(tagAreaInfo));
         areaInfo->read(in);
         m_spcheckSelf->areaInfo1 = areaInfo;
 
         areaInfo = make_shared<tagAreaInfo>();
-        memset(areaInfo.get(), 0, sizeof(tagAreaInfo));
         areaInfo->read(in);
         m_spcheckSelf->areaInfo2 = areaInfo;
 
         areaInfo = make_shared<tagAreaInfo>();
-        memset(areaInfo.get(), 0, sizeof(tagAreaInfo));
         areaInfo->read(in);
         m_spcheckSelf->areaInfo3 = areaInfo;
 
         areaInfo = make_shared<tagAreaInfo>();
-        memset(areaInfo.get(), 0, sizeof(tagAreaInfo));
         areaInfo->read(in);
         m_spcheckSelf->areaInfo4 = areaInfo;
 
         shared_ptr<tagChannelInfo> channelInfo = make_shared<tagChannelInfo>();
-        memset(channelInfo.get(), 0, sizeof(tagChannelInfo));
         channelInfo->read(in);
         m_spcheckSelf->channelInfo = channelInfo;
 
@@ -659,7 +725,6 @@ void HostMachine::readyReadCmd()
             for (int index=0;index<tasknum;++index)
             {
                 tagTaskInfo taskInfo;
-                memset(&taskInfo, 0, sizeof(tagTaskInfo));
                 in >> taskInfo.flag >> taskInfo.area >> taskInfo.type
                     >> taskInfo.finishedsize >> taskInfo.speed >> taskInfo.percent >> taskInfo.state;
                 lstTaskInfo.push_back(taskInfo);
@@ -687,7 +752,7 @@ void HostMachine::readyReadCmd()
     else if (respondType == SC_TaskStop)
     {
         quint32 area, tasktype, state;
-        in >> area >> tasktype, state;
+        in >> area >> tasktype >> state;
 
         MWFileList* pWMFileList = (MWFileList*)m_pTabWgt->widget(area);
         pWMFileList->readTaskStop(area, tasktype, state);
@@ -703,7 +768,6 @@ void HostMachine::readyReadCmd()
     else if (respondType == SC_Refresh)
     {
         tagAreaFileInfos fileInfos;
-        memset(&fileInfos, 0, sizeof(tagAreaFileInfos));
         in >> fileInfos.areano >> fileInfos.fileno >> fileInfos.filenum;
 
         list<shared_ptr<tagAreaFileInfo>> lstFileInfo;
@@ -711,24 +775,42 @@ void HostMachine::readyReadCmd()
         {
             char* filename = new char[128];
             memset(filename, 0, sizeof(char)*128);
+            in.readRawData(filename, 128);
 
             quint64 datetime;
             quint32 fileno;
-            float filesize;
-            in >> filename >> datetime >> fileno >> filesize;
+            quint64 filesize;
+            in >> datetime >> fileno >> filesize;
 
             shared_ptr<tagAreaFileInfo> spFileInfo = make_shared<tagAreaFileInfo>();
             spFileInfo->sFileName = QString::fromLocal8Bit(filename);
+            
             spFileInfo->datetime = QDateTime::fromMSecsSinceEpoch(datetime);
+
             spFileInfo->fileno = fileno;
             spFileInfo->filesize = filesize;
 
             lstFileInfo.push_back(spFileInfo);
+            delete filename;
         }
         fileInfos.lstFileInfo.swap(lstFileInfo);
 
         MWFileList* pWMFileList = (MWFileList*)m_pTabWgt->widget(fileInfos.areano);
         pWMFileList->readRefresh(fileInfos);
+    }
+    else if (respondType == SC_Import)
+    {
+        quint32 areano, state;
+        in >> areano;
+
+        char* filename = new char[128];
+        memset(filename, 0, sizeof(char)*128);
+        in.readRawData(filename, 128);
+
+        in >> state;
+
+        MWFileList* pWMFileList = (MWFileList*)m_pTabWgt->widget(areano);
+        pWMFileList->readImport(areano, filename, state);
     }
 }
 
@@ -748,15 +830,7 @@ void HostMachine::readyReadData()
 
     quint32 respondType;
     in >> respondType;
-    if (respondType == SC_Import)
-    {
-        quint32 area, state;
-        in >> area >> state;
-
-        MWFileList* pWMFileList = (MWFileList*)m_pTabWgt->widget(area);
-        pWMFileList->readImport(area, state);
-    }
-    else if (respondType == SC_Export)
+    if (respondType == SC_Export)
     {
         quint32 area, state;
         in >> area >> state;
@@ -927,18 +1001,15 @@ void HostMachine::slotImport()
 {
 #pragma message("MWFileList::slotImport 导入是选定一个分区执行导入，可单个可批量")
 
-    QString sFile = QFileDialog::getOpenFileName(
-        this, qApp->translate(c_sHostMachine, c_sImportFileTip),
-        "/",
-        qApp->translate(c_sHostMachine, c_sImportFileExt));
+    QString sFile = QFileDialog::getOpenFileName(this, qApp->translate(c_sHostMachine, c_sImportFileTip),
+        "/", qApp->translate(c_sHostMachine, c_sImportFileExt));
     if (sFile.isEmpty())
         return;
 
     QFileInfo info(sFile);
 
     // 分区号
-    quint32 areano = 0;
-    float filesize = info.size() / 1024.0;
+    float filesize = info.size() / c_bSizeMax;
     // 开始时间
     qint64 startTime = QDateTime::currentMSecsSinceEpoch();
     // 文件名
@@ -949,9 +1020,9 @@ void HostMachine::slotImport()
 
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
-    out << CS_Import << areano << filesize
+    out << CS_Import << m_pTabWgt->currentIndex() << filesize
         << startTime;
-    out.writeBytes(filename, 128-4);
+    out.writeRawData(filename, 128);
 
     m_pCmdSocket->write(block);
     m_pCmdSocket->waitForReadyRead();
@@ -965,34 +1036,80 @@ void HostMachine::slotImport()
 *****************************************************************************/
 void HostMachine::slotExport()
 {
-    // 分区号
-    quint32 areano = 0;
-
-    // 1个执行单个导出 >1个执行多个导出
-    int nCount = 1;
-
-    if (nCount == 1)
+    MWFileList* pFileList = (MWFileList*)m_pTabWgt->currentWidget();
+    QList<QTableWidgetItem*> selectedItems = pFileList->m_pFileListWgt->selectedItems();
+    QSet<quint32> rowNos;
+    foreach(QTableWidgetItem* pItem, selectedItems)
     {
-        float filesize = 1.3;
+        rowNos.insert(pItem->row());
+    }
+
+    if (rowNos.size() < 1)
+    {
+        QMessageBox::information(this, qApp->translate(c_sHostMachine, c_sTitle), qApp->translate(c_sHostMachine, c_sIsExportTip));
+        return;
+    }
+
+    float fStartPos = 0.0;
+    float fExportSize = 0.0;
+    if (rowNos.count() == 1)
+    {
+        float filesize = 1.3; // 来着所在行的文件大小列
         DlgFileExport dlg(filesize, this);
         if (QDialog::Accepted != dlg.exec())
             return;
 
-        // 文件编号
-        quint32 fileno = 1;
+        fStartPos = dlg.Startpos();
+        fExportSize = dlg.Exportsize();
+    }
 
-        QByteArray block;
-        QDataStream out(&block, QIODevice::WriteOnly);
-        out << CS_Export << areano << fileno
-            << dlg.Startpos() << dlg.Exportsize();
+    foreach (quint32 rowNo, rowNos)
+    {
+        QString sFileName = QString("%0.%1").arg(pFileList->m_pFileListWgt->item(rowNo, 1)->text()).arg(pFileList->m_pFileListWgt->item(rowNo, 4)->text());
+        QString sLocalPath = QString("%0/%1").arg(QApplication::applicationDirPath()).arg(sFileName);
 
-        m_pCmdSocket->write(block);
-        m_pCmdSocket->waitForReadyRead();
+        m_pFile = new QFile(sFileName);
+        m_pFile->open(QIODevice::WriteOnly);
+
+        QNetworkAccessManager *accessManager = new QNetworkAccessManager(this);
+        accessManager->setNetworkAccessible(QNetworkAccessManager::Accessible);
+        QString sUrl = QString("http://%0:%1/%2/%3").arg(m_pDataSocket->localAddress().toString()).arg(c_uDataPort).arg(m_pTabWgt->currentIndex()).arg(sFileName);
+        QUrl url(sUrl);
+
+        QNetworkRequest request(url);
+        request.setHeader(QNetworkRequest::ContentTypeHeader, "application/octet-stream");
+        m_pNetworkReply = accessManager->get(request);
+
+        connect((QObject *)m_pNetworkReply, SIGNAL(readyRead()), this, SLOT(readContent()));
+        connect(accessManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(replyFinished(QNetworkReply*)));
+        connect(m_pNetworkReply, SIGNAL(error(QNetworkReply::NetworkError)),this,SLOT(loadError(QNetworkReply::NetworkError)));
+        connect(m_pNetworkReply, SIGNAL(downloadProgress(qint64 ,qint64)), pFileList, SLOT(loadProgress(qint64 ,qint64)));
+    }
+}
+
+void HostMachine::readContent()
+{
+    m_pFile->write(m_pNetworkReply->readAll());
+}
+
+void HostMachine::replyFinished(QNetworkReply*)
+{
+    if(m_pNetworkReply->error() == QNetworkReply::NoError)
+    {
+        m_pNetworkReply->deleteLater();
+        m_pFile->flush();
+        m_pFile->close();
     }
     else
     {
-#pragma message("MWFileList::slotExport 批量导出")
+        QMessageBox::critical(NULL, tr("Error"), "Failed!");
     }
+}
+
+
+void HostMachine::loadError(QNetworkReply::NetworkError code)
+{
+    qDebug()<<"Error: "<< m_pNetworkReply->error();
 }
 
 /*****************************************************************************
@@ -1067,8 +1184,8 @@ void HostMachine::slotDelete(QList<quint32> fileNos)
 *****************************************************************************/
 void HostMachine::slotRefresh()
 {
-    // 分区号
-    quint32 areano = 0;
+    // 刷新前先自检
+    emit m_pActCheckSelf->triggered();
 
     // 起始文件编号
     quint32 fileno = 1;
@@ -1077,7 +1194,7 @@ void HostMachine::slotRefresh()
 
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
-    out << CS_Refresh << areano << fileno << filenum;
+    out << CS_Refresh << m_pTabWgt->currentIndex() << fileno << filenum;
 
     m_pCmdSocket->write(block);
     m_pCmdSocket->waitForReadyRead();
@@ -1180,7 +1297,7 @@ void HostMachine::logRecord(QString sText)
 void HostMachine::slotInit()
 {
     // 日志记录：打开软件
-    logRecord(qApp->translate(c_sHostMachine, c_sLogOpenSoftware));
+    logRecord(qApp->translate(c_sHostMachine, c_sOpenSoftware));
 
     emit m_pTabWgt->currentChanged(0);
     // 打开IP设置

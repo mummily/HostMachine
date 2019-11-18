@@ -51,7 +51,7 @@ public:
     void respondPlayBack(quint32 data1, quint32 data2, quint32 data3, quint32 data4, quint32 data5, quint32 data6, quint32 data7);
     void respondSystemConfig(quint32 choice, quint32 setting);
     void respondRecord(quint32 areano, quint64 time, QString filename);
-    void respondImport(quint32 areano, float filesize, QDateTime time, QString filename);
+    void respondImport(quint32 areano, float filesize, QDateTime time, char* filename);
     void respondExport(quint32 areano, float fileno, float startpos, float exportsize);
     void respondTaskStop(quint32 areano, quint32 tasktype);
     void respondDelete(quint32 areano, float fileno);
