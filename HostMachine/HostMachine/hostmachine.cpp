@@ -48,6 +48,7 @@ static const char *c_sNo = QT_TRANSLATE_NOOP("HostMachine", "否");
 static const char *c_sToolBar = QT_TRANSLATE_NOOP("HostMachine", "工具栏");
 static const char *c_sIsExportTip = QT_TRANSLATE_NOOP("HostMachine", "请选择要导出的文件！");
 static const char *c_sIPSetting = QT_TRANSLATE_NOOP("HostMachine", "IP设置");
+static const char *c_sPathTitle = QT_TRANSLATE_NOOP("HostMachine", "选择导出文件路径");
 
 // 系统菜单
 static const char *c_sSystemConfig = QT_TRANSLATE_NOOP("HostMachine", "系统配置");
@@ -134,6 +135,7 @@ HostMachine::~HostMachine()
 {
     m_pCmdSocket->close();
     m_pDataSocket->close();
+    m_pLog->close();
 }
 
 /*****************************************************************************
@@ -1037,7 +1039,8 @@ void HostMachine::slotImport()
 void HostMachine::slotExport()
 {
     MWFileList* pFileList = (MWFileList*)m_pTabWgt->currentWidget();
-    QList<QTableWidgetItem*> selectedItems = pFileList->m_pFileListWgt->selectedItems();
+    QTableWidget *pFileListWgt = pFileList->m_pFileListWgt;
+    QList<QTableWidgetItem*> selectedItems = pFileListWgt->selectedItems();
     QSet<quint32> rowNos;
     foreach(QTableWidgetItem* pItem, selectedItems)
     {
@@ -1052,23 +1055,31 @@ void HostMachine::slotExport()
 
     float fStartPos = 0.0;
     float fExportSize = 0.0;
+    QString sExportPath = "";
     if (rowNos.count() == 1)
     {
-        float filesize = 1.3; // 来着所在行的文件大小列
+        float filesize = pFileList->m_pFileListWgt->item(*rowNos.begin(), 5)->text().toFloat(); // 来着所在行的文件大小列
         DlgFileExport dlg(filesize, this);
         if (QDialog::Accepted != dlg.exec())
             return;
 
         fStartPos = dlg.Startpos();
         fExportSize = dlg.Exportsize();
+        sExportPath = dlg.ExportPath();
+    }
+    else
+    {
+        sExportPath = QFileDialog::getExistingDirectory(this, qApp->translate(c_sHostMachine, c_sPathTitle), "./");
+        if(sExportPath.isEmpty())
+            return;
     }
 
     foreach (quint32 rowNo, rowNos)
     {
-        QString sFileName = QString("%0.%1").arg(pFileList->m_pFileListWgt->item(rowNo, 1)->text()).arg(pFileList->m_pFileListWgt->item(rowNo, 4)->text());
-        QString sLocalPath = QString("%0/%1").arg(QApplication::applicationDirPath()).arg(sFileName);
+        QString sFileName = QString("%0.%1").arg(pFileListWgt->item(rowNo, 1)->text()).arg(pFileListWgt->item(rowNo, 4)->text());
+        QString sLocalPath = QString("%0/%1_%2_%3").arg(sExportPath).arg(m_pTabWgt->currentIndex()).arg(pFileListWgt->item(rowNo, 0)->text()).arg(sFileName);
 
-        m_pFile = new QFile(sFileName);
+        m_pFile = new QFile(sLocalPath);
         m_pFile->open(QIODevice::WriteOnly);
 
         QNetworkAccessManager *accessManager = new QNetworkAccessManager(this);
@@ -1092,11 +1103,11 @@ void HostMachine::readContent()
     m_pFile->write(m_pNetworkReply->readAll());
 }
 
-void HostMachine::replyFinished(QNetworkReply*)
+void HostMachine::replyFinished(QNetworkReply* pNetworkReply)
 {
-    if(m_pNetworkReply->error() == QNetworkReply::NoError)
+    if(pNetworkReply->error() == QNetworkReply::NoError)
     {
-        m_pNetworkReply->deleteLater();
+        pNetworkReply->deleteLater();
         m_pFile->flush();
         m_pFile->close();
     }
@@ -1286,6 +1297,9 @@ void HostMachine::slotLogRecord()
 void HostMachine::logRecord(QString sText)
 {
     QString sDateTime = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
+    QTextStream in(m_pLog);
+    in << sDateTime << "\n";
+    in << sText << "\n";
 }
 
 /*****************************************************************************
@@ -1324,4 +1338,15 @@ void HostMachine::slotTabChanged(int index)
 
 void HostMachine::initData()
 {
+    QString sLogFile = QString("%0/%1.log").arg(qApp->applicationDirPath()).arg(qApp->applicationName());
+    QFileInfo info(sLogFile);
+    if (info.size() / c_kSizeMax > 10) // 10M
+    {
+        QString sNewName = QString("%0/%1_%2.log").arg(qApp->applicationDirPath())
+            .arg(qApp->applicationName()).arg(QDateTime::currentDateTime().toString("yyyyMMddhhmmss"));
+        QFile::rename(sLogFile, sNewName);
+    }
+
+    m_pLog = new QFile(sLogFile);
+    m_pLog->open(QIODevice::WriteOnly|QIODevice::Append);
 }

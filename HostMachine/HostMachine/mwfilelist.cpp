@@ -132,25 +132,25 @@ void MWFileList::initUI()
 *****************************************************************************/
 void MWFileList::initConnect()
 {
-    connect(m_pActRecord, SIGNAL(triggered(bool)), this, SLOT(slotLogRecord()));
+    connect(m_pActRecord, SIGNAL(triggered(bool)), parentWidget(), SLOT(slotLogRecord()));
     connect(m_pActRecord, SIGNAL(triggered(bool)), parentWidget(), SLOT(slotRecord()));
 
-    connect(m_pActPlayBack, SIGNAL(triggered(bool)), this, SLOT(slotLogRecord()));
+    connect(m_pActPlayBack, SIGNAL(triggered(bool)), parentWidget(), SLOT(slotLogRecord()));
     connect(m_pActPlayBack, SIGNAL(triggered(bool)), this, SLOT(slotPlayBack()));
 
-    connect(m_pActImport, SIGNAL(triggered(bool)), this, SLOT(slotLogRecord()));
+    connect(m_pActImport, SIGNAL(triggered(bool)), parentWidget(), SLOT(slotLogRecord()));
     connect(m_pActImport, SIGNAL(triggered(bool)), parentWidget(), SLOT(slotImport()));
 
-    connect(m_pActExport, SIGNAL(triggered(bool)), this, SLOT(slotLogRecord()));
+    connect(m_pActExport, SIGNAL(triggered(bool)), parentWidget(), SLOT(slotLogRecord()));
     connect(m_pActExport, SIGNAL(triggered(bool)), parentWidget(), SLOT(slotExport()));
 
-    connect(m_pActStop, SIGNAL(triggered(bool)), this, SLOT(slotLogRecord()));
+    connect(m_pActStop, SIGNAL(triggered(bool)), parentWidget(), SLOT(slotLogRecord()));
     connect(m_pActStop, SIGNAL(triggered(bool)), parentWidget(), SLOT(slotStop()));
 
-    connect(m_pActDelete, SIGNAL(triggered(bool)), this, SLOT(slotLogRecord()));
+    connect(m_pActDelete, SIGNAL(triggered(bool)), parentWidget(), SLOT(slotLogRecord()));
     connect(m_pActDelete, SIGNAL(triggered(bool)), this, SLOT(slotDelete()));
 
-    connect(m_pActRefresh, SIGNAL(triggered(bool)), this, SLOT(slotLogRecord()));
+    connect(m_pActRefresh, SIGNAL(triggered(bool)), parentWidget(), SLOT(slotLogRecord()));
     connect(m_pActRefresh, SIGNAL(triggered(bool)), parentWidget(), SLOT(slotRefresh()));
 
     connect(this, SIGNAL(sigDelete(QList<quint32>)), parentWidget(), SLOT(slotDelete(QList<quint32>)));

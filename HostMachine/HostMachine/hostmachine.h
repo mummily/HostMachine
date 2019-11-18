@@ -172,7 +172,7 @@ private:
         void readyReadCmd();
         void errorCmd();
         void readContent();
-        void replyFinished(QNetworkReply*);
+        void replyFinished(QNetworkReply* pNetworkReply);
         void loadError(QNetworkReply::NetworkError code);
 
         void connectedData();
@@ -251,6 +251,7 @@ private:
     QLabel                  *m_pCmdLabel;       // ״̬
     QLabel                  *m_pDataLabel;      // ״̬
     QFile                   *m_pFile;
+    QFile                   *m_pLog;
 
     QtGroupPropertyManager  *m_groupManager;
     QtStringPropertyManager *m_stringManager;
