@@ -1,23 +1,24 @@
-#include "clientsocket.h"
+#include "cmdsocket.h"
 #include "QDataStream"
 #include "QDateTime"
 #include "QMessageBox"
 #include "QThread"
 #include <QDir>
+#include "common.h"
 
-ClientSocket::ClientSocket(QObject *parent)
+CmdSocket::CmdSocket(QObject *parent)
     : QTcpSocket(parent)
 {
     connect(this, SIGNAL(readyRead()), this, SLOT(readClient()));
     connect(this, SIGNAL(disconnect()), this, SLOT(deleteLater()));
 }
 
-ClientSocket::~ClientSocket()
+CmdSocket::~CmdSocket()
 {
 
 }
 
-void ClientSocket::readClient()
+void CmdSocket::readClient()
 {
     QDataStream in(this);
     in.setVersion(QDataStream::Qt_5_5);
@@ -59,26 +60,6 @@ void ClientSocket::readClient()
         in >> data1 >> data2 >> data3 >> data4 >> data5 >> data6 >> data7;
         respondPlayBack(data1, data2, data3, data4, data5, data6, data7);
     }
-    else if (requestType == CS_Import) // 导入
-    {
-        quint32 areano;
-        float filesize;
-        quint64 time;
-        in >> areano >> filesize >> time;
-
-        char* filename = new char[128];
-        memset(filename, 0, sizeof(char)*128);
-        in.readRawData(filename, 128);
-        
-        respondImport(areano, filesize, QDateTime::fromMSecsSinceEpoch(time), filename);
-    }
-    else if (requestType == CS_Export) // 导出
-    {
-        quint32 areano;
-        float fileno, startpos, exportsize;
-        in >> areano >> fileno >> startpos >> exportsize;
-        respondExport(areano, fileno, startpos, exportsize);
-    }
     else if (requestType == CS_TaskStop) // 任务停止
     {
         quint32 areano, tasktype;
@@ -97,9 +78,35 @@ void ClientSocket::readClient()
         in >> areano >> fileno >> filenum;
         respondRefresh(areano, fileno, filenum);
     }
+    else if (requestType == CS_Import) // 导入
+    {
+        quint32 areano;
+        float filesize;
+        quint64 time;
+        in >> areano >> filesize >> time;
+
+        char* filename = new char[128];
+        memset(filename, 0, sizeof(char)*128);
+        in.readRawData(filename, 128);
+
+        respondImport(areano, filesize, QDateTime::fromMSecsSinceEpoch(time), filename);
+    }
 }
 
-void ClientSocket::respondCheckSelf()
+
+void CmdSocket::respondImport(quint32 areano, float filesize, QDateTime time, char* filename)
+{
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out.setVersion(QDataStream::Qt_5_5);
+    out << quint32(SC_Import) << areano;
+    out.writeRawData(filename, 128);
+    quint32 result = 0/*qrand() % 3*/; // 0x00 成功 0x01 资源不足 0x02 其它
+    out << result;
+    write(block);
+}
+
+void CmdSocket::respondCheckSelf()
 {
     QStringList filter;
     filter<<"*.*";
@@ -131,7 +138,7 @@ void ClientSocket::respondCheckSelf()
     write(block);
 }
 
-void ClientSocket::respondFormat(quint32 size0, quint32 size1, quint32 size2, quint32 size3, quint32 size4)
+void CmdSocket::respondFormat(quint32 size0, quint32 size1, quint32 size2, quint32 size3, quint32 size4)
 {
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
@@ -140,7 +147,7 @@ void ClientSocket::respondFormat(quint32 size0, quint32 size1, quint32 size2, qu
     write(block);
 }
 
-void ClientSocket::respondSystemConfig(quint32 choice, quint32 setting)
+void CmdSocket::respondSystemConfig(quint32 choice, quint32 setting)
 {
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
@@ -149,7 +156,7 @@ void ClientSocket::respondSystemConfig(quint32 choice, quint32 setting)
     write(block);
 }
 
-void ClientSocket::respondRecord(quint32 areano, quint64 time, QString filename)
+void CmdSocket::respondRecord(quint32 areano, quint64 time, QString filename)
 {
     QDateTime datetime = QDateTime::fromMSecsSinceEpoch(time);
     QByteArray block;
@@ -159,7 +166,7 @@ void ClientSocket::respondRecord(quint32 areano, quint64 time, QString filename)
     write(block);
 }
 
-void ClientSocket::respondPlayBack(quint32 data1, quint32 data2, 
+void CmdSocket::respondPlayBack(quint32 data1, quint32 data2, 
     quint32 data3, quint32 data4, quint32 data5, quint32 data6, quint32 data7)
 {
     QByteArray block;
@@ -169,27 +176,7 @@ void ClientSocket::respondPlayBack(quint32 data1, quint32 data2,
     write(block);
 }
 
-void ClientSocket::respondImport(quint32 areano, float filesize, QDateTime time, char* filename)
-{
-    QByteArray block;
-    QDataStream out(&block, QIODevice::WriteOnly);
-    out.setVersion(QDataStream::Qt_5_5);
-    out << quint32(SC_Import) << areano; // 0x00 成功 0x01 资源不足 0x02 其它
-    out.writeRawData(filename, 128);
-    out << quint32(qrand() % 3);
-    write(block);
-}
-
-void ClientSocket::respondExport(quint32 areano, float fileno, float startpos, float exportsize)
-{
-    QByteArray block;
-    QDataStream out(&block, QIODevice::WriteOnly);
-    out.setVersion(QDataStream::Qt_5_5);
-    out << quint32(SC_Export) << areano << quint32(qrand() % 2); // 0x00 成功 0x01 失败 其它 保留
-    write(block);
-}
-
-void ClientSocket::respondTaskStop(quint32 areano, quint32 tasktype)
+void CmdSocket::respondTaskStop(quint32 areano, quint32 tasktype)
 {
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
@@ -198,7 +185,7 @@ void ClientSocket::respondTaskStop(quint32 areano, quint32 tasktype)
     write(block);
 }
 
-void ClientSocket::respondDelete(quint32 areano, float fileno)
+void CmdSocket::respondDelete(quint32 areano, float fileno)
 {
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
@@ -207,7 +194,7 @@ void ClientSocket::respondDelete(quint32 areano, float fileno)
     write(block);
 }
 
-void ClientSocket::respondRefresh(quint32 areano, quint32 fileno, quint32 filenum)
+void CmdSocket::respondRefresh(quint32 areano, quint32 fileno, quint32 filenum)
 {
     QString sDir = QString("D:/HostMachine/%0").arg(areano);
     QDir dir(sDir);

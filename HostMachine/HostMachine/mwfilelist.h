@@ -20,6 +20,7 @@ const int c_bSizeMax = 1024;
 const int c_kSizeMax = c_bSizeMax * 1024;
 const int c_mSizeMax = c_kSizeMax * 1024;
 const qint64 c_gSizeMax = c_mSizeMax * 1024;
+const int c_bufferSize = 4 * c_bSizeMax;
 
 // 刷新 - 文件信息
 struct tagAreaFileInfo

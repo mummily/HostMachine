@@ -17,11 +17,11 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-//     HostMachineServer server2;
-//     if (!server2.listen(QHostAddress::Any, c_uDataPort)) // 数据端口
-//     {
-//         return 1;
-//     }
+    HostMachineServer server2;
+    if (!server2.listen(QHostAddress::Any, c_uDataPort)) // 数据端口
+    {
+        return 1;
+    }
     
     QPushButton quitButton("Quit");
     quitButton.setWindowTitle("Host Machine Service");

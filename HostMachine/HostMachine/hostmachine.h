@@ -165,6 +165,9 @@ private:
     void initTaskWgt();
     void initPropertyWgt();
 
+private:
+    void reallyCheckSelf();
+
     private slots:
         // TCP
         void connectedCmd();
@@ -223,6 +226,7 @@ private:
     tagAreaProperties       m_areaProperties;
     shared_ptr<tagCheckSelf> m_spcheckSelf;
     shared_ptr<TaskType>    m_spTaskType;
+    QString                 m_sAddr;
 
 private:
     QAction                 *m_pActCheckSelf;   // вт╪Л
