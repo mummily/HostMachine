@@ -40,7 +40,7 @@ const quint16 c_uDataPort = 6188;
 static const char *c_sHostMachine = "HostMachine";
 static const char *c_sTitle = QT_TRANSLATE_NOOP("HostMachine", "网络应用软件");
 static const char *c_sImportFileTip = QT_TRANSLATE_NOOP("HostMachine", "选择要导入的文件");
-static const char *c_sImportFileExt = QT_TRANSLATE_NOOP("HostMachine", "DAT文件 (*.dat)");
+static const char *c_sImportFileExt = QT_TRANSLATE_NOOP("HostMachine", "DAT文件(*.dat);;所有文件(*.*)");
 static const char *c_sIsStop = QT_TRANSLATE_NOOP("HostMachine", "是否停止？");
 static const char *c_sIsStopTip = QT_TRANSLATE_NOOP("HostMachine", "请选择要停止的任务！");
 static const char *c_sIsDelete = QT_TRANSLATE_NOOP("HostMachine", "是否删除？");
@@ -788,7 +788,7 @@ void HostMachine::readyReadCmd()
 
             shared_ptr<tagAreaFileInfo> spFileInfo = make_shared<tagAreaFileInfo>();
             spFileInfo->sFileName = QString::fromLocal8Bit(filename);
-            
+
             spFileInfo->datetime = QDateTime::fromMSecsSinceEpoch(datetime);
 
             spFileInfo->fileno = fileno;
@@ -816,19 +816,53 @@ void HostMachine::readyReadCmd()
         MWFileList* pWMFileList = (MWFileList*)m_pTabWgt->widget(areano);
         if (state != 0x00)
         {
-            // pWMFileList->readImport(areano, filename, state);
+            QString sMsg = QString("%0 Import Error!").arg(filename);
+            pWMFileList->statusBar()->showMessage(sMsg);
+            return;
         }
-        else
+
+        m_pDataSocket->connectToHost(QHostAddress(m_sAddr), c_uDataPort);
+        SCOPE_EXIT([&]{ m_pDataSocket->close();});
+
+        QString sFile = QString::fromLocal8Bit(filename);
+        QFileInfo fileInfo = sFile;
+        qint64 fileSize = fileInfo.size();
+        QString sHeader = QString("%1##%2").arg(fileInfo.fileName()).arg(fileSize);
+        qint64 len = m_pDataSocket->write(sHeader.toUtf8());
+        m_pDataSocket->waitForBytesWritten();
+        if (len == -1)
+            return;
+
+        QFile file;
+        file.setFileName(sFile);
+        if (!file.open(QIODevice::ReadOnly))
         {
-            QString sFile = QString::fromLocal8Bit(filename);
-            QFileInfo info(sFile);
-            float filesize = info.size();
-            QByteArray block;
-            QDataStream out(&block, QIODevice::WriteOnly);
-            out << CS_Import << qint32(0) << filesize;
-            m_pDataSocket->write(block);
-            m_pDataSocket->waitForReadyRead();
+            QMessageBox::information(this, qApp->translate(c_sHostMachine, c_sTitle),
+                tr("打开文件失败！"));
+            return;
         }
+
+        float newFileSize = fileSize;
+        QString sFileUnit;
+        formatSize(fileSize, newFileSize, sFileUnit);
+
+        qint64 bufferLen = 0;
+        len = 0;
+        do
+        {
+            char buffer[c_bufferSize] = {0};
+            len = file.read(buffer, sizeof(buffer));
+            len = m_pDataSocket->write(buffer, len);
+            bufferLen += len;
+
+            float newBufferLen = bufferLen;
+            QString sBufferUnit;
+            formatSize(bufferLen, newBufferLen, sBufferUnit);
+            QString sMsg = QString("%0 Import %1 %2/%3 %4").arg(filename).arg(newBufferLen).arg(sBufferUnit).arg(newFileSize).arg(sFileUnit);
+            pWMFileList->statusBar()->showMessage(sMsg);
+        } while (len > 0);
+
+        file.close();
     }
 }
 
@@ -858,6 +892,7 @@ void HostMachine::readyReadData()
     }
     else if (respondType == SC_Import)
     {
+        return;
         QString sFile = "C:\\Users\\wangbin\\Desktop\\1109.dat"/*QString::fromLocal8Bit(filename)*/;
 
         QFile file;
@@ -871,19 +906,13 @@ void HostMachine::readyReadData()
         QFileInfo info(sFile);
         float filesize = info.size();
 
+        qint64 len = 0;
         do
         {
-            // 发送内容
-            char buffer[c_bufferSize];
-            qint64 len = file.read(buffer, sizeof(char)*c_bufferSize);
-
-            QByteArray block;
-            QDataStream out(&block, QIODevice::WriteOnly);
-            out << CS_Import << qint32(1) << qint32(len) << buffer;
-            m_pDataSocket->write(block);
-            m_pDataSocket->waitForBytesWritten();
-            filesize -= len;
-        } while (filesize > 0);
+            char buffer[c_bufferSize] = {0};
+            len = file.read(buffer, sizeof(buffer));
+            len = m_pDataSocket->write(buffer, len);
+        } while (len > 0);
 
         file.close();
 
@@ -1486,4 +1515,26 @@ void HostMachine::initData()
 
     m_pLog = new QFile(sLogFile);
     m_pLog->open(QIODevice::WriteOnly|QIODevice::Append);
+}
+
+void HostMachine::formatSize(qint64 oldBytes, float& newBytes, QString& sUnit)
+{
+    newBytes = oldBytes;
+    sUnit = "B";
+
+    if (oldBytes / c_mSizeMax > 0)
+    {
+        newBytes = oldBytes / (float)c_mSizeMax;
+        sUnit = "GB";
+    }
+    else if (oldBytes / c_kSizeMax > 0)
+    {
+        newBytes = oldBytes / (float)c_kSizeMax;
+        sUnit = "MB";
+    }
+    else if (oldBytes / c_bSizeMax > 0)
+    {
+        newBytes = oldBytes / (float)c_bSizeMax;
+        sUnit = "KB";
+    }
 }

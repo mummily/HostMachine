@@ -2,13 +2,14 @@
 #include "QDataStream"
 #include "QDateTime"
 #include "QMessageBox"
+#include <QApplication>
 #include "QThread"
 #include <QDir>
 #include "common.h"
 #include <QFile>
 
 DataSocket::DataSocket(QObject *parent)
-    : QTcpSocket(parent), m_blockSize(0), m_fileSize(0)
+    : QTcpSocket(parent), m_blockSize(0), m_fileSize(0), m_bStart(true)
 {
     connect(this, SIGNAL(readyRead()), this, SLOT(readClient()));
     connect(this, SIGNAL(disconnect()), this, SLOT(deleteLater()));
@@ -16,7 +17,6 @@ DataSocket::DataSocket(QObject *parent)
 
 DataSocket::~DataSocket()
 {
-
 }
 
 void DataSocket::readClient()
@@ -27,46 +27,26 @@ void DataSocket::readClient()
     if (bytesAvailable() < sizeof(qint32))
         return;
 
-    qint32 requestType;
-    in >> requestType;
-    if (requestType == CS_Export) // 导出
+    QByteArray buf = readAll();
+    if (m_bStart)
     {
-        qint32 areano;
-        float fileno, startpos, exportsize;
-        in >> areano >> fileno >> startpos >> exportsize;
-        respondExport(areano, fileno, startpos, exportsize);
+        m_bStart = false;
+        QString fileName = QString(buf).section("##", 0, 0);
+        QString filePath = QString("%0/%1").arg(qApp->applicationDirPath()).arg(fileName);
+        m_file.setFileName(fileName);
+
+        m_file.open(QIODevice::WriteOnly);
+
+        m_fileSize = QString(buf).section("##", 1, 1).toInt();
     }
-    else if (requestType == CS_Import) // 导入
+    else
     {
-        qint32 type;
-        in >> type;
-        if (type == 0)
+        qint64 len = m_file.write(buf);
+        m_blockSize += len;
+        if (m_blockSize == m_fileSize)
         {
-            in >> m_fileSize;
-
-            m_file = new QFile(this);
-            m_file->setFileName("Test.txt");
-            m_file->open(QIODevice::WriteOnly);
-
-            QByteArray block;
-            QDataStream out(&block, QIODevice::WriteOnly);
-            out.setVersion(QDataStream::Qt_5_5);
-            out << quint32(SC_Import);
-            write(block);
-        }
-        else
-        {
-            qint32 len;
-            in >> len;
-            qDebug() << len << endl;
-            char buffer[4*1024];
-            in.readRawData(buffer, len);
-            m_file->write(buffer, len);
-            if (len < 4*1024)
-            {
-                m_file->close();
-                m_fileSize = 0;
-            }
+            m_file.close();
+            close();
         }
     }
 }

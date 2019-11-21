@@ -167,6 +167,7 @@ private:
 
 private:
     void reallyCheckSelf();
+    void formatSize(qint64 oldBytes, float& newBytes, QString& sUnit);
 
     private slots:
         // TCP

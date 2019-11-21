@@ -61,6 +61,7 @@ private:
     void initConnect();
     void initFileListWgt();
     void logRecord(QString sText);
+    void formatSize(qint64 oldBytes, float& newBytes, QString& sUnit);
 
 signals:
     void sigDelete(QList<quint32>);

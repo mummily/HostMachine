@@ -28,7 +28,7 @@ static const char *c_sCreateDate = QT_TRANSLATE_NOOP("MWFileList", "创建时间");
 static const char *c_sFileType = QT_TRANSLATE_NOOP("MWFileList", "文件类型");
 static const char *c_sLBASize = QT_TRANSLATE_NOOP("MWFileList", "LBA大小（KB）");
 static const char *c_sImportFileTip = QT_TRANSLATE_NOOP("MWFileList", "选择要导入的文件");
-static const char *c_sImportFileExt = QT_TRANSLATE_NOOP("MWFileList", "DAT文件 (*.dat)");
+static const char *c_sImportFileExt = QT_TRANSLATE_NOOP("MWFileList", "DAT文件(*.dat);;所有文件(*.*)");
 static const char *c_sIsStop = QT_TRANSLATE_NOOP("MWFileList", "是否停止？");
 static const char *c_sIsDelete = QT_TRANSLATE_NOOP("MWFileList", "是否删除？");
 static const char *c_sPlayBackTip = QT_TRANSLATE_NOOP("MWFileList", "请选择一个文件回放！");
@@ -45,29 +45,6 @@ MWFileList::MWFileList(QWidget *parent)
 
 MWFileList::~MWFileList()
 {
-}
-
-
-void formatSize(qint64 oldBytes, float& newBytes, QString& sUnit)
-{
-    newBytes = oldBytes;
-    sUnit = "B";
-
-    if (oldBytes / c_mSizeMax > 0)
-    {
-        newBytes = oldBytes / (float)c_mSizeMax;
-        sUnit = "GB";
-    }
-    else if (oldBytes / c_kSizeMax > 0)
-    {
-        newBytes = oldBytes / (float)c_kSizeMax;
-        sUnit = "MB";
-    }
-    else if (oldBytes / c_bSizeMax > 0)
-    {
-        newBytes = oldBytes / (float)c_bSizeMax;
-        sUnit = "KB";
-    }
 }
 
 /*****************************************************************************
@@ -429,4 +406,26 @@ void MWFileList::loadProgress(qint64 bytesSent, qint64 bytesTotal)
 
     QString sMessage = QString("%0%1/%2%3").arg(newBytesSent).arg(sSentUnit).arg(newBytesTotal).arg(sTotalUnit);
     statusBar()->showMessage(sMessage);
+}
+
+void MWFileList::formatSize(qint64 oldBytes, float& newBytes, QString& sUnit)
+{
+    newBytes = oldBytes;
+    sUnit = "B";
+
+    if (oldBytes / c_mSizeMax > 0)
+    {
+        newBytes = oldBytes / (float)c_mSizeMax;
+        sUnit = "GB";
+    }
+    else if (oldBytes / c_kSizeMax > 0)
+    {
+        newBytes = oldBytes / (float)c_kSizeMax;
+        sUnit = "MB";
+    }
+    else if (oldBytes / c_bSizeMax > 0)
+    {
+        newBytes = oldBytes / (float)c_bSizeMax;
+        sUnit = "KB";
+    }
 }
