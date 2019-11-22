@@ -827,7 +827,7 @@ void HostMachine::readyReadCmd()
         QString sFile = QString::fromLocal8Bit(filename);
         QFileInfo fileInfo = sFile;
         qint64 fileSize = fileInfo.size();
-        QString sHeader = QString("%1##%2").arg(fileInfo.fileName()).arg(fileSize);
+        QString sHeader = QString("%0##%1##%2").arg(areano).arg(fileInfo.fileName()).arg(fileSize);
         qint64 len = m_pDataSocket->write(sHeader.toUtf8());
         m_pDataSocket->waitForBytesWritten();
         if (len == -1)
@@ -863,6 +863,8 @@ void HostMachine::readyReadCmd()
         } while (len > 0);
 
         file.close();
+
+        reallyRefresh();
     }
 }
 
@@ -1347,20 +1349,8 @@ void HostMachine::slotDelete(QList<quint32> fileNos)
     }
 }
 
-/*****************************************************************************
-* @brief   : 请求-刷新
-* @author  : wb
-* @date    : 2019/10/28
-* @param:  : 
-*****************************************************************************/
-void HostMachine::slotRefresh()
+void HostMachine::reallyRefresh()
 {
-    if (m_sAddr.isEmpty())
-        return;
-
-    m_pCmdSocket->connectToHost(QHostAddress(m_sAddr), c_uCommandPort);
-    SCOPE_EXIT([&]{ m_pCmdSocket->close();});
-
     // 刷新前先自检
     reallyCheckSelf();
 
@@ -1375,6 +1365,24 @@ void HostMachine::slotRefresh()
 
     m_pCmdSocket->write(block);
     m_pCmdSocket->waitForReadyRead();
+}
+
+
+/*****************************************************************************
+* @brief   : 请求-刷新
+* @author  : wb
+* @date    : 2019/10/28
+* @param:  : 
+*****************************************************************************/
+void HostMachine::slotRefresh()
+{
+    if (m_sAddr.isEmpty())
+        return;
+
+    m_pCmdSocket->connectToHost(QHostAddress(m_sAddr), c_uCommandPort);
+    SCOPE_EXIT([&]{ m_pCmdSocket->close();});
+
+    reallyRefresh();
 }
 
 /*****************************************************************************
