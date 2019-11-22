@@ -197,7 +197,8 @@ private:
         // 任务查询
         void slotTaskQuery();
         // 日志记录
-        void slotLogRecord();
+        void slotLogRecord(QString sText);
+        void slotLogRecordAct();
         // 记录
         void slotRecord();
         // 回放
@@ -223,7 +224,6 @@ private:
     void readFormat(quint32 state);
     void readSystemConfig(quint32 choice, quint32 state);
     void readTaskQuery(list<tagTaskInfo>& lstTaskInfo);
-    void logRecord(QString sText);
 private:
     tagAreaProperties       m_areaProperties;
     shared_ptr<tagCheckSelf> m_spcheckSelf;
@@ -254,6 +254,7 @@ private:
 
     QTabWidget              *m_pTabWgt;
     QSplitter               *m_pSplitter;
+    QLabel                  *m_pIPLabel;        // 状态
     QLabel                  *m_pCmdLabel;       // 状态
     QLabel                  *m_pDataLabel;      // 状态
     QFile                   *m_pFile;

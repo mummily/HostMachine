@@ -7,7 +7,7 @@
 #include <QHBoxLayout>
 #include <QPushButton>
 
-static const char *c_sDlgAreaFormat = "HostMachine";
+static const char *c_sDlgAreaFormat = "DlgAreaFormat";
 static const char *c_sTitle = QT_TRANSLATE_NOOP("DlgAreaFormat", "格式化");
 static const char *c_sArea0 = QT_TRANSLATE_NOOP("DlgAreaFormat", "原始数据分区");
 static const char *c_sArea1 = QT_TRANSLATE_NOOP("DlgAreaFormat", "雷达结果分区");

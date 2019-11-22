@@ -48,11 +48,10 @@ void CmdSocket::readClient()
     {
         quint32 areano;
         quint64 time;
-        char* filename = new char[128];
-        memset(filename, 0, sizeof(char)*128);
-        in >> areano >> time >> filename;
+        char filename[128] = {0};
+        in >> areano >> time;
+        in.readRawData(filename, sizeof(filename));
         respondRecord(areano, time, QString::fromLocal8Bit(filename));
-        // delete[] filename;
     }
     else if (requestType == CS_PlayBack) // »Ø·Å
     {
@@ -85,9 +84,8 @@ void CmdSocket::readClient()
         quint64 time;
         in >> areano >> filesize >> time;
 
-        char* filename = new char[128];
-        memset(filename, 0, sizeof(char)*128);
-        in.readRawData(filename, 128);
+        char filename[128] = {0};
+        in.readRawData(filename, sizeof(filename));
 
         respondImport(areano, filesize, QDateTime::fromMSecsSinceEpoch(time), filename);
     }
@@ -207,13 +205,11 @@ void CmdSocket::respondRefresh(quint32 areano, quint32 fileno, quint32 filenum)
     int nIndex = 1;
     foreach(QFileInfo fileInfo, fileInfos)
     {
-        char* filename = new char[128];
-        memset(filename, 0, sizeof(char)*128);
-
+        char filename[128] = {0};
         QByteArray ba = fileInfo.fileName().toLatin1();
-        filename = ba.data();
+        strncpy(filename, ba.data(), sizeof(filename));
 
-        out.writeRawData(filename, 128);
+        out.writeRawData(filename, sizeof(filename));
         out << fileInfo.created().toMSecsSinceEpoch() << quint32(nIndex++) << quint64(fileInfo.size());
     }
     write(block);

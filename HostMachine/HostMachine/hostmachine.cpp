@@ -49,7 +49,9 @@ static const char *c_sNo = QT_TRANSLATE_NOOP("HostMachine", "否");
 static const char *c_sToolBar = QT_TRANSLATE_NOOP("HostMachine", "工具栏");
 static const char *c_sIsExportTip = QT_TRANSLATE_NOOP("HostMachine", "请选择要导出的文件！");
 static const char *c_sIPSetting = QT_TRANSLATE_NOOP("HostMachine", "IP设置");
+static const char *c_sIPSettingTip = QT_TRANSLATE_NOOP("HostMachine", "请进行IP设置！");
 static const char *c_sPathTitle = QT_TRANSLATE_NOOP("HostMachine", "选择导出文件路径");
+static const char *c_sNetConnectError = QT_TRANSLATE_NOOP("HostMachine", "无法连接服务器，请检查网络连接！");
 
 // 系统菜单
 static const char *c_sSystemConfig = QT_TRANSLATE_NOOP("HostMachine", "系统配置");
@@ -230,6 +232,9 @@ void HostMachine::initUI()
     // 状态栏
     statusBar()->setSizeGripEnabled(true);
 
+    m_pIPLabel = new QLabel(this);
+    statusBar()->addPermanentWidget(m_pIPLabel); //显示IP信息
+
     m_pCmdLabel = new QLabel(this);
     QString sCmdLabel = QString("%1 %2").arg(c_uCommandPort).arg(qApp->translate(c_sHostMachine, c_sDisConnect));
     m_pCmdLabel->setText(sCmdLabel);
@@ -269,16 +274,16 @@ void HostMachine::initLayout()
 void HostMachine::initConnect()
 {
     // Menubar & Toolbar
-    connect(m_pActIPSetting, SIGNAL(triggered(bool)), this, SLOT(slotLogRecord()));
+    connect(m_pActIPSetting, SIGNAL(triggered(bool)), this, SLOT(slotLogRecordAct()));
     connect(m_pActIPSetting, SIGNAL(triggered(bool)), this, SLOT(slotIPSetting()));
 
-    connect(m_pActCheckSelf, SIGNAL(triggered(bool)), this, SLOT(slotLogRecord()));
+    connect(m_pActCheckSelf, SIGNAL(triggered(bool)), this, SLOT(slotLogRecordAct()));
     connect(m_pActCheckSelf, SIGNAL(triggered(bool)), this, SLOT(slotCheckSelf()));
 
-    connect(m_pActFormat, SIGNAL(triggered(bool)), this, SLOT(slotLogRecord()));
+    connect(m_pActFormat, SIGNAL(triggered(bool)), this, SLOT(slotLogRecordAct()));
     connect(m_pActFormat, SIGNAL(triggered(bool)), this, SLOT(slotFormat()));
 
-    connect(m_pActSystemConfig, SIGNAL(triggered(bool)), this, SLOT(slotLogRecord()));
+    connect(m_pActSystemConfig, SIGNAL(triggered(bool)), this, SLOT(slotLogRecordAct()));
     connect(m_pActSystemConfig, SIGNAL(triggered(bool)), this, SLOT(slotSystemConfig()));
 
     connect(m_pTabWgt, SIGNAL(currentChanged(int)), this, SLOT(slotTabChanged(int)));
@@ -624,7 +629,8 @@ void HostMachine::connectedData()
 void HostMachine::disconnectCmd()
 {
     // 状态
-    m_pCmdLabel->setText(qApp->translate(c_sHostMachine, c_sDisConnect));
+    QString sLabel = QString("%0 %1").arg(c_uCommandPort).arg(qApp->translate(c_sHostMachine, c_sDisConnect));
+    m_pCmdLabel->setText(sLabel);
 }
 
 /*****************************************************************************
@@ -636,7 +642,8 @@ void HostMachine::disconnectCmd()
 void HostMachine::disconnectData()
 {
     // 状态
-    m_pDataLabel->setText(qApp->translate(c_sHostMachine, c_sDisConnect));
+    QString sLabel = QString("%0 %1").arg(c_uDataPort).arg(qApp->translate(c_sHostMachine, c_sDisConnect));
+    m_pDataLabel->setText(sLabel);
 }
 
 /*****************************************************************************
@@ -777,9 +784,8 @@ void HostMachine::readyReadCmd()
         list<shared_ptr<tagAreaFileInfo>> lstFileInfo;
         for (int nIndex=0;nIndex<fileInfos.filenum;++nIndex)
         {
-            char* filename = new char[128];
-            memset(filename, 0, sizeof(char)*128);
-            in.readRawData(filename, 128);
+            char filename[128] = {0};
+            in.readRawData(filename, sizeof(filename));
 
             quint64 datetime;
             quint32 fileno;
@@ -795,7 +801,6 @@ void HostMachine::readyReadCmd()
             spFileInfo->filesize = filesize;
 
             lstFileInfo.push_back(spFileInfo);
-            delete filename;
         }
         fileInfos.lstFileInfo.swap(lstFileInfo);
 
@@ -807,9 +812,8 @@ void HostMachine::readyReadCmd()
         quint32 areano, state;
         in >> areano;
 
-        char* filename = new char[128];
-        memset(filename, 0, sizeof(char)*128);
-        in.readRawData(filename, 128);
+        char filename[128] = {0};
+        in.readRawData(filename, sizeof(filename));
 
         in >> state;
 
@@ -935,8 +939,9 @@ void HostMachine::slotIPSetting()
         return;
 
     m_sAddr = dlg.getIPAddr();
-//     m_pCmdSocket->connectToHost(QHostAddress(m_sAddr), c_uCommandPort);
-//     m_pDataSocket->connectToHost(QHostAddress(m_sAddr), c_uDataPort);
+    m_pIPLabel->setText(m_sAddr);
+    //    m_pCmdSocket->connectToHost(QHostAddress(m_sAddr), c_uCommandPort);
+    //    m_pDataSocket->connectToHost(QHostAddress(m_sAddr), c_uDataPort);
 }
 
 void HostMachine::reallyCheckSelf()
@@ -957,28 +962,26 @@ void HostMachine::reallyCheckSelf()
 *****************************************************************************/
 void HostMachine::slotCheckSelf()
 {
-    DlgAreaFormat dlg(m_spcheckSelf->areaInfo0->areasize, m_spcheckSelf->areaInfo1->areasize,
-        m_spcheckSelf->areaInfo2->areasize, m_spcheckSelf->areaInfo3->areasize,
-        m_spcheckSelf->areaInfo4->areasize, this);
-    if (QDialog::Accepted != dlg.exec())
-        return;
-
     if (m_sAddr.isEmpty())
+    {
+        QMessageBox::information(this, qApp->translate(c_sHostMachine, c_sTitle),
+            qApp->translate(c_sHostMachine, c_sIPSettingTip));
         return;
+    }
 
-    m_pCmdSocket->connectToHost(QHostAddress(m_sAddr), c_uCommandPort);
-    SCOPE_EXIT([&]{ m_pCmdSocket->close();});
+    if (m_pCmdSocket->state() != QAbstractSocket::ConnectedState)
+    {
+        m_pCmdSocket->connectToHost(QHostAddress(m_sAddr), c_uCommandPort);
+        if (!m_pCmdSocket->waitForConnected())
+        {
 
-    QByteArray block;
-    QDataStream out(&block, QIODevice::WriteOnly);
-    out << CS_Format << quint32(dlg.Size1())
-        << quint32(dlg.Size2())
-        << quint32(dlg.Size3())
-        << quint32(dlg.Size4())
-        << quint32(dlg.Size5());
+            QMessageBox::information(this, qApp->translate(c_sHostMachine, c_sTitle),
+                qApp->translate(c_sHostMachine, c_sNetConnectError));
+            return;
+        }
+    }
 
-    m_pCmdSocket->write(block);
-    m_pCmdSocket->waitForReadyRead();
+    reallyCheckSelf();
 }
 
 /*****************************************************************************
@@ -990,10 +993,23 @@ void HostMachine::slotCheckSelf()
 void HostMachine::slotFormat()
 {
     if (m_sAddr.isEmpty())
+    {
+        QMessageBox::information(this, qApp->translate(c_sHostMachine, c_sTitle),
+            qApp->translate(c_sHostMachine, c_sIPSettingTip));
         return;
+    }
 
-    m_pCmdSocket->connectToHost(QHostAddress(m_sAddr), c_uCommandPort);
-    SCOPE_EXIT([&]{ m_pCmdSocket->close();});
+    if (m_pCmdSocket->state() != QAbstractSocket::ConnectedState)
+    {
+        m_pCmdSocket->connectToHost(QHostAddress(m_sAddr), c_uCommandPort);
+        if (!m_pCmdSocket->waitForConnected())
+        {
+
+            QMessageBox::information(this, qApp->translate(c_sHostMachine, c_sTitle),
+                qApp->translate(c_sHostMachine, c_sNetConnectError));
+            return;
+        }
+    }
 
     reallyCheckSelf();
 
@@ -1023,15 +1039,28 @@ void HostMachine::slotFormat()
 *****************************************************************************/
 void HostMachine::slotSystemConfig()
 {
+    if (m_sAddr.isEmpty())
+    {
+        QMessageBox::information(this, qApp->translate(c_sHostMachine, c_sTitle),
+            qApp->translate(c_sHostMachine, c_sIPSettingTip));
+        return;
+    }
+
+    if (m_pCmdSocket->state() != QAbstractSocket::ConnectedState)
+    {
+        m_pCmdSocket->connectToHost(QHostAddress(m_sAddr), c_uCommandPort);
+        if (!m_pCmdSocket->waitForConnected())
+        {
+
+            QMessageBox::information(this, qApp->translate(c_sHostMachine, c_sTitle),
+                qApp->translate(c_sHostMachine, c_sNetConnectError));
+            return;
+        }
+    }
+
     DlgSystemConfig dlg(this);
     if (QDialog::Accepted != dlg.exec())
         return;
-
-    if (m_sAddr.isEmpty())
-        return;
-
-    m_pCmdSocket->connectToHost(QHostAddress(m_sAddr), c_uCommandPort);
-    SCOPE_EXIT([&]{ m_pCmdSocket->close();});
 
     quint32 bandwidth = dlg.Bandwidth();
     QList<quint32> lstChannel = dlg.ChannelChoice();
@@ -1056,10 +1085,23 @@ void HostMachine::slotSystemConfig()
 void HostMachine::slotTaskQuery()
 {
     if (m_sAddr.isEmpty())
+    {
+        QMessageBox::information(this, qApp->translate(c_sHostMachine, c_sTitle),
+            qApp->translate(c_sHostMachine, c_sIPSettingTip));
         return;
+    }
 
-    m_pCmdSocket->connectToHost(QHostAddress(m_sAddr), c_uCommandPort);
-    SCOPE_EXIT([&]{ m_pCmdSocket->close();});
+    if (m_pCmdSocket->state() != QAbstractSocket::ConnectedState)
+    {
+        m_pCmdSocket->connectToHost(QHostAddress(m_sAddr), c_uCommandPort);
+        if (!m_pCmdSocket->waitForConnected())
+        {
+
+            QMessageBox::information(this, qApp->translate(c_sHostMachine, c_sTitle),
+                qApp->translate(c_sHostMachine, c_sNetConnectError));
+            return;
+        }
+    }
 
 
 }
@@ -1074,36 +1116,47 @@ void HostMachine::slotTaskQuery()
 *****************************************************************************/
 void HostMachine::slotRecord()
 {
+    if (m_sAddr.isEmpty())
+    {
+        QMessageBox::information(this, qApp->translate(c_sHostMachine, c_sTitle),
+            qApp->translate(c_sHostMachine, c_sIPSettingTip));
+        return;
+    }
+
+    if (m_pCmdSocket->state() != QAbstractSocket::ConnectedState)
+    {
+        m_pCmdSocket->connectToHost(QHostAddress(m_sAddr), c_uCommandPort);
+        if (!m_pCmdSocket->waitForConnected())
+        {
+
+            QMessageBox::information(this, qApp->translate(c_sHostMachine, c_sTitle),
+                qApp->translate(c_sHostMachine, c_sNetConnectError));
+            return;
+        }
+    }
+
     DlgAreaRecord dlg(m_pTabWgt->currentIndex(), this);
     if (QDialog::Accepted != dlg.exec())
         return;
-
-    if (m_sAddr.isEmpty())
-        return;
-
-    m_pCmdSocket->connectToHost(QHostAddress(m_sAddr), c_uCommandPort);
-    SCOPE_EXIT([&]{ m_pCmdSocket->close();});
 
     QString sFileName = dlg.Filename();
     QList<quint32> lstAreano = dlg.Areas();
     foreach(quint32 areano, lstAreano)
     {
-        quint64 time = QDateTime::currentMSecsSinceEpoch();
-        char* filename = new char[128];
-        memset(filename, 0, sizeof(char)*128);
-
-        QByteArray ba = sFileName.toLatin1();
-        filename = ba.data();
-
         QByteArray block;
         QDataStream out(&block, QIODevice::WriteOnly);
+
+        quint64 time = QDateTime::currentMSecsSinceEpoch();
         out << CS_Record << areano << time;
-        out.writeRawData(filename, 128);
+
+        char filename[128] = {0};
+        QByteArray ba = sFileName.toLatin1();
+        strncpy(filename, ba.data(), sizeof(filename));
+
+        out.writeRawData(filename, sizeof(filename));
 
         m_pCmdSocket->write(block);
         m_pCmdSocket->waitForReadyRead();
-
-        // delete[] filename;
     }
 }
 
@@ -1116,10 +1169,23 @@ void HostMachine::slotRecord()
 void HostMachine::slotPlayBack(quint32 fileno, quint32 type, quint32 prftime, quint32 datanum, quint32 prf, quint32 cpi)
 {
     if (m_sAddr.isEmpty())
+    {
+        QMessageBox::information(this, qApp->translate(c_sHostMachine, c_sTitle),
+            qApp->translate(c_sHostMachine, c_sIPSettingTip));
         return;
+    }
 
-    m_pCmdSocket->connectToHost(QHostAddress(m_sAddr), c_uCommandPort);
-    SCOPE_EXIT([&]{ m_pCmdSocket->close();});
+    if (m_pCmdSocket->state() != QAbstractSocket::ConnectedState)
+    {
+        m_pCmdSocket->connectToHost(QHostAddress(m_sAddr), c_uCommandPort);
+        if (!m_pCmdSocket->waitForConnected())
+        {
+
+            QMessageBox::information(this, qApp->translate(c_sHostMachine, c_sTitle),
+                qApp->translate(c_sHostMachine, c_sNetConnectError));
+            return;
+        }
+    }
 
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
@@ -1139,10 +1205,23 @@ void HostMachine::slotPlayBack(quint32 fileno, quint32 type, quint32 prftime, qu
 void HostMachine::slotImport()
 {
     if (m_sAddr.isEmpty())
+    {
+        QMessageBox::information(this, qApp->translate(c_sHostMachine, c_sTitle),
+            qApp->translate(c_sHostMachine, c_sIPSettingTip));
         return;
+    }
 
-    m_pCmdSocket->connectToHost(QHostAddress(m_sAddr), c_uCommandPort);
-    SCOPE_EXIT([&]{ m_pCmdSocket->close();});
+    if (m_pCmdSocket->state() != QAbstractSocket::ConnectedState)
+    {
+        m_pCmdSocket->connectToHost(QHostAddress(m_sAddr), c_uCommandPort);
+        if (!m_pCmdSocket->waitForConnected())
+        {
+
+            QMessageBox::information(this, qApp->translate(c_sHostMachine, c_sTitle),
+                qApp->translate(c_sHostMachine, c_sNetConnectError));
+            return;
+        }
+    }
 
 #pragma message("MWFileList::slotImport 导入是选定一个分区执行导入，可单个可批量")
 
@@ -1159,16 +1238,15 @@ void HostMachine::slotImport()
     // 开始时间
     qint64 startTime = QDateTime::currentMSecsSinceEpoch();
     // 文件名
-    char* filename = new char[128];
-    memset(filename, 0, sizeof(char)*128);
+    char filename[128] = {0};
     QByteArray ba = sFile.toLatin1();
-    filename = ba.data();
+    strncpy(filename, ba.data(), sizeof(filename));
 
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
     out << CS_Import << m_pTabWgt->currentIndex() << filesize
         << startTime;
-    out.writeRawData(filename, 128);
+    out.writeRawData(filename, sizeof(filename));
 
     m_pCmdSocket->write(block);
     m_pCmdSocket->waitForReadyRead();
@@ -1183,10 +1261,23 @@ void HostMachine::slotImport()
 void HostMachine::slotExport()
 {
     if (m_sAddr.isEmpty())
+    {
+        QMessageBox::information(this, qApp->translate(c_sHostMachine, c_sTitle),
+            qApp->translate(c_sHostMachine, c_sIPSettingTip));
         return;
+    }
 
-    m_pCmdSocket->connectToHost(QHostAddress(m_sAddr), c_uCommandPort);
-    SCOPE_EXIT([&]{ m_pCmdSocket->close();});
+    if (m_pCmdSocket->state() != QAbstractSocket::ConnectedState)
+    {
+        m_pCmdSocket->connectToHost(QHostAddress(m_sAddr), c_uCommandPort);
+        if (!m_pCmdSocket->waitForConnected())
+        {
+
+            QMessageBox::information(this, qApp->translate(c_sHostMachine, c_sTitle),
+                qApp->translate(c_sHostMachine, c_sNetConnectError));
+            return;
+        }
+    }
 
     MWFileList* pFileList = (MWFileList*)m_pTabWgt->currentWidget();
     QTableWidget *pFileListWgt = pFileList->m_pFileListWgt;
@@ -1282,10 +1373,23 @@ void HostMachine::loadError(QNetworkReply::NetworkError code)
 void HostMachine::slotStop()
 {
     if (m_sAddr.isEmpty())
+    {
+        QMessageBox::information(this, qApp->translate(c_sHostMachine, c_sTitle),
+            qApp->translate(c_sHostMachine, c_sIPSettingTip));
         return;
+    }
 
-    m_pCmdSocket->connectToHost(QHostAddress(m_sAddr), c_uCommandPort);
-    SCOPE_EXIT([&]{ m_pCmdSocket->close();});
+    if (m_pCmdSocket->state() != QAbstractSocket::ConnectedState)
+    {
+        m_pCmdSocket->connectToHost(QHostAddress(m_sAddr), c_uCommandPort);
+        if (!m_pCmdSocket->waitForConnected())
+        {
+
+            QMessageBox::information(this, qApp->translate(c_sHostMachine, c_sTitle),
+                qApp->translate(c_sHostMachine, c_sNetConnectError));
+            return;
+        }
+    }
 
     QList<QTableWidgetItem*> selectedItems = m_pTaskWgt->selectedItems();
     QList<quint32> rowNos;
@@ -1333,10 +1437,23 @@ void HostMachine::slotStop()
 void HostMachine::slotDelete(QList<quint32> fileNos)
 {
     if (m_sAddr.isEmpty())
+    {
+        QMessageBox::information(this, qApp->translate(c_sHostMachine, c_sTitle),
+            qApp->translate(c_sHostMachine, c_sIPSettingTip));
         return;
+    }
 
-    m_pCmdSocket->connectToHost(QHostAddress(m_sAddr), c_uCommandPort);
-    SCOPE_EXIT([&]{ m_pCmdSocket->close();});
+    if (m_pCmdSocket->state() != QAbstractSocket::ConnectedState)
+    {
+        m_pCmdSocket->connectToHost(QHostAddress(m_sAddr), c_uCommandPort);
+        if (!m_pCmdSocket->waitForConnected())
+        {
+
+            QMessageBox::information(this, qApp->translate(c_sHostMachine, c_sTitle),
+                qApp->translate(c_sHostMachine, c_sNetConnectError));
+            return;
+        }
+    }
 
     foreach(quint32 fileno, fileNos)
     {
@@ -1377,9 +1494,24 @@ void HostMachine::reallyRefresh()
 void HostMachine::slotRefresh()
 {
     if (m_sAddr.isEmpty())
+    {
+        QMessageBox::information(this, qApp->translate(c_sHostMachine, c_sTitle),
+            qApp->translate(c_sHostMachine, c_sIPSettingTip));
         return;
+    }
 
-    m_pCmdSocket->connectToHost(QHostAddress(m_sAddr), c_uCommandPort);
+    if (m_pCmdSocket->state() != QAbstractSocket::ConnectedState)
+    {
+        m_pCmdSocket->connectToHost(QHostAddress(m_sAddr), c_uCommandPort);
+        if (!m_pCmdSocket->waitForConnected())
+        {
+
+            QMessageBox::information(this, qApp->translate(c_sHostMachine, c_sTitle),
+                qApp->translate(c_sHostMachine, c_sNetConnectError));
+            return;
+        }
+    }
+
     SCOPE_EXIT([&]{ m_pCmdSocket->close();});
 
     reallyRefresh();
@@ -1453,13 +1585,13 @@ void HostMachine::readTaskQuery(list<tagTaskInfo>& lstTaskInfo)
 * @date    : 2019/11/02
 * @param:  : 无
 *****************************************************************************/
-void HostMachine::slotLogRecord()
+void HostMachine::slotLogRecordAct()
 {
     QAction* pAction = qobject_cast<QAction *>(sender());
     if (NULL == pAction)
         return;
 
-    logRecord(pAction->text());
+    slotLogRecord(pAction->text());
 }
 
 /*****************************************************************************
@@ -1468,7 +1600,7 @@ void HostMachine::slotLogRecord()
 * @date    : 2019/11/02
 * @param:  : 传入的信息，记录到文件中
 *****************************************************************************/
-void HostMachine::logRecord(QString sText)
+void HostMachine::slotLogRecord(QString sText)
 {
     QString sDateTime = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
     QTextStream in(m_pLog);
@@ -1485,7 +1617,7 @@ void HostMachine::logRecord(QString sText)
 void HostMachine::slotInit()
 {
     // 日志记录：打开软件
-    logRecord(qApp->translate(c_sHostMachine, c_sOpenSoftware));
+    slotLogRecord(qApp->translate(c_sHostMachine, c_sOpenSoftware));
 
     emit m_pTabWgt->currentChanged(0);
     // 打开IP设置
