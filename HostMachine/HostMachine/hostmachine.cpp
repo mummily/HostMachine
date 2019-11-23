@@ -33,9 +33,8 @@
 #include "dlgarearecord.h"
 #include "dlgfileexport.h"
 #include "ScopeGuard.h"
-
-const quint16 c_uCommandPort = 6178;
-const quint16 c_uDataPort = 6188;
+#include "datasocket.h"
+#include "globalfun.h"
 
 static const char *c_sHostMachine = "HostMachine";
 static const char *c_sTitle = QT_TRANSLATE_NOOP("HostMachine", "网络应用软件");
@@ -150,7 +149,7 @@ HostMachine::~HostMachine()
 void HostMachine::initTcp()
 {
     m_pCmdSocket = new QTcpSocket(this);
-    m_pDataSocket = new QTcpSocket(this);
+    m_pDataSocket = new DataSocket(this);
 }
 
 /*****************************************************************************
@@ -298,6 +297,8 @@ void HostMachine::initConnect()
     connect(m_pDataSocket, SIGNAL(disconnected()), this, SLOT(disconnectData()));
     connect(m_pDataSocket, SIGNAL(readyRead()), this, SLOT(readyReadData()));
     connect(m_pDataSocket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(errorData()));
+    connect(m_pDataSocket, SIGNAL(updateProcess(QString, float, float)), this, SLOT(slotUpdateProcess(QString, float, float)));
+    connect(m_pDataSocket, SIGNAL(importCompleted()), this, SLOT(slotRefresh()));
 }
 
 /*****************************************************************************
@@ -820,55 +821,13 @@ void HostMachine::readyReadCmd()
         MWFileList* pWMFileList = (MWFileList*)m_pTabWgt->widget(areano);
         if (state != 0x00)
         {
-            QString sMsg = QString("%0 Import Error!").arg(filename);
-            pWMFileList->statusBar()->showMessage(sMsg);
+            m_pDataSocket->importFileList.clear();
+            pWMFileList->statusBar()->hide();
+            QMessageBox::information(this, windowTitle(), tr("导入失败！"));
             return;
         }
 
-        m_pDataSocket->connectToHost(QHostAddress(m_sAddr), c_uDataPort);
-        SCOPE_EXIT([&]{ m_pDataSocket->close();});
-
-        QString sFile = QString::fromLocal8Bit(filename);
-        QFileInfo fileInfo = sFile;
-        qint64 fileSize = fileInfo.size();
-        QString sHeader = QString("%0##%1##%2").arg(areano).arg(fileInfo.fileName()).arg(fileSize);
-        qint64 len = m_pDataSocket->write(sHeader.toUtf8());
-        m_pDataSocket->waitForBytesWritten();
-        if (len == -1)
-            return;
-
-        QFile file;
-        file.setFileName(sFile);
-        if (!file.open(QIODevice::ReadOnly))
-        {
-            QMessageBox::information(this, qApp->translate(c_sHostMachine, c_sTitle),
-                tr("打开文件失败！"));
-            return;
-        }
-
-        float newFileSize = fileSize;
-        QString sFileUnit;
-        formatSize(fileSize, newFileSize, sFileUnit);
-
-        qint64 bufferLen = 0;
-        len = 0;
-        do
-        {
-            char buffer[c_bufferSize] = {0};
-            len = file.read(buffer, sizeof(buffer));
-            len = m_pDataSocket->write(buffer, len);
-            bufferLen += len;
-
-            float newBufferLen = bufferLen;
-            QString sBufferUnit;
-            formatSize(bufferLen, newBufferLen, sBufferUnit);
-            QString sMsg = QString("%0 Import %1 %2/%3 %4").arg(filename).arg(newBufferLen).arg(sBufferUnit).arg(newFileSize).arg(sFileUnit);
-            pWMFileList->statusBar()->showMessage(sMsg);
-        } while (len > 0);
-
-        file.close();
-
-        reallyRefresh();
+        QTimer::singleShot(10, m_pDataSocket, SLOT(slotImport()));
     }
 }
 
@@ -940,8 +899,9 @@ void HostMachine::slotIPSetting()
 
     m_sAddr = dlg.getIPAddr();
     m_pIPLabel->setText(m_sAddr);
-    //    m_pCmdSocket->connectToHost(QHostAddress(m_sAddr), c_uCommandPort);
-    //    m_pDataSocket->connectToHost(QHostAddress(m_sAddr), c_uDataPort);
+    m_pDataSocket->sIPAddr = m_sAddr;
+    m_pCmdSocket->connectToHost(QHostAddress(m_sAddr), c_uCommandPort);
+    m_pDataSocket->connectToHost(QHostAddress(m_sAddr), c_uDataPort);
 }
 
 void HostMachine::reallyCheckSelf()
@@ -1150,7 +1110,7 @@ void HostMachine::slotRecord()
         out << CS_Record << areano << time;
 
         char filename[128] = {0};
-        QByteArray ba = sFileName.toLatin1();
+        QByteArray ba = sFileName.toLocal8Bit();
         strncpy(filename, ba.data(), sizeof(filename));
 
         out.writeRawData(filename, sizeof(filename));
@@ -1223,29 +1183,34 @@ void HostMachine::slotImport()
         }
     }
 
-#pragma message("MWFileList::slotImport 导入是选定一个分区执行导入，可单个可批量")
-
-    QString sFile = QFileDialog::getOpenFileName(this, qApp->translate(c_sHostMachine, c_sImportFileTip),
+    QStringList importFileList = QFileDialog::getOpenFileNames(this, qApp->translate(c_sHostMachine, c_sImportFileTip),
         "/", qApp->translate(c_sHostMachine, c_sImportFileExt));
-    if (sFile.isEmpty())
+    if (importFileList.isEmpty())
         return;
 
-    QFileInfo info(sFile);
+    m_pDataSocket->areano = m_pTabWgt->currentIndex();
+    m_pDataSocket->importFileList = importFileList;
 
-    // 分区号
-    int areano = m_pTabWgt->currentIndex();
-    float filesize = info.size();
-    // 开始时间
-    qint64 startTime = QDateTime::currentMSecsSinceEpoch();
-    // 文件名
-    char filename[128] = {0};
-    QByteArray ba = sFile.toLatin1();
-    strncpy(filename, ba.data(), sizeof(filename));
+    // 文件大小
+    float filesize = 0;
+    foreach(QString sImportFile, importFileList)
+    {
+        QFileInfo info(sImportFile);
+        filesize += info.size();
+    }
+
+    filesize = filesize / c_bSizeMax; // LBA
 
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
     out << CS_Import << m_pTabWgt->currentIndex() << filesize
-        << startTime;
+        << QDateTime::currentMSecsSinceEpoch();
+
+    // 文件名
+    QString sFileName = importFileList.first();
+    char filename[128] = {0};
+    QByteArray ba = sFileName.toLocal8Bit();
+    strncpy(filename, ba.data(), sizeof(filename));
     out.writeRawData(filename, sizeof(filename));
 
     m_pCmdSocket->write(block);
@@ -1512,8 +1477,6 @@ void HostMachine::slotRefresh()
         }
     }
 
-    SCOPE_EXIT([&]{ m_pCmdSocket->close();});
-
     reallyRefresh();
 }
 
@@ -1657,24 +1620,17 @@ void HostMachine::initData()
     m_pLog->open(QIODevice::WriteOnly|QIODevice::Append);
 }
 
-void HostMachine::formatSize(qint64 oldBytes, float& newBytes, QString& sUnit)
+void HostMachine::slotUpdateProcess(QString fileName, float buffer, float total)
 {
-    newBytes = oldBytes;
-    sUnit = "B";
+    float newFileSize = total;
+    QString sFileUnit;
+    CGlobalFun::formatSize(total, newFileSize, sFileUnit);
 
-    if (oldBytes / c_mSizeMax > 0)
-    {
-        newBytes = oldBytes / (float)c_mSizeMax;
-        sUnit = "GB";
-    }
-    else if (oldBytes / c_kSizeMax > 0)
-    {
-        newBytes = oldBytes / (float)c_kSizeMax;
-        sUnit = "MB";
-    }
-    else if (oldBytes / c_bSizeMax > 0)
-    {
-        newBytes = oldBytes / (float)c_bSizeMax;
-        sUnit = "KB";
-    }
+    float newBufferLen = buffer;
+    QString sBufferUnit;
+    CGlobalFun::formatSize(buffer, newBufferLen, sBufferUnit);
+
+    QString sMsg = QString("%0 Import %1 %2/%3 %4").arg(fileName).arg(newBufferLen).arg(sBufferUnit).arg(newFileSize).arg(sFileUnit);
+    MWFileList* pWMFileList = (MWFileList*)m_pTabWgt->currentWidget();
+    pWMFileList->statusBar()->showMessage(sMsg);
 }

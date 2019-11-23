@@ -76,8 +76,12 @@ void DlgSystemConfig::initUI()
         << qApp->translate(c_sDlgSystemConfig, c_sChannel13)
         << qApp->translate(c_sDlgSystemConfig, c_sChannel14)
         << qApp->translate(c_sDlgSystemConfig, c_sChannel15));
+    m_comboBox1->setMaxVisibleItems(m_comboBox1->count());
+    m_comboBox1->setCurrentIndex(-1);
+
     m_comboBox2 = new QComboBox(this);
     m_comboBox2->addItems(QStringList() << "1.25G" << "2G" << "2.5G" << "3.125G" << "5G" << "6.25G");
+    m_comboBox2->setCurrentIndex(-1);
 
     QGridLayout* gridLayout = new QGridLayout();
     gridLayout->addWidget(lable1, 0, 0);

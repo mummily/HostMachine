@@ -16,12 +16,6 @@ class QLabel;
 class QFile;
 class QNetworkReply;
 
-const int c_bSizeMax = 1024;
-const int c_kSizeMax = c_bSizeMax * 1024;
-const int c_mSizeMax = c_kSizeMax * 1024;
-const qint64 c_gSizeMax = c_mSizeMax * 1024;
-const int c_bufferSize = 4 * c_bSizeMax;
-
 // 刷新 - 文件信息
 struct tagAreaFileInfo
 {
@@ -61,7 +55,6 @@ private:
     void initConnect();
     void initFileListWgt();
     void logRecord(QString sText);
-    void formatSize(qint64 oldBytes, float& newBytes, QString& sUnit);
 
 signals:
     void sigDelete(QList<quint32>);

@@ -4,7 +4,7 @@
 #include <QtWidgets/QMainWindow>
 
 using namespace std;
-#include "constdef.h"
+#include "common.h"
 #include "tasktype.h"
 #include "QNetworkReply"
 
@@ -147,6 +147,7 @@ class QTcpSocket;
 class MWFileList;
 class QFile;
 class QNetworkReply;
+class DataSocket;
 class HostMachine : public QMainWindow
 {
     Q_OBJECT
@@ -168,7 +169,6 @@ private:
 private:
     void reallyCheckSelf();
     void reallyRefresh();
-    void formatSize(qint64 oldBytes, float& newBytes, QString& sUnit);
 
     private slots:
         // TCP
@@ -218,6 +218,7 @@ private:
         void slotInit();
         // Tab Changed
         void slotTabChanged(int index);
+        void slotUpdateProcess(QString fileName, float buffer, float total);
 
 private:
     void readCheckSelf();
@@ -239,7 +240,7 @@ private:
     QMenu                   *m_pMenuSystemControl;
 
     QTcpSocket              *m_pCmdSocket;      // 命令Socket
-    QTcpSocket              *m_pDataSocket;     // 数据Socket
+    DataSocket              *m_pDataSocket;     // 数据Socket
     QNetworkReply           *m_pNetworkReply;
 
     MWFileList              *m_pLDOriginalWgt;  // 雷达原始数据分区

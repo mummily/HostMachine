@@ -11,6 +11,8 @@
 #include "QNetworkRequest"
 #include "QNetworkReply"
 #include "QFile"
+#include "common.h"
+#include "globalfun.h"
 
 static const char *c_sMWFileList = "MWFileList";
 static const char *c_sTitle = QT_TRANSLATE_NOOP("MWFileList", "É¾³ý");
@@ -303,7 +305,7 @@ void MWFileList::readRefresh(tagAreaFileInfos &fileInfos)
         m_pFileListWgt->setItem(m_pFileListWgt->rowCount() - 1, 1, new QTableWidgetItem(sFileName));
         float newFileSize = spFileInfo->filesize;
         QString sUnit = "";
-        formatSize(spFileInfo->filesize, newFileSize, sUnit);
+        CGlobalFun::formatSize(spFileInfo->filesize, newFileSize, sUnit);
         QString sFileSize = QString("%0%1").arg(newFileSize).arg(sUnit);
         m_pFileListWgt->setItem(m_pFileListWgt->rowCount() - 1, 2, new QTableWidgetItem(sFileSize));
         m_pFileListWgt->setItem(m_pFileListWgt->rowCount() - 1, 3, new QTableWidgetItem(spFileInfo->datetime.toString("yyyy-MM-dd hh:mm:ss")));
@@ -401,31 +403,9 @@ void MWFileList::loadProgress(qint64 bytesSent, qint64 bytesTotal)
     QString sTotalUnit = "";
     float newBytesSent = bytesSent;
     float newBytesTotal = bytesTotal;
-    formatSize(bytesSent, newBytesSent, sSentUnit);
-    formatSize(bytesTotal, newBytesTotal, sTotalUnit);
+    CGlobalFun::formatSize(bytesSent, newBytesSent, sSentUnit);
+    CGlobalFun::formatSize(bytesTotal, newBytesTotal, sTotalUnit);
 
     QString sMessage = QString("%0%1/%2%3").arg(newBytesSent).arg(sSentUnit).arg(newBytesTotal).arg(sTotalUnit);
     statusBar()->showMessage(sMessage);
-}
-
-void MWFileList::formatSize(qint64 oldBytes, float& newBytes, QString& sUnit)
-{
-    newBytes = oldBytes;
-    sUnit = "B";
-
-    if (oldBytes / c_mSizeMax > 0)
-    {
-        newBytes = oldBytes / (float)c_mSizeMax;
-        sUnit = "GB";
-    }
-    else if (oldBytes / c_kSizeMax > 0)
-    {
-        newBytes = oldBytes / (float)c_kSizeMax;
-        sUnit = "MB";
-    }
-    else if (oldBytes / c_bSizeMax > 0)
-    {
-        newBytes = oldBytes / (float)c_bSizeMax;
-        sUnit = "KB";
-    }
 }

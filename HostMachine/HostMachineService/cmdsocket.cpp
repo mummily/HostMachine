@@ -2,6 +2,7 @@
 #include "QDataStream"
 #include "QDateTime"
 #include "QMessageBox"
+#include <QApplication>
 #include "QThread"
 #include <QDir>
 #include "common.h"
@@ -194,8 +195,8 @@ void CmdSocket::respondDelete(quint32 areano, float fileno)
 
 void CmdSocket::respondRefresh(quint32 areano, quint32 fileno, quint32 filenum)
 {
-    QString sDir = QString("D:/HostMachine/%0").arg(areano);
-    QDir dir(sDir);
+    QString filePath = QString("%0/%1/").arg(qApp->applicationDirPath()).arg(areano);
+    QDir dir(filePath);
 
     QList<QFileInfo> fileInfos(dir.entryInfoList(QDir::Files));
     QByteArray block;
@@ -206,7 +207,8 @@ void CmdSocket::respondRefresh(quint32 areano, quint32 fileno, quint32 filenum)
     foreach(QFileInfo fileInfo, fileInfos)
     {
         char filename[128] = {0};
-        QByteArray ba = fileInfo.fileName().toLatin1();
+        QString sFileName = fileInfo.fileName();
+        QByteArray ba = fileInfo.fileName().toLocal8Bit();
         strncpy(filename, ba.data(), sizeof(filename));
 
         out.writeRawData(filename, sizeof(filename));

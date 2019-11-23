@@ -31,13 +31,14 @@ void DataSocket::readClient()
     if (m_bStart)
     {
         m_bStart = false;
+
         int areNo = QString(buf).section("##", 0, 0).toInt();
         QString fileName = QString(buf).section("##", 1, 1);
         QString filePath = QString("%0/%1/").arg(qApp->applicationDirPath()).arg(areNo);
         QDir().mkdir(filePath);
         filePath += fileName;
 
-        m_file.setFileName(fileName);
+        m_file.setFileName(filePath);
         m_file.open(QIODevice::WriteOnly);
 
         m_fileSize = QString(buf).section("##", 2, 2).toInt();
@@ -46,10 +47,14 @@ void DataSocket::readClient()
     {
         qint64 len = m_file.write(buf);
         m_blockSize += len;
+
         if (m_blockSize == m_fileSize)
         {
             m_file.close();
-            close();
+            m_bStart = true;
+            m_blockSize = 0;
+
+            write("Completed!");
         }
     }
 }

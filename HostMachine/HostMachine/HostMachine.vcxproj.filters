@@ -145,6 +145,18 @@
     <ClCompile Include="tasktype.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="datasocket.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_datasocket.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_datasocket.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="globalfun.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="hostmachine.h">
@@ -180,6 +192,9 @@
     <CustomBuild Include="mwfilelist.h">
       <Filter>Header Files</Filter>
     </CustomBuild>
+    <CustomBuild Include="datasocket.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="HostMachine.rc" />
@@ -190,13 +205,13 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="constdef.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="tasktype.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\ScopeGuard.h">
+    <ClInclude Include="globalfun.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="common.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

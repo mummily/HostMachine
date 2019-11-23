@@ -1,5 +1,5 @@
 #include "dlgipsetting.h"
-#include "constdef.h"
+#include "common.h"
 #include <QApplication>
 #include <QRegExpValidator>
 #include <QLineEdit>
