@@ -6,7 +6,6 @@
 #include "scopeguard.h"
 #include "common.h"
 #include "globalfun.h"
-#include "QThread"
 
 static const char *c_sDataSocket = "DataSocket";
 static const char *c_sTitle = QT_TRANSLATE_NOOP("DataSocket", "Õ¯¬Á”¶”√»Ìº˛");
@@ -63,8 +62,17 @@ void DataSocket::slotImport()
 
             emit updateProcess(sFileName, bufferLen, fileSize);
         } while (bufferLen != fileSize);
+
         waitForReadyRead();
     }
 
     emit importCompleted();
+}
+
+void DataSocket::slotExport()
+{
+}
+
+void DataSocket::slotBatchExport()
+{
 }

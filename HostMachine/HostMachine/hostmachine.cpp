@@ -20,10 +20,6 @@
 #include <QTcpSocket>
 #include <QTcpServer>
 
-#include <QNetworkAccessManager>
-#include <QNetworkRequest>
-#include <QNetworkReply>
-
 #include "dlgipsetting.h"
 #include "qtpropertymanager.h"
 #include "decorateddoublepropertymanager.h"
@@ -47,6 +43,7 @@ static const char *c_sYes = QT_TRANSLATE_NOOP("HostMachine", "是");
 static const char *c_sNo = QT_TRANSLATE_NOOP("HostMachine", "否");
 static const char *c_sToolBar = QT_TRANSLATE_NOOP("HostMachine", "工具栏");
 static const char *c_sIsExportTip = QT_TRANSLATE_NOOP("HostMachine", "请选择要导出的文件！");
+static const char *c_sIsDeleteTip = QT_TRANSLATE_NOOP("HostMachine", "请选择要删除的文件！");
 static const char *c_sIPSetting = QT_TRANSLATE_NOOP("HostMachine", "IP设置");
 static const char *c_sIPSettingTip = QT_TRANSLATE_NOOP("HostMachine", "请进行IP设置！");
 static const char *c_sPathTitle = QT_TRANSLATE_NOOP("HostMachine", "选择导出文件路径");
@@ -1247,86 +1244,68 @@ void HostMachine::slotExport()
     MWFileList* pFileList = (MWFileList*)m_pTabWgt->currentWidget();
     QTableWidget *pFileListWgt = pFileList->m_pFileListWgt;
     QList<QTableWidgetItem*> selectedItems = pFileListWgt->selectedItems();
+    if (selectedItems.count() < 1)
+    {
+        QMessageBox::information(this, qApp->translate(c_sHostMachine, c_sTitle), qApp->translate(c_sHostMachine, c_sIsExportTip));
+        return;
+    }
+
     QSet<quint32> rowNos;
     foreach(QTableWidgetItem* pItem, selectedItems)
     {
         rowNos.insert(pItem->row());
     }
 
-    if (rowNos.size() < 1)
-    {
-        QMessageBox::information(this, qApp->translate(c_sHostMachine, c_sTitle), qApp->translate(c_sHostMachine, c_sIsExportTip));
-        return;
-    }
-
-    float fStartPos = 0.0;
-    float fExportSize = 0.0;
-    QString sExportPath = "";
     if (rowNos.count() == 1)
     {
-        float filesize = pFileList->m_pFileListWgt->item(*rowNos.begin(), 5)->text().toFloat(); // 来着所在行的文件大小列
+        float filesize = pFileListWgt->item(*rowNos.begin(), 5)->text().toFloat(); // 来自所在行的文件大小列
         DlgFileExport dlg(filesize, this);
         if (QDialog::Accepted != dlg.exec())
             return;
 
-        fStartPos = dlg.Startpos();
-        fExportSize = dlg.Exportsize();
-        sExportPath = dlg.ExportPath();
+        m_pDataSocket->exportFilePath = dlg.ExportPath();
+
+        QByteArray block;
+        QDataStream out(&block, QIODevice::WriteOnly);
+        out << CS_Export << m_pTabWgt->currentIndex();
+
+        QString sFileName = pFileListWgt->item(*rowNos.begin(), 1)->text() + "." + pFileListWgt->item(*rowNos.begin(), 4)->text();
+        char filename[128] = {0};
+        QByteArray ba = sFileName.toLocal8Bit();
+        strncpy(filename, ba.data(), sizeof(filename));
+        out.writeRawData(filename, sizeof(filename));
+
+        out << dlg.Startpos() << dlg.Exportsize();
+
+        m_pCmdSocket->write(block);
+        m_pCmdSocket->waitForReadyRead();
     }
     else
     {
-        sExportPath = QFileDialog::getExistingDirectory(this, qApp->translate(c_sHostMachine, c_sPathTitle), "./");
+        QString sExportPath = QFileDialog::getExistingDirectory(this, qApp->translate(c_sHostMachine, c_sPathTitle), "./");
         if(sExportPath.isEmpty())
             return;
+
+        m_pDataSocket->exportFilePath = sExportPath;
+
+        foreach (quint32 rowNo, rowNos)
+        {
+            QByteArray block;
+            QDataStream out(&block, QIODevice::WriteOnly);
+            out << CS_Export << m_pTabWgt->currentIndex();
+
+            QString sFileName = pFileListWgt->item(rowNo, 1)->text() + "." + pFileListWgt->item(rowNo, 4)->text();
+            char filename[128] = {0};
+            QByteArray ba = sFileName.toLocal8Bit();
+            strncpy(filename, ba.data(), sizeof(filename));
+            out.writeRawData(filename, sizeof(filename));
+
+            out << float(0) << pFileListWgt->item(rowNo, 5)->text().toFloat();
+
+            m_pCmdSocket->write(block);
+            m_pCmdSocket->waitForReadyRead();
+        }
     }
-
-    foreach (quint32 rowNo, rowNos)
-    {
-        QString sFileName = QString("%0.%1").arg(pFileListWgt->item(rowNo, 1)->text()).arg(pFileListWgt->item(rowNo, 4)->text());
-        QString sLocalPath = QString("%0/%1_%2_%3").arg(sExportPath).arg(m_pTabWgt->currentIndex()).arg(pFileListWgt->item(rowNo, 0)->text()).arg(sFileName);
-
-        m_pFile = new QFile(sLocalPath);
-        m_pFile->open(QIODevice::WriteOnly);
-
-        QNetworkAccessManager *accessManager = new QNetworkAccessManager(this);
-        accessManager->setNetworkAccessible(QNetworkAccessManager::Accessible);
-        QString sUrl = QString("http://%0:%1/%2/%3").arg(m_pDataSocket->localAddress().toString()).arg(c_uDataPort).arg(m_pTabWgt->currentIndex()).arg(sFileName);
-        QUrl url(sUrl);
-
-        QNetworkRequest request(url);
-        request.setHeader(QNetworkRequest::ContentTypeHeader, "application/octet-stream");
-        m_pNetworkReply = accessManager->get(request);
-
-        connect((QObject *)m_pNetworkReply, SIGNAL(readyRead()), this, SLOT(readContent()));
-        connect(accessManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(replyFinished(QNetworkReply*)));
-        connect(m_pNetworkReply, SIGNAL(error(QNetworkReply::NetworkError)),this,SLOT(loadError(QNetworkReply::NetworkError)));
-        connect(m_pNetworkReply, SIGNAL(downloadProgress(qint64 ,qint64)), pFileList, SLOT(loadProgress(qint64 ,qint64)));
-    }
-}
-
-void HostMachine::readContent()
-{
-    m_pFile->write(m_pNetworkReply->readAll());
-}
-
-void HostMachine::replyFinished(QNetworkReply* pNetworkReply)
-{
-    if(pNetworkReply->error() == QNetworkReply::NoError)
-    {
-        pNetworkReply->deleteLater();
-        m_pFile->flush();
-        m_pFile->close();
-    }
-    else
-    {
-        QMessageBox::critical(NULL, tr("Error"), "Failed!");
-    }
-}
-
-
-void HostMachine::loadError(QNetworkReply::NetworkError code)
-{
-    qDebug()<<"Error: "<< m_pNetworkReply->error();
 }
 
 /*****************************************************************************
@@ -1399,7 +1378,7 @@ void HostMachine::slotStop()
 * @date    : 2019/10/28
 * @param:  : 
 *****************************************************************************/
-void HostMachine::slotDelete(QList<quint32> fileNos)
+void HostMachine::slotDelete()
 {
     if (m_sAddr.isEmpty())
     {
@@ -1413,22 +1392,55 @@ void HostMachine::slotDelete(QList<quint32> fileNos)
         m_pCmdSocket->connectToHost(QHostAddress(m_sAddr), c_uCommandPort);
         if (!m_pCmdSocket->waitForConnected())
         {
-
             QMessageBox::information(this, qApp->translate(c_sHostMachine, c_sTitle),
                 qApp->translate(c_sHostMachine, c_sNetConnectError));
             return;
         }
     }
 
-    foreach(quint32 fileno, fileNos)
+    MWFileList* pFileList = (MWFileList*)m_pTabWgt->currentWidget();
+    QTableWidget *pFileListWgt = pFileList->m_pFileListWgt;
+    QList<QTableWidgetItem*> selectedItems = pFileListWgt->selectedItems();
+    if (selectedItems.count() < 1)
+    {
+        QMessageBox::information(this, qApp->translate(c_sHostMachine, c_sTitle), qApp->translate(c_sHostMachine, c_sIsDeleteTip));
+        return;
+    }
+
+    QMessageBox box(this);
+    box.setWindowTitle(qApp->translate(c_sHostMachine, c_sTitle));
+    box.setText(qApp->translate(c_sHostMachine, c_sIsDelete));
+    box.setIcon(QMessageBox::Question);
+    box.addButton(qApp->translate(c_sHostMachine, c_sYes), QMessageBox::YesRole);
+    box.addButton(qApp->translate(c_sHostMachine, c_sNo), QMessageBox::NoRole);
+    if (box.exec())
+    {
+        return;
+    }
+
+    QSet<quint32> rowNos;
+    foreach(QTableWidgetItem* pItem, selectedItems)
+    {
+        rowNos.insert(pItem->row());
+    }
+
+    foreach(quint32 rowNo, rowNos)
     {
         QByteArray block;
         QDataStream out(&block, QIODevice::WriteOnly);
-        out << CS_Delete << m_pTabWgt->currentIndex() << fileno;
+        out << CS_Delete << m_pTabWgt->currentIndex();
+
+        QString sFileName = pFileListWgt->item(rowNo, 1)->text() + "." + pFileListWgt->item(rowNo, 4)->text();
+        QByteArray ba = sFileName.toLocal8Bit();
+        char filename[128] = {0};
+        strncpy(filename, ba, sizeof(filename));
+        out.writeRawData(filename, sizeof(filename));
 
         m_pCmdSocket->write(block);
         m_pCmdSocket->waitForReadyRead();
     }
+
+    reallyRefresh();
 }
 
 void HostMachine::reallyRefresh()

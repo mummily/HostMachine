@@ -8,6 +8,9 @@
 #include "common.h"
 #include <QFile>
 
+const QString c_sImportHead= "{2585E781-1C60-416E-9A18-CC7ACD2522AF}";
+const QString c_sExportHead= "{FFEE539A-6E91-4461-AD05-8B5F21CAF18D}";
+
 DataSocket::DataSocket(QObject *parent)
     : QTcpSocket(parent), m_blockSize(0), m_fileSize(0), m_bStart(true)
 {
@@ -28,6 +31,11 @@ void DataSocket::readClient()
         return;
 
     QByteArray buf = readAll();
+    respondImport(buf);
+}
+
+void DataSocket::respondImport(QByteArray buf)
+{
     if (m_bStart)
     {
         m_bStart = false;
@@ -59,11 +67,6 @@ void DataSocket::readClient()
     }
 }
 
-void DataSocket::respondExport(quint32 areano, float fileno, float startpos, float exportsize)
+void DataSocket::respondExport(QByteArray buf)
 {
-    QByteArray block;
-    QDataStream out(&block, QIODevice::WriteOnly);
-    out.setVersion(QDataStream::Qt_5_5);
-    out << quint32(SC_Export) << areano << quint32(qrand() % 2); // 0x00 成功 0x01 失败 其它 保留
-    write(block);
 }

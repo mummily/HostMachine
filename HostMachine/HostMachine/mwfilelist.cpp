@@ -7,9 +7,6 @@
 #include <QHeaderView>
 #include <QMessageBox>
 #include "dlgfileplayblack.h"
-#include "QNetworkAccessManager"
-#include "QNetworkRequest"
-#include "QNetworkReply"
 #include "QFile"
 #include "common.h"
 #include "globalfun.h"
@@ -127,12 +124,11 @@ void MWFileList::initConnect()
     connect(m_pActStop, SIGNAL(triggered(bool)), parentWidget(), SLOT(slotStop()));
 
     connect(m_pActDelete, SIGNAL(triggered(bool)), parentWidget(), SLOT(slotLogRecord()));
-    connect(m_pActDelete, SIGNAL(triggered(bool)), this, SLOT(slotDelete()));
+    connect(m_pActDelete, SIGNAL(triggered(bool)), parentWidget(), SLOT(slotDelete()));
 
     connect(m_pActRefresh, SIGNAL(triggered(bool)), parentWidget(), SLOT(slotLogRecord()));
     connect(m_pActRefresh, SIGNAL(triggered(bool)), parentWidget(), SLOT(slotRefresh()));
 
-    connect(this, SIGNAL(sigDelete(QList<quint32>)), parentWidget(), SLOT(slotDelete(QList<quint32>)));
     connect(this, SIGNAL(sigPlayBack(quint32, quint32, quint32, quint32, quint32, quint32)),
         parentWidget(), SLOT(slotPlayBack(quint32, quint32, quint32, quint32, quint32, quint32)));
 }
@@ -189,61 +185,6 @@ void MWFileList::readRecord(quint32 area, quint32 state)
 void MWFileList::readPlayBack(quint32 area, quint32 state)
 {
     statusBar()->showMessage((state == 0x00) ? "playback success" : "playback error");
-}
-
-/*****************************************************************************
-* @brief   : 应答-导入
-* @author  : wb
-* @date    : 2019/10/28
-* @param:  :
-*****************************************************************************/
-void MWFileList::readImport(quint32 area, char* filename, quint32 state)
-{
-//     if (state != 0x00)
-//     {
-//         statusBar()->showMessage("import error");
-//         return;
-//     }
-
-    QString sFileName = QString::fromLocal8Bit(filename);
-    m_pFile = new QFile(sFileName);
-    m_pFile->open(QIODevice::ReadOnly);
-    QByteArray data = m_pFile->readAll ();
-    m_pFile->close ();
-
-    QNetworkAccessManager *accessManager = new QNetworkAccessManager(this);    //往该目录中上传文件
-    accessManager->setNetworkAccessible(QNetworkAccessManager::Accessible);
-    QByteArray bytefile = m_pFile->readAll();
-
-    //QString sUrl = QString("http://%0:%1/%2/%3").arg(m_pDataSocket->localAddress().toString()).arg(c_uDataPort).arg(m_pTabWgt->currentIndex()).arg(sFileName);
-    QUrl url("http://127.0.0.1:6188/0/1.txt");    //如这里指定的上传文件至HTTP服务器目录中的upload目录中
-    url.setUserName("wangbin");
-    url.setPassword("5tgb6yhn");
-    QNetworkRequest request(url);
-    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/octet-stream");
-    QNetworkReply* pNetworkReply = accessManager->post(request, data);
-
-    connect(accessManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(replyFinished(QNetworkReply*)));
-    connect(pNetworkReply, SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(loadError(QNetworkReply::NetworkError)));
-    connect(pNetworkReply, SIGNAL(uploadProgress(qint64, qint64)), this, SLOT(loadProgress(qint64, qint64)));
-}
-
-
-void MWFileList::replyFinished(QNetworkReply* pNetworkReply)
-{
-    if (pNetworkReply->error() == QNetworkReply::NoError)
-    {
-        pNetworkReply->deleteLater();
-    }
-    else
-    {
-        QMessageBox::critical(NULL, tr("Error"), "Failed!!!");
-    }
-}
-
-void MWFileList::loadError(QNetworkReply::NetworkError code)
-{
-    qDebug() << "Error: ";
 }
 
 /*****************************************************************************
@@ -341,36 +282,6 @@ void MWFileList::logRecord(QString sText)
     QString sDateTime = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
 }
 
-void MWFileList::slotDelete()
-{
-    QList<QTableWidgetItem*> selectedItems = m_pFileListWgt->selectedItems();
-    QList<quint32> fileNos;
-    foreach(QTableWidgetItem* pItem, selectedItems)
-    {
-        fileNos.push_back(m_pFileListWgt->item(pItem->row(), 0)->text().toInt());
-    }
-
-    // Test Start
-    fileNos.push_back(0);
-    // Test End
-
-    if (fileNos.size() < 1)
-        return;
-
-    QMessageBox box(this);
-    box.setWindowTitle(qApp->translate(c_sMWFileList, c_sTitle));
-    box.setText(qApp->translate(c_sMWFileList, c_sIsDelete));
-    box.setIcon(QMessageBox::Question);
-    box.addButton(qApp->translate(c_sMWFileList, c_sYes), QMessageBox::RejectRole);
-    box.addButton(qApp->translate(c_sMWFileList, c_sNo), QMessageBox::AcceptRole);
-    if (QMessageBox::AcceptRole != box.exec())
-    {
-        return;
-    }
-
-    emit sigDelete(fileNos);
-}
-
 void MWFileList::slotPlayBack()
 {
     QList<QTableWidgetItem*> selectedItems = m_pFileListWgt->selectedItems();
@@ -395,17 +306,4 @@ void MWFileList::slotPlayBack()
         return;
 
     emit sigPlayBack(fileNos.first(), dlg.Type(), dlg.Prftime(), dlg.Datanum(), dlg.Prf(), dlg.Cpi());
-}
-
-void MWFileList::loadProgress(qint64 bytesSent, qint64 bytesTotal)
-{
-    QString sSentUnit = "";
-    QString sTotalUnit = "";
-    float newBytesSent = bytesSent;
-    float newBytesTotal = bytesTotal;
-    CGlobalFun::formatSize(bytesSent, newBytesSent, sSentUnit);
-    CGlobalFun::formatSize(bytesTotal, newBytesTotal, sTotalUnit);
-
-    QString sMessage = QString("%0%1/%2%3").arg(newBytesSent).arg(sSentUnit).arg(newBytesTotal).arg(sTotalUnit);
-    statusBar()->showMessage(sMessage);
 }

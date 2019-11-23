@@ -2,6 +2,19 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="zh_CN">
 <context>
+    <name>DataSocket</name>
+    <message>
+        <location filename="datasocket.cpp" line="11"/>
+        <source>网络应用软件</source>
+        <translation>网络应用软件</translation>
+    </message>
+    <message>
+        <location filename="datasocket.cpp" line="12"/>
+        <source>无法连接服务器，请检查网络连接！</source>
+        <translation>无法连接服务器，请检查网络连接！</translation>
+    </message>
+</context>
+<context>
     <name>DlgAreaFormat</name>
     <message>
         <location filename="dlgareaformat.cpp" line="11"/>
@@ -367,442 +380,447 @@
 <context>
     <name>HostMachine</name>
     <message>
-        <location filename="hostmachine.cpp" line="41"/>
+        <location filename="hostmachine.cpp" line="36"/>
         <source>网络应用软件</source>
         <translation>网络应用软件</translation>
     </message>
     <message>
-        <location filename="hostmachine.cpp" line="42"/>
+        <location filename="hostmachine.cpp" line="37"/>
         <source>选择要导入的文件</source>
         <translation>选择要导入的文件</translation>
     </message>
     <message>
-        <location filename="hostmachine.cpp" line="43"/>
+        <location filename="hostmachine.cpp" line="38"/>
         <source>DAT文件(*.dat);;所有文件(*.*)</source>
         <translation>DAT文件(*.dat);;所有文件(*.*)</translation>
     </message>
     <message>
-        <location filename="hostmachine.cpp" line="44"/>
+        <location filename="hostmachine.cpp" line="39"/>
         <source>是否停止？</source>
         <translation>是否停止？</translation>
     </message>
     <message>
-        <location filename="hostmachine.cpp" line="45"/>
+        <location filename="hostmachine.cpp" line="40"/>
         <source>请选择要停止的任务！</source>
         <translation>请选择要停止的任务！</translation>
     </message>
     <message>
-        <location filename="hostmachine.cpp" line="46"/>
+        <location filename="hostmachine.cpp" line="41"/>
         <source>是否删除？</source>
         <translation>是否删除？</translation>
     </message>
     <message>
-        <location filename="hostmachine.cpp" line="47"/>
+        <location filename="hostmachine.cpp" line="42"/>
         <source>是</source>
         <translation>是</translation>
     </message>
     <message>
-        <location filename="hostmachine.cpp" line="48"/>
+        <location filename="hostmachine.cpp" line="43"/>
         <source>否</source>
         <translation>否</translation>
     </message>
     <message>
-        <location filename="hostmachine.cpp" line="49"/>
+        <location filename="hostmachine.cpp" line="44"/>
         <source>工具栏</source>
         <translation>工具栏</translation>
     </message>
     <message>
-        <location filename="hostmachine.cpp" line="50"/>
+        <location filename="hostmachine.cpp" line="45"/>
         <source>请选择要导出的文件！</source>
         <translation>请选择要导出的文件！</translation>
     </message>
     <message>
-        <location filename="hostmachine.cpp" line="51"/>
+        <location filename="hostmachine.cpp" line="46"/>
+        <source>请选择要删除的文件！</source>
+        <translation>请选择要删除的文件！</translation>
+    </message>
+    <message>
+        <location filename="hostmachine.cpp" line="47"/>
         <source>IP设置</source>
         <translation>IP设置</translation>
     </message>
     <message>
-        <location filename="hostmachine.cpp" line="52"/>
+        <location filename="hostmachine.cpp" line="48"/>
         <source>请进行IP设置！</source>
         <translation>请进行IP设置！</translation>
     </message>
     <message>
-        <location filename="hostmachine.cpp" line="53"/>
+        <location filename="hostmachine.cpp" line="49"/>
         <source>选择导出文件路径</source>
         <translation>选择导出文件路径</translation>
     </message>
     <message>
-        <location filename="hostmachine.cpp" line="54"/>
+        <location filename="hostmachine.cpp" line="50"/>
         <source>无法连接服务器，请检查网络连接！</source>
         <translation>无法连接服务器，请检查网络连接！</translation>
     </message>
     <message>
-        <location filename="hostmachine.cpp" line="57"/>
+        <location filename="hostmachine.cpp" line="53"/>
         <source>系统配置</source>
         <translation>系统配置</translation>
     </message>
     <message>
-        <location filename="hostmachine.cpp" line="58"/>
+        <location filename="hostmachine.cpp" line="54"/>
         <source>系统操作</source>
         <translation>系统操作</translation>
     </message>
     <message>
-        <location filename="hostmachine.cpp" line="59"/>
+        <location filename="hostmachine.cpp" line="55"/>
         <source>关于</source>
         <translation>关于</translation>
     </message>
     <message>
-        <location filename="hostmachine.cpp" line="62"/>
+        <location filename="hostmachine.cpp" line="58"/>
         <source>自检</source>
         <translation>自检</translation>
     </message>
     <message>
-        <location filename="hostmachine.cpp" line="63"/>
+        <location filename="hostmachine.cpp" line="59"/>
         <source>格式化</source>
         <translation>格式化</translation>
     </message>
     <message>
-        <location filename="hostmachine.cpp" line="64"/>
+        <location filename="hostmachine.cpp" line="60"/>
         <source>导入</source>
         <translation>导入</translation>
     </message>
     <message>
-        <location filename="hostmachine.cpp" line="65"/>
+        <location filename="hostmachine.cpp" line="61"/>
         <source>导出</source>
         <translation>导出</translation>
     </message>
     <message>
-        <location filename="hostmachine.cpp" line="66"/>
+        <location filename="hostmachine.cpp" line="62"/>
         <source>记录</source>
         <translation>记录</translation>
     </message>
     <message>
-        <location filename="hostmachine.cpp" line="67"/>
+        <location filename="hostmachine.cpp" line="63"/>
         <source>删除</source>
         <translation>删除</translation>
     </message>
     <message>
-        <location filename="hostmachine.cpp" line="68"/>
+        <location filename="hostmachine.cpp" line="64"/>
         <source>刷新</source>
         <translation>刷新</translation>
     </message>
     <message>
-        <location filename="hostmachine.cpp" line="69"/>
+        <location filename="hostmachine.cpp" line="65"/>
         <source>回放</source>
         <translation>回放</translation>
     </message>
     <message>
-        <location filename="hostmachine.cpp" line="70"/>
+        <location filename="hostmachine.cpp" line="66"/>
         <source>停止</source>
         <translation>停止</translation>
     </message>
     <message>
-        <location filename="hostmachine.cpp" line="73"/>
+        <location filename="hostmachine.cpp" line="69"/>
         <source>磁盘控制面板</source>
         <translation>磁盘控制面板</translation>
     </message>
     <message>
-        <location filename="hostmachine.cpp" line="74"/>
+        <location filename="hostmachine.cpp" line="70"/>
         <source>原始数据分区</source>
         <translation>原始数据分区</translation>
     </message>
     <message>
-        <location filename="hostmachine.cpp" line="75"/>
+        <location filename="hostmachine.cpp" line="71"/>
         <source>雷达结果分区</source>
         <translation>雷达结果分区</translation>
     </message>
     <message>
-        <location filename="hostmachine.cpp" line="76"/>
+        <location filename="hostmachine.cpp" line="72"/>
         <source>光电图片分区</source>
         <translation>光电图片分区</translation>
     </message>
     <message>
-        <location filename="hostmachine.cpp" line="77"/>
+        <location filename="hostmachine.cpp" line="73"/>
         <source>光电视频分区</source>
         <translation>光电视频分区</translation>
     </message>
     <message>
-        <location filename="hostmachine.cpp" line="78"/>
+        <location filename="hostmachine.cpp" line="74"/>
         <source>混合数据分区</source>
         <translation>混合数据分区</translation>
     </message>
     <message>
-        <location filename="hostmachine.cpp" line="79"/>
+        <location filename="hostmachine.cpp" line="75"/>
         <source>参数信息</source>
         <translation>参数信息</translation>
     </message>
     <message>
-        <location filename="hostmachine.cpp" line="80"/>
+        <location filename="hostmachine.cpp" line="76"/>
         <source>总大小</source>
         <translation>总大小</translation>
     </message>
     <message>
-        <location filename="hostmachine.cpp" line="81"/>
+        <location filename="hostmachine.cpp" line="77"/>
         <source>已用大小</source>
         <translation>已用大小</translation>
     </message>
     <message>
-        <location filename="hostmachine.cpp" line="82"/>
+        <location filename="hostmachine.cpp" line="78"/>
         <source>未用百分比</source>
         <translation>未用百分比</translation>
     </message>
     <message>
-        <location filename="hostmachine.cpp" line="83"/>
+        <location filename="hostmachine.cpp" line="79"/>
         <source>文件数量</source>
         <translation>文件数量</translation>
     </message>
     <message>
-        <location filename="hostmachine.cpp" line="84"/>
+        <location filename="hostmachine.cpp" line="80"/>
         <source>当前状态</source>
         <translation>当前状态</translation>
     </message>
     <message>
-        <location filename="hostmachine.cpp" line="85"/>
+        <location filename="hostmachine.cpp" line="81"/>
         <source>通道连接状态</source>
         <translation>通道连接状态</translation>
     </message>
     <message>
-        <location filename="hostmachine.cpp" line="86"/>
+        <location filename="hostmachine.cpp" line="82"/>
         <source>通道选择状态</source>
         <translation>通道选择状态</translation>
     </message>
     <message>
-        <location filename="hostmachine.cpp" line="87"/>
+        <location filename="hostmachine.cpp" line="83"/>
         <source>通道带宽</source>
         <translation>通道带宽</translation>
     </message>
     <message>
-        <location filename="hostmachine.cpp" line="90"/>
+        <location filename="hostmachine.cpp" line="86"/>
         <source>序号</source>
         <translation>序号</translation>
     </message>
     <message>
-        <location filename="hostmachine.cpp" line="91"/>
+        <location filename="hostmachine.cpp" line="87"/>
         <source>所属分区</source>
         <translation>所属分区</translation>
     </message>
     <message>
-        <location filename="hostmachine.cpp" line="92"/>
+        <location filename="hostmachine.cpp" line="88"/>
         <source>任务类型</source>
         <translation>任务类型</translation>
     </message>
     <message>
-        <location filename="hostmachine.cpp" line="93"/>
+        <location filename="hostmachine.cpp" line="89"/>
         <source>任务开始时间</source>
         <translation>任务开始时间</translation>
     </message>
     <message>
-        <location filename="hostmachine.cpp" line="94"/>
+        <location filename="hostmachine.cpp" line="90"/>
         <source>总大小(GB)</source>
         <translation>总大小(GB)</translation>
     </message>
     <message>
-        <location filename="hostmachine.cpp" line="95"/>
+        <location filename="hostmachine.cpp" line="91"/>
         <source>已完成大小(GB)</source>
         <translation>已完成大小(GB)</translation>
     </message>
     <message>
-        <location filename="hostmachine.cpp" line="96"/>
+        <location filename="hostmachine.cpp" line="92"/>
         <source>百分比</source>
         <translation>百分比</translation>
     </message>
     <message>
-        <location filename="hostmachine.cpp" line="97"/>
+        <location filename="hostmachine.cpp" line="93"/>
         <source>速率(MB/S)</source>
         <translation>速率(MB/S)</translation>
     </message>
     <message>
-        <location filename="hostmachine.cpp" line="98"/>
+        <location filename="hostmachine.cpp" line="94"/>
         <source>状态</source>
         <translation>状态</translation>
     </message>
     <message>
-        <location filename="hostmachine.cpp" line="99"/>
+        <location filename="hostmachine.cpp" line="95"/>
         <source>耗时</source>
         <translation>耗时</translation>
     </message>
     <message>
-        <location filename="hostmachine.cpp" line="102"/>
+        <location filename="hostmachine.cpp" line="98"/>
         <source>打开软件</source>
         <translation>打开软件</translation>
     </message>
     <message>
-        <location filename="hostmachine.cpp" line="105"/>
-        <location filename="hostmachine.cpp" line="116"/>
+        <location filename="hostmachine.cpp" line="101"/>
+        <location filename="hostmachine.cpp" line="112"/>
         <source>未连接</source>
         <translation>未连接</translation>
     </message>
     <message>
-        <location filename="hostmachine.cpp" line="106"/>
+        <location filename="hostmachine.cpp" line="102"/>
         <source>就绪</source>
         <translation>就绪</translation>
     </message>
     <message>
-        <location filename="hostmachine.cpp" line="107"/>
+        <location filename="hostmachine.cpp" line="103"/>
         <source>联系我们</source>
         <translation>联系我们</translation>
     </message>
     <message>
-        <location filename="hostmachine.cpp" line="110"/>
+        <location filename="hostmachine.cpp" line="106"/>
         <source>空闲</source>
         <translation>空闲</translation>
     </message>
     <message>
-        <location filename="hostmachine.cpp" line="111"/>
+        <location filename="hostmachine.cpp" line="107"/>
         <source>读</source>
         <translation>读</translation>
     </message>
     <message>
-        <location filename="hostmachine.cpp" line="112"/>
+        <location filename="hostmachine.cpp" line="108"/>
         <source>写</source>
         <translation>写</translation>
     </message>
     <message>
-        <location filename="hostmachine.cpp" line="113"/>
+        <location filename="hostmachine.cpp" line="109"/>
         <source>读写</source>
         <translation>读写</translation>
     </message>
     <message>
-        <location filename="hostmachine.cpp" line="117"/>
+        <location filename="hostmachine.cpp" line="113"/>
         <source>连接</source>
         <translation>连接</translation>
     </message>
     <message>
-        <location filename="hostmachine.cpp" line="120"/>
+        <location filename="hostmachine.cpp" line="116"/>
         <source>选择</source>
         <translation>选择</translation>
     </message>
     <message>
-        <location filename="hostmachine.cpp" line="121"/>
+        <location filename="hostmachine.cpp" line="117"/>
         <source>未选择</source>
         <translation>未选择</translation>
     </message>
     <message>
-        <location filename="hostmachine.cpp" line="848"/>
-        <location filename="hostmachine.cpp" line="912"/>
+        <location filename="hostmachine.cpp" line="823"/>
+        <source>导入失败！</source>
+        <translation>导入失败！</translation>
+    </message>
+    <message>
+        <location filename="hostmachine.cpp" line="865"/>
         <source>打开文件失败！</source>
         <translation>打开文件失败！</translation>
     </message>
     <message>
-        <location filename="hostmachine.cpp" line="1363"/>
         <source>Error</source>
-        <translation>Error</translation>
+        <translation type="vanished">Error</translation>
     </message>
 </context>
 <context>
     <name>MWFileList</name>
     <message>
-        <location filename="mwfilelist.cpp" line="16"/>
-        <location filename="mwfilelist.cpp" line="20"/>
+        <location filename="mwfilelist.cpp" line="15"/>
+        <location filename="mwfilelist.cpp" line="19"/>
         <source>删除</source>
         <translation>删除</translation>
     </message>
     <message>
-        <location filename="mwfilelist.cpp" line="17"/>
+        <location filename="mwfilelist.cpp" line="16"/>
         <source>导入</source>
         <translation>导入</translation>
     </message>
     <message>
-        <location filename="mwfilelist.cpp" line="18"/>
+        <location filename="mwfilelist.cpp" line="17"/>
         <source>导出</source>
-        <translation>
-
-导出</translation>
+        <translation>导出</translation>
     </message>
     <message>
-        <location filename="mwfilelist.cpp" line="19"/>
+        <location filename="mwfilelist.cpp" line="18"/>
         <source>记录</source>
         <translation>记录</translation>
     </message>
     <message>
-        <location filename="mwfilelist.cpp" line="21"/>
+        <location filename="mwfilelist.cpp" line="20"/>
         <source>刷新</source>
         <translation>刷新</translation>
     </message>
     <message>
-        <location filename="mwfilelist.cpp" line="22"/>
+        <location filename="mwfilelist.cpp" line="21"/>
         <source>回放</source>
         <translation>回放</translation>
     </message>
     <message>
-        <location filename="mwfilelist.cpp" line="23"/>
+        <location filename="mwfilelist.cpp" line="22"/>
         <source>停止</source>
         <translation>停止</translation>
     </message>
     <message>
-        <location filename="mwfilelist.cpp" line="24"/>
+        <location filename="mwfilelist.cpp" line="23"/>
         <source>文件编号</source>
         <translation>文件编号</translation>
     </message>
     <message>
-        <location filename="mwfilelist.cpp" line="25"/>
+        <location filename="mwfilelist.cpp" line="24"/>
         <source>文件名称</source>
         <translation>文件名称</translation>
     </message>
     <message>
-        <location filename="mwfilelist.cpp" line="26"/>
+        <location filename="mwfilelist.cpp" line="25"/>
         <source>文件大小</source>
         <translation>文件大小</translation>
     </message>
     <message>
-        <location filename="mwfilelist.cpp" line="27"/>
+        <location filename="mwfilelist.cpp" line="26"/>
         <source>创建时间</source>
         <translation>创建时间</translation>
     </message>
     <message>
-        <location filename="mwfilelist.cpp" line="28"/>
+        <location filename="mwfilelist.cpp" line="27"/>
         <source>文件类型</source>
         <translation>文件类型</translation>
     </message>
     <message>
-        <location filename="mwfilelist.cpp" line="29"/>
+        <location filename="mwfilelist.cpp" line="28"/>
         <source>LBA大小（KB）</source>
         <translation>LBA大小（KB）</translation>
     </message>
     <message>
-        <location filename="mwfilelist.cpp" line="30"/>
+        <location filename="mwfilelist.cpp" line="29"/>
         <source>选择要导入的文件</source>
         <translation>选择要导入的文件</translation>
     </message>
     <message>
-        <location filename="mwfilelist.cpp" line="31"/>
+        <location filename="mwfilelist.cpp" line="30"/>
         <source>DAT文件(*.dat);;所有文件(*.*)</source>
         <translation>DAT文件(*.dat);;所有文件(*.*)</translation>
     </message>
     <message>
-        <location filename="mwfilelist.cpp" line="32"/>
+        <location filename="mwfilelist.cpp" line="31"/>
         <source>是否停止？</source>
         <translation>是否停止？</translation>
     </message>
     <message>
-        <location filename="mwfilelist.cpp" line="33"/>
+        <location filename="mwfilelist.cpp" line="32"/>
         <source>是否删除？</source>
         <translation>是否删除？</translation>
     </message>
     <message>
-        <location filename="mwfilelist.cpp" line="34"/>
+        <location filename="mwfilelist.cpp" line="33"/>
         <source>请选择一个文件回放！</source>
         <translation>请选择一个文件回放！</translation>
     </message>
     <message>
-        <location filename="mwfilelist.cpp" line="35"/>
+        <location filename="mwfilelist.cpp" line="34"/>
         <source>是</source>
         <translation>是</translation>
     </message>
     <message>
-        <location filename="mwfilelist.cpp" line="36"/>
+        <location filename="mwfilelist.cpp" line="35"/>
         <source>否</source>
         <translation>否</translation>
     </message>
     <message>
-        <location filename="mwfilelist.cpp" line="37"/>
+        <location filename="mwfilelist.cpp" line="36"/>
         <source>工具栏</source>
         <translation>工具栏</translation>
     </message>
     <message>
-        <location filename="mwfilelist.cpp" line="238"/>
         <source>Error</source>
-        <translation>Error</translation>
+        <translation type="vanished">Error</translation>
     </message>
 </context>
 <context>

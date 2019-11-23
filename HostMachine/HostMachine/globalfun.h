@@ -1,5 +1,6 @@
 #pragma once
 #include "qglobal.h"
+
 class CGlobalFun
 {
 public:
@@ -8,4 +9,3 @@ public:
 
     static void formatSize(qint64 oldBytes, float& newBytes, QString& sUnit);
 };
-

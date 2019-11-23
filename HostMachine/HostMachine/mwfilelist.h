@@ -5,7 +5,6 @@
 #include <QDateTime>
 #include <list>
 #include <memory>
-#include "QNetworkReply"
 using namespace std;
 
 class QTableWidget;
@@ -14,7 +13,6 @@ class QSplitter;
 class QFrame;
 class QLabel;
 class QFile;
-class QNetworkReply;
 
 // 刷新 - 文件信息
 struct tagAreaFileInfo
@@ -44,7 +42,6 @@ public:
 
     void readRecord(quint32 area, quint32 state);
     void readPlayBack(quint32 area, quint32 state);
-    void readImport(quint32 area, char* filename, quint32 state);
     void readExport(quint32 area, quint32 state);
     void readTaskStop(quint32 area, quint32 tasktype, quint32 state);
     void readDelete(quint32 area, quint32 state);
@@ -57,17 +54,12 @@ private:
     void logRecord(QString sText);
 
 signals:
-    void sigDelete(QList<quint32>);
     void sigPlayBack(quint32, quint32, quint32, quint32, quint32, quint32);
 
     private slots:
          // 日志记录
          void slotLogRecord();
-         void slotDelete();
          void slotPlayBack();
-         void loadProgress(qint64 bytesSent,qint64 bytesTotal);
-         void replyFinished(QNetworkReply* pNetworkReply);
-         void loadError(QNetworkReply::NetworkError code);
 public:
     QTableWidget            *m_pFileListWgt;
 

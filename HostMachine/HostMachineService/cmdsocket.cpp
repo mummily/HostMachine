@@ -68,9 +68,11 @@ void CmdSocket::readClient()
     }
     else if (requestType == CS_Delete) // 分区文件删除
     {
-        quint32 areano, fileno;
-        in >> areano >> fileno;
-        respondDelete(areano, fileno);
+        quint32 areano;
+        in >> areano;
+        char filename[128] = {0};
+        in.readRawData(filename, 128);
+        respondDelete(areano, filename);
     }
     else if (requestType == CS_Refresh) // 分区文件刷新
     {
@@ -184,12 +186,15 @@ void CmdSocket::respondTaskStop(quint32 areano, quint32 tasktype)
     write(block);
 }
 
-void CmdSocket::respondDelete(quint32 areano, float fileno)
+void CmdSocket::respondDelete(quint32 areano, char* filename)
 {
+    QString sFileName = QString::fromLocal8Bit(filename);
+    QString sFileFullPath = QString("%0/%1/%2").arg(qApp->applicationDirPath()).arg(areano).arg(sFileName);
+    bool bOk = QFile::remove(sFileFullPath);
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
     out.setVersion(QDataStream::Qt_5_5);
-    out << quint32(SC_Delete) << areano << quint32(qrand() % 2); // 0x00 成功 0x01 失败 其它 保留
+    out << quint32(SC_Delete) << areano << (bOk ? quint32(0x00) : quint32(0x01)); // 0x00 成功 0x01 失败 其它 保留
     write(block);
 }
 

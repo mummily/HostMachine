@@ -146,7 +146,6 @@ class QLabel;
 class QTcpSocket;
 class MWFileList;
 class QFile;
-class QNetworkReply;
 class DataSocket;
 class HostMachine : public QMainWindow
 {
@@ -176,9 +175,6 @@ private:
         void disconnectCmd();
         void readyReadCmd();
         void errorCmd();
-        void readContent();
-        void replyFinished(QNetworkReply* pNetworkReply);
-        void loadError(QNetworkReply::NetworkError code);
 
         void connectedData();
         void disconnectData();
@@ -210,7 +206,7 @@ private:
         // 停止
         void slotStop();
         // 删除
-        void slotDelete(QList<quint32> fileNos);
+        void slotDelete();
         // 刷新
         void slotRefresh();
 
@@ -241,7 +237,6 @@ private:
 
     QTcpSocket              *m_pCmdSocket;      // 命令Socket
     DataSocket              *m_pDataSocket;     // 数据Socket
-    QNetworkReply           *m_pNetworkReply;
 
     MWFileList              *m_pLDOriginalWgt;  // 雷达原始数据分区
     MWFileList              *m_pLDResultWgt;    // 雷达结果数据分区
@@ -258,7 +253,6 @@ private:
     QLabel                  *m_pIPLabel;        // 状态
     QLabel                  *m_pCmdLabel;       // 状态
     QLabel                  *m_pDataLabel;      // 状态
-    QFile                   *m_pFile;
     QFile                   *m_pLog;
 
     QtGroupPropertyManager  *m_groupManager;

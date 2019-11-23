@@ -17,11 +17,15 @@ signals:
 
 public slots:
     void slotImport();
+    void slotExport();
+    void slotBatchExport();
 
 public:
     qint32 areano;
     QStringList importFileList;
     QString sIPAddr;
+
+    QString exportFilePath;
 };
 
 #endif // DATASOCKET_H
