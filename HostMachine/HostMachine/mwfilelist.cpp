@@ -6,7 +6,6 @@
 #include <QTableWidget>
 #include <QHeaderView>
 #include <QMessageBox>
-#include "dlgfileplayblack.h"
 #include "QFile"
 #include "common.h"
 #include "globalfun.h"
@@ -30,7 +29,6 @@ static const char *c_sImportFileTip = QT_TRANSLATE_NOOP("MWFileList", "Ñ¡ÔñÒªµ¼È
 static const char *c_sImportFileExt = QT_TRANSLATE_NOOP("MWFileList", "DATÎÄ¼þ(*.dat);;ËùÓÐÎÄ¼þ(*.*)");
 static const char *c_sIsStop = QT_TRANSLATE_NOOP("MWFileList", "ÊÇ·ñÍ£Ö¹£¿");
 static const char *c_sIsDelete = QT_TRANSLATE_NOOP("MWFileList", "ÊÇ·ñÉ¾³ý£¿");
-static const char *c_sPlayBackTip = QT_TRANSLATE_NOOP("MWFileList", "ÇëÑ¡ÔñÒ»¸öÎÄ¼þ»Ø·Å£¡");
 static const char *c_sYes = QT_TRANSLATE_NOOP("MWFileList", "ÊÇ");
 static const char *c_sNo = QT_TRANSLATE_NOOP("MWFileList", "·ñ");
 static const char *c_sToolBar = QT_TRANSLATE_NOOP("MWFileList", "¹¤¾ßÀ¸");
@@ -108,29 +106,26 @@ void MWFileList::initUI()
 *****************************************************************************/
 void MWFileList::initConnect()
 {
-    connect(m_pActRecord, SIGNAL(triggered(bool)), parentWidget(), SLOT(slotLogRecord()));
+    connect(m_pActRecord, SIGNAL(triggered(bool)), parentWidget(), SLOT(slotLogRecordAct()));
     connect(m_pActRecord, SIGNAL(triggered(bool)), parentWidget(), SLOT(slotRecord()));
 
-    connect(m_pActPlayBack, SIGNAL(triggered(bool)), parentWidget(), SLOT(slotLogRecord()));
-    connect(m_pActPlayBack, SIGNAL(triggered(bool)), this, SLOT(slotPlayBack()));
+    connect(m_pActPlayBack, SIGNAL(triggered(bool)), parentWidget(), SLOT(slotLogRecordAct()));
+    connect(m_pActPlayBack, SIGNAL(triggered(bool)), parentWidget(), SLOT(slotPlayBack()));
 
-    connect(m_pActImport, SIGNAL(triggered(bool)), parentWidget(), SLOT(slotLogRecord()));
+    connect(m_pActImport, SIGNAL(triggered(bool)), parentWidget(), SLOT(slotLogRecordAct()));
     connect(m_pActImport, SIGNAL(triggered(bool)), parentWidget(), SLOT(slotImport()));
 
-    connect(m_pActExport, SIGNAL(triggered(bool)), parentWidget(), SLOT(slotLogRecord()));
+    connect(m_pActExport, SIGNAL(triggered(bool)), parentWidget(), SLOT(slotLogRecordAct()));
     connect(m_pActExport, SIGNAL(triggered(bool)), parentWidget(), SLOT(slotExport()));
 
-    connect(m_pActStop, SIGNAL(triggered(bool)), parentWidget(), SLOT(slotLogRecord()));
+    connect(m_pActStop, SIGNAL(triggered(bool)), parentWidget(), SLOT(slotLogRecordAct()));
     connect(m_pActStop, SIGNAL(triggered(bool)), parentWidget(), SLOT(slotStop()));
 
-    connect(m_pActDelete, SIGNAL(triggered(bool)), parentWidget(), SLOT(slotLogRecord()));
+    connect(m_pActDelete, SIGNAL(triggered(bool)), parentWidget(), SLOT(slotLogRecordAct()));
     connect(m_pActDelete, SIGNAL(triggered(bool)), parentWidget(), SLOT(slotDelete()));
 
-    connect(m_pActRefresh, SIGNAL(triggered(bool)), parentWidget(), SLOT(slotLogRecord()));
+    connect(m_pActRefresh, SIGNAL(triggered(bool)), parentWidget(), SLOT(slotLogRecordAct()));
     connect(m_pActRefresh, SIGNAL(triggered(bool)), parentWidget(), SLOT(slotRefresh()));
-
-    connect(this, SIGNAL(sigPlayBack(quint32, quint32, quint32, quint32, quint32, quint32)),
-        parentWidget(), SLOT(slotPlayBack(quint32, quint32, quint32, quint32, quint32, quint32)));
 }
 
 /*****************************************************************************
@@ -254,56 +249,4 @@ void MWFileList::readRefresh(tagAreaFileInfos &fileInfos)
         QString sFileLBA = QString("%0").arg(spFileInfo->filesize / c_bSizeMax);
         m_pFileListWgt->setItem(m_pFileListWgt->rowCount() - 1, 5, new QTableWidgetItem(sFileLBA));
     }
-}
-
-/*****************************************************************************
-* @brief   : µã»÷ActionÊ±£¬ÈÕÖ¾¼ÇÂ¼
-* @author  : wb
-* @date    : 2019/11/02
-* @param:  : ÎÞ
-*****************************************************************************/
-void MWFileList::slotLogRecord()
-{
-    QAction* pAction = qobject_cast<QAction *>(sender());
-    if (NULL == pAction)
-        return;
-
-    logRecord(pAction->text());
-}
-
-/*****************************************************************************
-* @brief   : ÈÕÖ¾¼ÇÂ¼
-* @author  : wb
-* @date    : 2019/11/02
-* @param:  : ´«ÈëµÄÏµÍ³ÐÅÏ¢
-*****************************************************************************/
-void MWFileList::logRecord(QString sText)
-{
-    QString sDateTime = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
-}
-
-void MWFileList::slotPlayBack()
-{
-    QList<QTableWidgetItem*> selectedItems = m_pFileListWgt->selectedItems();
-    QList<quint32> fileNos;
-    foreach(QTableWidgetItem* pItem, selectedItems)
-    {
-        fileNos.push_back(m_pFileListWgt->item(pItem->row(), 0)->text().toInt());
-    }
-
-    // Test Start
-    fileNos.push_back(0);
-    // Test End
-
-    if (fileNos.size() != 1)
-    {
-        QMessageBox::information(this, qApp->translate(c_sMWFileList, c_sPlayBack), qApp->translate(c_sMWFileList, c_sPlayBackTip));
-        return;
-    }
-
-    DlgFilePlayblack dlg(this);
-    if (QDialog::Accepted != dlg.exec())
-        return;
-
-    emit sigPlayBack(fileNos.first(), dlg.Type(), dlg.Prftime(), dlg.Datanum(), dlg.Prf(), dlg.Cpi());
 }

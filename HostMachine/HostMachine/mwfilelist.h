@@ -12,7 +12,6 @@ class QTabWidget;
 class QSplitter;
 class QFrame;
 class QLabel;
-class QFile;
 
 // 刷新 - 文件信息
 struct tagAreaFileInfo
@@ -51,20 +50,9 @@ private:
     void initUI();
     void initConnect();
     void initFileListWgt();
-    void logRecord(QString sText);
 
-signals:
-    void sigPlayBack(quint32, quint32, quint32, quint32, quint32, quint32);
-
-    private slots:
-         // 日志记录
-         void slotLogRecord();
-         void slotPlayBack();
 public:
     QTableWidget            *m_pFileListWgt;
-
-private:
-    QFile                   *m_pFile;
 
 private:
     QAction                 *m_pActImport;      // 导入

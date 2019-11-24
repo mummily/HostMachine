@@ -207,7 +207,7 @@ private:
         // 记录
         void slotRecord();
         // 回放
-        void slotPlayBack(quint32 fileno, quint32 type, quint32 prftime, quint32 datanum, quint32 prf, quint32 cpi);
+        void slotPlayBack();
         // 导入
         void slotImport();
         // 导出
