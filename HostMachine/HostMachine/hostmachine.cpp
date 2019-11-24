@@ -292,10 +292,11 @@ void HostMachine::initConnect()
 
     connect(m_pDataSocket, SIGNAL(connected()), this, SLOT(connectedData()));
     connect(m_pDataSocket, SIGNAL(disconnected()), this, SLOT(disconnectData()));
-    connect(m_pDataSocket, SIGNAL(readyRead()), this, SLOT(readyReadData()));
+    connect(m_pDataSocket, SIGNAL(readyRead()), m_pDataSocket, SLOT(readyRead()));
     connect(m_pDataSocket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(errorData()));
     connect(m_pDataSocket, SIGNAL(updateProcess(QString, float, float)), this, SLOT(slotUpdateProcess(QString, float, float)));
     connect(m_pDataSocket, SIGNAL(importCompleted()), this, SLOT(slotRefresh()));
+    connect(m_pDataSocket, SIGNAL(exportCompleted()), this, SLOT(slotForeachExport()));
 }
 
 /*****************************************************************************
@@ -829,60 +830,6 @@ void HostMachine::readyReadCmd()
 }
 
 /*****************************************************************************
-* @brief   : 
-* @author  : wb
-* @date    : 2019/11/10
-* @param:  : 
-*****************************************************************************/
-void HostMachine::readyReadData()
-{
-    QDataStream in(m_pDataSocket);
-    in.setVersion(QDataStream::Qt_5_5);
-
-    if (m_pDataSocket->bytesAvailable() < sizeof(quint32))
-        return;
-
-    quint32 respondType;
-    in >> respondType;
-    if (respondType == SC_Export)
-    {
-        quint32 area, state;
-        in >> area >> state;
-
-        MWFileList* pWMFileList = (MWFileList*)m_pTabWgt->widget(area);
-        pWMFileList->readExport(area, state);
-    }
-    else if (respondType == SC_Import)
-    {
-        return;
-        QString sFile = "C:\\Users\\wangbin\\Desktop\\1109.dat"/*QString::fromLocal8Bit(filename)*/;
-
-        QFile file;
-        file.setFileName(sFile);
-        if (!file.open(QIODevice::ReadOnly))
-        {
-            QMessageBox::information(this, qApp->translate(c_sHostMachine, c_sTitle),
-                tr("打开文件失败！"));
-            return;
-        }
-        QFileInfo info(sFile);
-        float filesize = info.size();
-
-        qint64 len = 0;
-        do
-        {
-            char buffer[c_bufferSize] = {0};
-            len = file.read(buffer, sizeof(buffer));
-            len = m_pDataSocket->write(buffer, len);
-        } while (len > 0);
-
-        file.close();
-
-        slotRefresh();
-    }
-}
-
-/*****************************************************************************
 * @brief   : IP设置
 * @author  : wb
 * @date    : 2019/10/27
@@ -1234,7 +1181,6 @@ void HostMachine::slotExport()
         m_pCmdSocket->connectToHost(QHostAddress(m_sAddr), c_uCommandPort);
         if (!m_pCmdSocket->waitForConnected())
         {
-
             QMessageBox::information(this, qApp->translate(c_sHostMachine, c_sTitle),
                 qApp->translate(c_sHostMachine, c_sNetConnectError));
             return;
@@ -1264,21 +1210,12 @@ void HostMachine::slotExport()
             return;
 
         m_pDataSocket->exportFilePath = dlg.ExportPath();
+        shared_ptr<tagExportParam> spExportParam = make_shared<tagExportParam>();
+        spExportParam->rowNo = *rowNos.begin();
+        spExportParam->startPos = dlg.Startpos();
+        spExportParam->fileSize = dlg.Exportsize();
 
-        QByteArray block;
-        QDataStream out(&block, QIODevice::WriteOnly);
-        out << CS_Export << m_pTabWgt->currentIndex();
-
-        QString sFileName = pFileListWgt->item(*rowNos.begin(), 1)->text() + "." + pFileListWgt->item(*rowNos.begin(), 4)->text();
-        char filename[128] = {0};
-        QByteArray ba = sFileName.toLocal8Bit();
-        strncpy(filename, ba.data(), sizeof(filename));
-        out.writeRawData(filename, sizeof(filename));
-
-        out << dlg.Startpos() << dlg.Exportsize();
-
-        m_pCmdSocket->write(block);
-        m_pCmdSocket->waitForReadyRead();
+        m_lstExportParam.push_back(spExportParam);
     }
     else
     {
@@ -1290,22 +1227,42 @@ void HostMachine::slotExport()
 
         foreach (quint32 rowNo, rowNos)
         {
-            QByteArray block;
-            QDataStream out(&block, QIODevice::WriteOnly);
-            out << CS_Export << m_pTabWgt->currentIndex();
+            shared_ptr<tagExportParam> spExportParam = make_shared<tagExportParam>();
+            spExportParam->rowNo = rowNo;
+            spExportParam->startPos = 0;
+            spExportParam->fileSize = pFileListWgt->item(rowNo, 5)->text().toFloat();
 
-            QString sFileName = pFileListWgt->item(rowNo, 1)->text() + "." + pFileListWgt->item(rowNo, 4)->text();
-            char filename[128] = {0};
-            QByteArray ba = sFileName.toLocal8Bit();
-            strncpy(filename, ba.data(), sizeof(filename));
-            out.writeRawData(filename, sizeof(filename));
-
-            out << float(0) << pFileListWgt->item(rowNo, 5)->text().toFloat();
-
-            m_pCmdSocket->write(block);
-            m_pCmdSocket->waitForReadyRead();
+            m_lstExportParam.push_back(spExportParam);
         }
     }
+
+    slotForeachExport();
+}
+
+void HostMachine::slotForeachExport()
+{
+    if (m_lstExportParam.size() < 1)
+        return;
+
+    shared_ptr<tagExportParam> spExportParam = m_lstExportParam.first();
+    m_lstExportParam.pop_front();
+
+    MWFileList* pFileList = (MWFileList*)m_pTabWgt->currentWidget();
+    QTableWidget *pFileListWgt = pFileList->m_pFileListWgt;
+    QString sFileName = pFileListWgt->item(spExportParam->rowNo, 1)->text() + "." + pFileListWgt->item(spExportParam->rowNo, 4)->text();
+
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out << CS_Export << m_pTabWgt->currentIndex();
+
+    char filename[128] = {0};
+    QByteArray ba = sFileName.toLocal8Bit();
+    strncpy(filename, ba.data(), sizeof(filename));
+    out.writeRawData(filename, sizeof(filename));
+
+    out << spExportParam->startPos << spExportParam->fileSize;
+
+    m_pCmdSocket->write(block);
 }
 
 /*****************************************************************************
@@ -1642,7 +1599,7 @@ void HostMachine::slotUpdateProcess(QString fileName, float buffer, float total)
     QString sBufferUnit;
     CGlobalFun::formatSize(buffer, newBufferLen, sBufferUnit);
 
-    QString sMsg = QString("%0 Import %1 %2/%3 %4").arg(fileName).arg(newBufferLen).arg(sBufferUnit).arg(newFileSize).arg(sFileUnit);
+    QString sMsg = QString("%0 -> %1 %2/%3 %4").arg(fileName).arg(newBufferLen).arg(sBufferUnit).arg(newFileSize).arg(sFileUnit);
     MWFileList* pWMFileList = (MWFileList*)m_pTabWgt->currentWidget();
     pWMFileList->statusBar()->showMessage(sMsg);
 }

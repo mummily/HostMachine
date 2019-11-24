@@ -6,13 +6,14 @@
 #include "scopeguard.h"
 #include "common.h"
 #include "globalfun.h"
+#include "..\HostMachineService\datasocket.h"
 
 static const char *c_sDataSocket = "DataSocket";
 static const char *c_sTitle = QT_TRANSLATE_NOOP("DataSocket", "网络应用软件");
 static const char *c_sNetConnectError = QT_TRANSLATE_NOOP("DataSocket", "无法连接服务器，请检查网络连接！");
 
 DataSocket::DataSocket(QObject *parent)
-    : QTcpSocket(parent)
+    : QTcpSocket(parent), m_bStart(true), m_fileSize(0), m_bufferSize(0)
 {
 
 }
@@ -46,10 +47,11 @@ void DataSocket::slotImport()
         QFileInfo fileInfo = sFileName;
         qint64 fileSize = fileInfo.size();
         QString sHeader = QString("%0##%1##%2").arg(areano).arg(fileInfo.fileName()).arg(fileSize);
-        qint64 len = write(sHeader.toUtf8());
-        waitForBytesWritten();
+        qint64 len = write(sHeader.toLocal8Bit());
         if (len == -1)
             return;
+        waitForReadyRead();
+
         SCOPE_EXIT([&]{ file.close(); });
 
         qint64 bufferLen = 0;
@@ -64,15 +66,60 @@ void DataSocket::slotImport()
         } while (bufferLen != fileSize);
 
         waitForReadyRead();
+
+        emit importCompleted();
     }
-
-    emit importCompleted();
 }
 
-void DataSocket::slotExport()
+void DataSocket::readyRead()
 {
+    QDataStream in(this);
+    in.setVersion(QDataStream::Qt_5_5);
+
+    if (bytesAvailable() < sizeof(qint32))
+        return;
+
+    QByteArray buf = readAll();
+    if (QString(buf) == "Completed!")
+        return;
+
+    respondExport(buf);
 }
 
-void DataSocket::slotBatchExport()
+void DataSocket::respondExport(QByteArray buf)
 {
+    if (m_bStart)
+    {
+        m_bStart = false;
+
+        QString sBuf = QString::fromLocal8Bit(buf);
+        int areNo = sBuf.section("##", 0, 0).toInt();
+        QString fileName = sBuf.section("##", 1, 1);
+        QString filePath = exportFilePath + "/" + fileName;
+
+        m_file.setFileName(filePath);
+        m_file.open(QIODevice::WriteOnly);
+
+        m_fileSize = sBuf.section("##", 2, 2).toFloat();
+
+        write("Completed!");
+    }
+    else
+    {
+        qint64 len = m_file.write(buf);
+        m_bufferSize += len;
+
+        emit updateProcess(m_file.fileName(), m_bufferSize, m_fileSize);
+
+        if (m_bufferSize >= m_fileSize)
+        {
+            m_file.close();
+            m_bStart = true;
+            m_bufferSize = 0;
+
+            write("Completed!");
+
+            emit exportCompleted();
+        }
+    }
 }

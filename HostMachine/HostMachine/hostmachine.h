@@ -131,6 +131,16 @@ struct tagAreaProperties
     }
 };
 
+struct tagExportParam
+{
+    qint32 rowNo;
+    float startPos, fileSize;
+    tagExportParam()
+    {
+
+    }
+};
+
 class QtGroupPropertyManager;
 class QtStringPropertyManager;
 class QtDoublePropertyManager;
@@ -178,7 +188,6 @@ private:
 
         void connectedData();
         void disconnectData();
-        void readyReadData();
         void errorData();
 
         // Menu
@@ -203,6 +212,7 @@ private:
         void slotImport();
         // µ¼³ö
         void slotExport();
+        void slotForeachExport();
         // Í£Ö¹
         void slotStop();
         // É¾³ý
@@ -226,6 +236,7 @@ private:
     shared_ptr<tagCheckSelf> m_spcheckSelf;
     shared_ptr<TaskType>    m_spTaskType;
     QString                 m_sAddr;
+    QList<shared_ptr<tagExportParam>> m_lstExportParam;
 
 private:
     QAction                 *m_pActCheckSelf;   // ×Ô¼ì

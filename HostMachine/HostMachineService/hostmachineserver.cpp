@@ -1,6 +1,7 @@
 #include "hostmachineserver.h"
 #include "cmdsocket.h"
 #include "datasocket.h"
+#include "SocketManager.h"
 
 HostMachineServer::HostMachineServer(QObject *parent/* = 0*/)
     : QTcpServer(parent)
@@ -16,12 +17,14 @@ void HostMachineServer::incomingConnection(qintptr handle)
 {
     if (serverPort() == 6178)
     {
-        CmdSocket *socket = new CmdSocket(this);
-        socket->setSocketDescriptor(handle);
+        CmdSocket *cmdSocket = new CmdSocket(this);
+        cmdSocket->setSocketDescriptor(handle);
+        CSocketManager::getInstance()->SetCmdSocket(cmdSocket);
     }
     else if (serverPort() == 6188)
     {
-        DataSocket *socket = new DataSocket(this);
-        socket->setSocketDescriptor(handle);
+        DataSocket *dataSocket = new DataSocket(this);
+        dataSocket->setSocketDescriptor(handle);
+        CSocketManager::getInstance()->SetDataSocket(dataSocket);
     }
 }

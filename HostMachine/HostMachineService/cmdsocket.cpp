@@ -6,6 +6,9 @@
 #include "QThread"
 #include <QDir>
 #include "common.h"
+#include "QTimer"
+#include "datasocket.h"
+#include "SocketManager.h"
 
 CmdSocket::CmdSocket(QObject *parent)
     : QTcpSocket(parent)
@@ -91,6 +94,19 @@ void CmdSocket::readClient()
         in.readRawData(filename, sizeof(filename));
 
         respondImport(areano, filesize, QDateTime::fromMSecsSinceEpoch(time), filename);
+    }
+    else if (requestType == CS_Export) // 导出
+    {
+        quint32 areano;
+        in >> areano;
+
+        char filename[128] = {0};
+        in.readRawData(filename, sizeof(filename));
+
+        float startpos, filesize;
+        in >> startpos >> filesize;
+
+        respondExport(areano, filename, startpos, filesize);
     }
 }
 
@@ -220,4 +236,25 @@ void CmdSocket::respondRefresh(quint32 areano, quint32 fileno, quint32 filenum)
         out << fileInfo.created().toMSecsSinceEpoch() << quint32(nIndex++) << quint64(fileInfo.size());
     }
     write(block);
+}
+
+void CmdSocket::respondExport(quint32 areano, char* filename, float startpos, float filesize)
+{
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out.setVersion(QDataStream::Qt_5_5);
+    qint32 result = 0x00;
+    out << quint32(SC_Export) << areano << result; // 0x00 开始导出 0x01 资源不足 其它 保留
+    write(block);
+
+    // 成功，开始导出
+    if (result == 0x00)
+    {
+        CSocketManager::getInstance()->dataSocket()->areaNo = areano;
+        CSocketManager::getInstance()->dataSocket()->sFileName = QString::fromLocal8Bit(filename);
+        CSocketManager::getInstance()->dataSocket()->startPos = startpos * 1024;
+        CSocketManager::getInstance()->dataSocket()->fileSize = filesize * 1024;
+
+        QTimer::singleShot(10, CSocketManager::getInstance()->dataSocket(), SLOT(slotExport()));
+    }
 }

@@ -65,6 +65,9 @@
     <ClCompile Include="GeneratedFiles\Release\moc_datasocket.cpp">
       <Filter>Generated Files\Release</Filter>
     </ClCompile>
+    <ClCompile Include="SocketManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="hostmachineserver.h">
@@ -79,6 +82,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="common.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SocketManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

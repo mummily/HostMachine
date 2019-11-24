@@ -99,6 +99,7 @@
     </ClCompile>
     <ClCompile Include="hostmachineserver.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="SocketManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="hostmachineserver.h">
@@ -138,6 +139,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="common.h" />
+    <ClInclude Include="SocketManager.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

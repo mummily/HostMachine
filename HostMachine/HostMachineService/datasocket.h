@@ -21,9 +21,15 @@ public:
     ~DataSocket();
 
     void respondImport(QByteArray buf);
-    void respondExport(QByteArray buf);
 private slots:
     void readClient();
+    void slotExport();
+
+public:
+    qint32 areaNo;
+    QString sFileName;
+    float startPos, fileSize;
+
 private:
     qint64  m_fileSize;
     qint64  m_blockSize;

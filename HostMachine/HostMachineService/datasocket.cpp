@@ -7,6 +7,7 @@
 #include <QDir>
 #include "common.h"
 #include <QFile>
+#include "..\include\scopeguard.h"
 
 const QString c_sImportHead= "{2585E781-1C60-416E-9A18-CC7ACD2522AF}";
 const QString c_sExportHead= "{FFEE539A-6E91-4461-AD05-8B5F21CAF18D}";
@@ -31,6 +32,9 @@ void DataSocket::readClient()
         return;
 
     QByteArray buf = readAll();
+    if (QString(buf) == "Completed!")
+        return;
+
     respondImport(buf);
 }
 
@@ -40,8 +44,9 @@ void DataSocket::respondImport(QByteArray buf)
     {
         m_bStart = false;
 
-        int areNo = QString(buf).section("##", 0, 0).toInt();
-        QString fileName = QString(buf).section("##", 1, 1);
+        QString sBuf = QString::fromLocal8Bit(buf);
+        int areNo = sBuf.section("##", 0, 0).toInt();
+        QString fileName = sBuf.section("##", 1, 1);
         QString filePath = QString("%0/%1/").arg(qApp->applicationDirPath()).arg(areNo);
         QDir().mkdir(filePath);
         filePath += fileName;
@@ -49,7 +54,9 @@ void DataSocket::respondImport(QByteArray buf)
         m_file.setFileName(filePath);
         m_file.open(QIODevice::WriteOnly);
 
-        m_fileSize = QString(buf).section("##", 2, 2).toInt();
+        m_fileSize = sBuf.section("##", 2, 2).toInt();
+
+        write("Completed!");
     }
     else
     {
@@ -67,6 +74,33 @@ void DataSocket::respondImport(QByteArray buf)
     }
 }
 
-void DataSocket::respondExport(QByteArray buf)
+void DataSocket::slotExport()
 {
+    QString fileFullPath = QString("%0/%1/%2").arg(qApp->applicationDirPath()).arg(areaNo).arg(sFileName);
+    QFile file;
+    file.setFileName(fileFullPath);
+    if (!file.open(QIODevice::ReadOnly))
+        return;
+
+    QFileInfo fileInfo = fileFullPath;
+    QString sHeader = QString("%0##%1##%2").arg(areaNo).arg(fileInfo.fileName()).arg(fileSize);
+    qint64 len = write(sHeader.toLocal8Bit());
+    waitForReadyRead();
+    if (len == -1)
+        return;
+    SCOPE_EXIT([&]{ file.close(); });
+
+    file.seek(startPos);
+
+    qint64 bufferLen = 0;
+    do
+    {
+        char buffer[4 * 1024] = {0};
+        qint64 len = file.read(buffer, sizeof(buffer));
+        len = write(buffer, len);
+        bufferLen += len;
+
+    } while (bufferLen < fileSize);
+
+    waitForReadyRead();
 }
