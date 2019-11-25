@@ -11,7 +11,7 @@ class QTableWidget;
 class QTabWidget;
 class QSplitter;
 class QFrame;
-class QLabel;
+class QProgressBar;
 
 // 刷新 - 文件信息
 struct tagAreaFileInfo
@@ -38,6 +38,8 @@ class MWFileList : public QMainWindow
 public:
     MWFileList(QWidget *parent = 0);
     ~MWFileList();
+    
+    virtual void resizeEvent(QResizeEvent * event);
 
     void readRecord(quint32 area, quint32 state);
     void readPlayBack(quint32 area, quint32 state);
@@ -46,6 +48,8 @@ public:
     void readDelete(quint32 area, quint32 state);
     void readRefresh(tagAreaFileInfos &fileInfos);
 
+    void updateProcess(QString fileName, float buffer, float total);
+
 private:
     void initUI();
     void initConnect();
@@ -53,6 +57,7 @@ private:
 
 public:
     QTableWidget            *m_pFileListWgt;
+    QProgressBar            *m_pProgressBar;
 
 private:
     QAction                 *m_pActImport;      // 导入

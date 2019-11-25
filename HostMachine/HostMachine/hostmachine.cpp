@@ -16,6 +16,7 @@
 #include <QMessageBox>
 #include <QFileDialog>
 #include <QDockWidget>
+#include <QProgressBar>
 
 #include <QTcpSocket>
 #include <QTcpServer>
@@ -821,6 +822,9 @@ void HostMachine::readyReadCmd()
     }
     else if (respondType == SC_Import)
     {
+        MWFileList* pWMFileList = (MWFileList*)m_pTabWgt->currentWidget();
+        pWMFileList->m_pProgressBar->reset();
+
         quint32 areano, state;
         in >> areano;
 
@@ -828,8 +832,6 @@ void HostMachine::readyReadCmd()
         in.readRawData(filename, sizeof(filename));
 
         in >> state;
-
-        MWFileList* pWMFileList = (MWFileList*)m_pTabWgt->widget(areano);
         if (state != 0x00)
         {
             m_pDataSocket->importFileList.clear();
@@ -837,8 +839,24 @@ void HostMachine::readyReadCmd()
             QMessageBox::information(this, windowTitle(), tr("导入失败！"));
             return;
         }
+        else
+        {
+            QTimer::singleShot(10, m_pDataSocket, SLOT(slotImport()));
+        }
+    }
+    else if (respondType == SC_Export)
+    {
+        MWFileList* pWMFileList = (MWFileList*)m_pTabWgt->currentWidget();
+        pWMFileList->m_pProgressBar->reset();
 
-        QTimer::singleShot(10, m_pDataSocket, SLOT(slotImport()));
+        quint32 areano, state;
+        in >> areano >> state;
+        if (state != 0x00)
+        {
+            m_lstExportParam.clear();
+            pWMFileList->statusBar()->hide();
+            QMessageBox::information(this, windowTitle(), tr("导出失败！"));
+        }
     }
 }
 
@@ -1615,15 +1633,6 @@ void HostMachine::initData()
 
 void HostMachine::slotUpdateProcess(QString fileName, float buffer, float total)
 {
-    float newFileSize = total;
-    QString sFileUnit;
-    CGlobalFun::formatSize(total, newFileSize, sFileUnit);
-
-    float newBufferLen = buffer;
-    QString sBufferUnit;
-    CGlobalFun::formatSize(buffer, newBufferLen, sBufferUnit);
-
-    QString sMsg = QString("%0 -> %1 %2/%3 %4").arg(fileName).arg(newBufferLen).arg(sBufferUnit).arg(newFileSize).arg(sFileUnit);
     MWFileList* pWMFileList = (MWFileList*)m_pTabWgt->currentWidget();
-    pWMFileList->statusBar()->showMessage(sMsg);
+    pWMFileList->updateProcess(fileName, buffer, total);
 }

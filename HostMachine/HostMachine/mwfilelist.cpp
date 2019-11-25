@@ -6,7 +6,8 @@
 #include <QTableWidget>
 #include <QHeaderView>
 #include <QMessageBox>
-#include "QFile"
+#include <QProgressBar>
+#include <QFile>
 #include "common.h"
 #include "globalfun.h"
 
@@ -92,7 +93,10 @@ void MWFileList::initUI()
     // m_pFileListWgt->setStyleSheet("QTableWidget { border: none;}");
     setCentralWidget(m_pFileListWgt);
 
-    this->statusBar()->showMessage("statusBar");
+    m_pProgressBar = new QProgressBar(statusBar());
+    m_pProgressBar->setStyleSheet("QProgressBar { border: none;background-color: rgb(240, 240, 240) }");
+    m_pProgressBar->setFixedHeight(20);
+
     statusBar()->setSizeGripEnabled(false);
 
     initFileListWgt();
@@ -249,4 +253,28 @@ void MWFileList::readRefresh(tagAreaFileInfos &fileInfos)
         QString sFileLBA = QString("%0").arg(spFileInfo->filesize / c_bSizeMax);
         m_pFileListWgt->setItem(m_pFileListWgt->rowCount() - 1, 5, new QTableWidgetItem(sFileLBA));
     }
+}
+
+void MWFileList::updateProcess(QString fileName, float buffer, float total)
+{
+    float newFileSize = total;
+    QString sFileUnit;
+    CGlobalFun::formatSize(total, newFileSize, sFileUnit);
+
+    float newBufferLen = buffer;
+    QString sBufferUnit;
+    CGlobalFun::formatSize(buffer, newBufferLen, sBufferUnit);
+
+    m_pProgressBar->setMinimum(0);
+    m_pProgressBar->setMaximum(total);
+    m_pProgressBar->setValue(buffer);
+
+    QString sFormat = QString("%0 -> %1 %2/%3 %4  %p%").arg(fileName).arg(newBufferLen).arg(sBufferUnit).arg(newFileSize).arg(sFileUnit);
+    m_pProgressBar->setFormat(sFormat);
+}
+
+void MWFileList::resizeEvent(QResizeEvent * event)
+{
+    QMainWindow::resizeEvent(event);
+    m_pProgressBar->setFixedWidth(m_pFileListWgt->width());
 }
