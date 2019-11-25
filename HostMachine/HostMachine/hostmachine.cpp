@@ -1119,10 +1119,10 @@ void HostMachine::slotPlayBack()
     MWFileList* pFileList = (MWFileList*)m_pTabWgt->currentWidget();
     QTableWidget *pFileListWgt = pFileList->m_pFileListWgt;
     QList<QTableWidgetItem*> selectedItems = pFileListWgt->selectedItems();
-    QList<quint32> fileNos;
+    QSet<quint32> fileNos;
     foreach(QTableWidgetItem* pItem, selectedItems)
     {
-        fileNos.push_back(pFileListWgt->item(pItem->row(), 0)->text().toInt());
+        fileNos.insert(pItem->row());
     }
 
     if (fileNos.size() != 1)
@@ -1137,7 +1137,7 @@ void HostMachine::slotPlayBack()
 
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
-    out << CS_PlayBack << m_pTabWgt->currentIndex() << fileNos.first()
+    out << CS_PlayBack << m_pTabWgt->currentIndex() << *fileNos.begin()
         << dlg.Type() << dlg.Prftime() << dlg.Datanum() << dlg.Prf() << dlg.Cpi();
 
     m_pCmdSocket->write(block);
@@ -1292,7 +1292,8 @@ void HostMachine::slotForeachExport()
 
     MWFileList* pFileList = (MWFileList*)m_pTabWgt->currentWidget();
     QTableWidget *pFileListWgt = pFileList->m_pFileListWgt;
-    QString sFileName = pFileListWgt->item(spExportParam->rowNo, 1)->text() + "." + pFileListWgt->item(spExportParam->rowNo, 4)->text();
+    QString sFileName = QString("%0.%1").arg(pFileListWgt->item(spExportParam->rowNo, 1)->text()) // 文件名称
+        .arg(pFileListWgt->item(spExportParam->rowNo, 4)->text());// 文件后缀
 
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);

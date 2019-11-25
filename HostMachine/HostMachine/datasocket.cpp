@@ -95,7 +95,7 @@ void DataSocket::respondExport(QByteArray buf)
         QString sBuf = QString::fromLocal8Bit(buf);
         int areNo = sBuf.section("##", 0, 0).toInt();
         QString fileName = sBuf.section("##", 1, 1);
-        QString filePath = exportFilePath + "/" + fileName;
+        QString filePath = QString("%0/%1_%2").arg(exportFilePath).arg(areNo).arg(fileName);
 
         m_file.setFileName(filePath);
         m_file.open(QIODevice::WriteOnly);

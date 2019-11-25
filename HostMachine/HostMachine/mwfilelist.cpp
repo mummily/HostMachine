@@ -172,6 +172,7 @@ void MWFileList::initFileListWgt()
 *****************************************************************************/
 void MWFileList::readRecord(quint32 area, quint32 state)
 {
+    m_pProgressBar->hide();
     statusBar()->showMessage((state == 0x00) ? "record success" : "record error");
 }
 
@@ -183,6 +184,7 @@ void MWFileList::readRecord(quint32 area, quint32 state)
 *****************************************************************************/
 void MWFileList::readPlayBack(quint32 area, quint32 state)
 {
+    m_pProgressBar->hide();
     statusBar()->showMessage((state == 0x00) ? "playback success" : "playback error");
 }
 
@@ -194,6 +196,7 @@ void MWFileList::readPlayBack(quint32 area, quint32 state)
 *****************************************************************************/
 void MWFileList::readExport(quint32 area, quint32 state)
 {
+    m_pProgressBar->hide();
     statusBar()->showMessage((state == 0x00) ? "export success" : "export error");
 }
 
@@ -205,6 +208,7 @@ void MWFileList::readExport(quint32 area, quint32 state)
 *****************************************************************************/
 void MWFileList::readTaskStop(quint32 area, quint32 tasktype, quint32 state)
 {
+    m_pProgressBar->hide();
     statusBar()->showMessage((state == 0x00) ? "stop success" : "stop error");
 }
 
@@ -216,6 +220,7 @@ void MWFileList::readTaskStop(quint32 area, quint32 tasktype, quint32 state)
 *****************************************************************************/
 void MWFileList::readDelete(quint32 area, quint32 state)
 {
+    m_pProgressBar->hide();
     statusBar()->showMessage((state == 0x00) ? "delete success" : "delete error");
 }
 
@@ -265,6 +270,7 @@ void MWFileList::updateProcess(QString fileName, float buffer, float total)
     QString sBufferUnit;
     CGlobalFun::formatSize(buffer, newBufferLen, sBufferUnit);
 
+    m_pProgressBar->show();
     m_pProgressBar->setMinimum(0);
     m_pProgressBar->setMaximum(total);
     m_pProgressBar->setValue(buffer);
