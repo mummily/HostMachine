@@ -41,14 +41,17 @@ public:
     
     virtual void resizeEvent(QResizeEvent * event);
 
+    void readDelete(quint32 area, quint32 state);
     void readRecord(quint32 area, quint32 state);
     void readPlayBack(quint32 area, quint32 state);
     void readExport(quint32 area, quint32 state);
     void readTaskStop(quint32 area, quint32 tasktype, quint32 state);
-    void readDelete(quint32 area, quint32 state);
     void readRefresh(tagAreaFileInfos &fileInfos);
 
     void updateProcess(QString fileName, float buffer, float total);
+
+signals:
+    void siglogRecord(QString);
 
 private:
     void initUI();

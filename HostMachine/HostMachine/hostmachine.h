@@ -165,20 +165,6 @@ public:
     HostMachine(QWidget *parent = 0);
     ~HostMachine();
 
-private:
-    void initUI();
-    void initTcp();
-    void initLayout();
-    void initConnect();
-    void initData();
-
-    void initTaskWgt();
-    void initPropertyWgt();
-
-private:
-    void reallyCheckSelf();
-    void reallyRefresh();
-
     private slots:
         // TCP
         void connectedCmd();
@@ -227,10 +213,24 @@ private:
         void slotUpdateProcess(QString fileName, float buffer, float total);
 
 private:
+    void initUI();
+    void initTcp();
+    void initLayout();
+    void initConnect();
+    void initData();
+    void closeLog();
+
+    void initTaskWgt();
+    void initPropertyWgt();
+
+    void reallyCheckSelf();
+    void reallyRefresh();
     void readCheckSelf();
     void readFormat(quint32 state);
     void readSystemConfig(quint32 choice, quint32 state);
     void readTaskQuery(list<tagTaskInfo>& lstTaskInfo);
+    void readRecord(quint32 area, quint32 state);
+
 private:
     tagAreaProperties       m_areaProperties;
     shared_ptr<tagCheckSelf> m_spcheckSelf;

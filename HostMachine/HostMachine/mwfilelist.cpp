@@ -34,6 +34,29 @@ static const char *c_sYes = QT_TRANSLATE_NOOP("MWFileList", "是");
 static const char *c_sNo = QT_TRANSLATE_NOOP("MWFileList", "否");
 static const char *c_sToolBar = QT_TRANSLATE_NOOP("MWFileList", "工具栏");
 
+// 回放结果
+static const char *c_sPlayBackResult0 = QT_TRANSLATE_NOOP("MWFileList", "回放成功");
+static const char *c_sPlayBackResult1 = QT_TRANSLATE_NOOP("MWFileList", "其它运行异常");
+
+// 删除结果
+static const char *c_sDeleteResult0 = QT_TRANSLATE_NOOP("MWFileList", "删除成功");
+static const char *c_sDeleteResult1 = QT_TRANSLATE_NOOP("MWFileList", "其它运行异常");
+
+// 记录结果
+static const char *c_sRecordResult0 = QT_TRANSLATE_NOOP("MWFileList", "开始记录");
+static const char *c_sRecordResult1 = QT_TRANSLATE_NOOP("MWFileList", "资源不足");
+static const char *c_sRecordResult2 = QT_TRANSLATE_NOOP("MWFileList", "其它运行异常");
+
+// 任务停止结果
+static const char *c_sTaskStopResult0 = QT_TRANSLATE_NOOP("MWFileList", "任务停止成功");
+static const char *c_sTaskStopResult1 = QT_TRANSLATE_NOOP("MWFileList", "其它运行异常");
+
+// 导出结果
+static const char *c_sExportResult0 = QT_TRANSLATE_NOOP("MWFileList", "开始导出");
+static const char *c_sExportResult1 = QT_TRANSLATE_NOOP("MWFileList", "资源不足");
+static const char *c_sExportResult2 = QT_TRANSLATE_NOOP("MWFileList", "其它运行异常");
+
+
 MWFileList::MWFileList(QWidget *parent)
     : QMainWindow(parent)
 {
@@ -130,6 +153,9 @@ void MWFileList::initConnect()
 
     connect(m_pActRefresh, SIGNAL(triggered(bool)), parentWidget(), SLOT(slotLogRecordAct()));
     connect(m_pActRefresh, SIGNAL(triggered(bool)), parentWidget(), SLOT(slotRefresh()));
+
+    // 其它
+    connect(this, SIGNAL(siglogRecord(QString)), parentWidget(), SLOT(slotLogRecord(QString)));
 }
 
 /*****************************************************************************
@@ -165,66 +191,6 @@ void MWFileList::initFileListWgt()
 }
 
 /*****************************************************************************
-* @brief   : 应答-记录
-* @author  : wb
-* @date    : 2019/10/28
-* @param:  :
-*****************************************************************************/
-void MWFileList::readRecord(quint32 area, quint32 state)
-{
-    m_pProgressBar->hide();
-    statusBar()->showMessage((state == 0x00) ? "record success" : "record error");
-}
-
-/*****************************************************************************
-* @brief   : 应答-回放
-* @author  : wb
-* @date    : 2019/10/28
-* @param:  :
-*****************************************************************************/
-void MWFileList::readPlayBack(quint32 area, quint32 state)
-{
-    m_pProgressBar->hide();
-    statusBar()->showMessage((state == 0x00) ? "playback success" : "playback error");
-}
-
-/*****************************************************************************
-* @brief   : 应答-导出
-* @author  : wb
-* @date    : 2019/10/28
-* @param:  :
-*****************************************************************************/
-void MWFileList::readExport(quint32 area, quint32 state)
-{
-    m_pProgressBar->hide();
-    statusBar()->showMessage((state == 0x00) ? "export success" : "export error");
-}
-
-/*****************************************************************************
-* @brief   : 应答-停止
-* @author  : wb
-* @date    : 2019/10/28
-* @param:  :
-*****************************************************************************/
-void MWFileList::readTaskStop(quint32 area, quint32 tasktype, quint32 state)
-{
-    m_pProgressBar->hide();
-    statusBar()->showMessage((state == 0x00) ? "stop success" : "stop error");
-}
-
-/*****************************************************************************
-* @brief   : 应答-删除
-* @author  : wb
-* @date    : 2019/10/28
-* @param:  :
-*****************************************************************************/
-void MWFileList::readDelete(quint32 area, quint32 state)
-{
-    m_pProgressBar->hide();
-    statusBar()->showMessage((state == 0x00) ? "delete success" : "delete error");
-}
-
-/*****************************************************************************
 * @brief   : 应答-刷新
 * @author  : wb
 * @date    : 2019/10/28
@@ -236,6 +202,7 @@ void MWFileList::readRefresh(tagAreaFileInfos &fileInfos)
     {
         m_pFileListWgt->removeRow(m_pFileListWgt->rowCount() - 1);
     }
+
     foreach(shared_ptr<tagAreaFileInfo> spFileInfo, fileInfos.lstFileInfo)
     {
         m_pFileListWgt->setRowCount(m_pFileListWgt->rowCount() + 1);
@@ -283,4 +250,119 @@ void MWFileList::resizeEvent(QResizeEvent * event)
 {
     QMainWindow::resizeEvent(event);
     m_pProgressBar->setFixedWidth(m_pFileListWgt->width());
+}
+
+void MWFileList::readPlayBack(quint32 area, quint32 state)
+{
+    QString sInfo = "";
+    if (state == 0x00)
+    {
+        sInfo = qApp->translate(c_sMWFileList, c_sPlayBackResult0);
+    }
+    else
+    {
+        sInfo = qApp->translate(c_sMWFileList, c_sPlayBackResult1);
+    }
+
+    m_pProgressBar->hide();
+    statusBar()->showMessage(sInfo);
+
+    QString sLog = QString("%0 %1").arg(area).arg(sInfo);
+    emit siglogRecord(sLog);
+}
+
+void MWFileList::readRecord(quint32 area, quint32 state)
+{
+    QString sInfo = "";
+    if (state == 0x00)
+    {
+        sInfo = qApp->translate(c_sMWFileList, c_sRecordResult0);
+    }
+    else if (state == 0x00)
+    {
+        sInfo = qApp->translate(c_sMWFileList, c_sRecordResult1);
+    }
+    else
+    {
+        sInfo = qApp->translate(c_sMWFileList, c_sRecordResult2);
+    }
+
+    m_pProgressBar->hide();
+    statusBar()->showMessage(sInfo);
+
+    QString sLog = QString("%0 %1").arg(area).arg(sInfo);
+    emit siglogRecord(sLog);
+}
+
+void MWFileList::readDelete(quint32 area, quint32 state)
+{
+    QString sInfo = "";
+    if (state == 0x00)
+    {
+        sInfo = qApp->translate(c_sMWFileList, c_sDeleteResult0);
+    }
+    else
+    {
+        sInfo = qApp->translate(c_sMWFileList, c_sDeleteResult1);
+    }
+
+    m_pProgressBar->hide();
+    statusBar()->showMessage(sInfo);
+
+    QString sLog = QString("%0 %1").arg(area).arg(sInfo);
+    emit siglogRecord(sLog);
+}
+
+/*****************************************************************************
+* @brief   : 应答-停止
+* @author  : wb
+* @date    : 2019/10/28
+* @param:  :
+*****************************************************************************/
+void MWFileList::readTaskStop(quint32 area, quint32 tasktype, quint32 state)
+{
+    QString sInfo = "";
+    if (state == 0x00)
+    {
+        sInfo = qApp->translate(c_sMWFileList, c_sTaskStopResult0);
+    }
+    else
+    {
+        sInfo = qApp->translate(c_sMWFileList, c_sTaskStopResult1);
+    }
+
+    m_pProgressBar->hide();
+    statusBar()->showMessage(sInfo);
+
+    QString sLog = QString("%0 %1").arg(area).arg(sInfo);
+    emit siglogRecord(sLog);
+}
+
+/*****************************************************************************
+* @brief   : 应答-导出
+* @author  : wb
+* @date    : 2019/10/28
+* @param:  :
+*****************************************************************************/
+void MWFileList::readExport(quint32 area, quint32 state)
+{
+    QString sInfo = "";
+    if (state == 0x00)
+    {
+        sInfo = qApp->translate(c_sMWFileList, c_sExportResult0);
+    }
+    else if (state == 0x01)
+    {
+        sInfo = qApp->translate(c_sMWFileList, c_sExportResult1);
+    }
+    else
+    {
+        sInfo = qApp->translate(c_sMWFileList, c_sExportResult2);
+    }
+
+    m_pProgressBar->hide();
+    statusBar()->showMessage(sInfo);
+
+    QString sLog = QString("%0 %1").arg(area).arg(sInfo);
+    emit siglogRecord(sLog);
 }

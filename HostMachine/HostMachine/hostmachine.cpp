@@ -105,6 +105,8 @@ static const char *c_sCloseSoftware = QT_TRANSLATE_NOOP("HostMachine", "关闭软件
 static const char *c_sDisConnect = QT_TRANSLATE_NOOP("HostMachine", "未连接");
 static const char *c_sReady = QT_TRANSLATE_NOOP("HostMachine", "就绪");
 static const char *c_sContactUs = QT_TRANSLATE_NOOP("HostMachine", "联系我们");
+static const char *c_sCmdDisconnect = QT_TRANSLATE_NOOP("HostMachine", "命令连接已断开！");
+static const char *c_sDataDisconnect = QT_TRANSLATE_NOOP("HostMachine", "数据连接已断开！");
 
 // 分区状态
 static const char *c_sAreaState0 = QT_TRANSLATE_NOOP("HostMachine", "空闲");
@@ -119,6 +121,16 @@ static const char *c_sChannelState1 = QT_TRANSLATE_NOOP("HostMachine", "连接");
 // 通道选择
 static const char *c_sChannelChoice0 = QT_TRANSLATE_NOOP("HostMachine", "选择");
 static const char *c_sChannelChoice1 = QT_TRANSLATE_NOOP("HostMachine", "未选择");
+
+// 格式化结果
+static const char *c_sFormatResult0 = QT_TRANSLATE_NOOP("HostMachine", "格式化成功");
+static const char *c_sFormatResult1 = QT_TRANSLATE_NOOP("HostMachine", "格式化失败");
+static const char *c_sFormatResult2 = QT_TRANSLATE_NOOP("HostMachine", "其它运行异常");
+
+// 系统配置结果
+static const char *c_sSystemConfigResult0 = QT_TRANSLATE_NOOP("HostMachine", "系统配置成功");
+static const char *c_sSystemConfigResult1 = QT_TRANSLATE_NOOP("HostMachine", "系统配置失败");
+static const char *c_sSystemConfigResult2 = QT_TRANSLATE_NOOP("HostMachine", "其它运行异常");
 
 HostMachine::HostMachine(QWidget *parent)
     : QMainWindow(parent), m_sAddr("")
@@ -140,7 +152,7 @@ HostMachine::~HostMachine()
     
     m_pCmdSocket->close();
     m_pDataSocket->close();
-    m_pLog->close();
+    closeLog();
 }
 
 /*****************************************************************************
@@ -248,7 +260,7 @@ void HostMachine::initUI()
     statusBar()->addPermanentWidget(m_pDataLabel); //显示状态信息    
 
     QLabel *contactUs = new QLabel(this);
-    contactUs->setFrameStyle(QFrame::Box|QFrame::Sunken);
+    contactUs->setFrameStyle(QFrame::Sunken);
     QString sText = QString("<a href=\"http://www.baidu.com/\">%0").arg(qApp->translate(c_sHostMachine, c_sContactUs));
     contactUs->setText(sText);
     contactUs->setOpenExternalLinks(true); //设置可以打开网站链接
@@ -314,8 +326,7 @@ void HostMachine::initConnect()
 void HostMachine::initTaskWgt()
 {
     QStringList headerList;
-    headerList << qApp->translate(c_sHostMachine, c_sTaskHeader1) 
-        << qApp->translate(c_sHostMachine, c_sTaskHeader2)
+    headerList <<qApp->translate(c_sHostMachine, c_sTaskHeader2)
         << qApp->translate(c_sHostMachine, c_sTaskHeader3)
         << qApp->translate(c_sHostMachine, c_sTaskHeader4)
         << qApp->translate(c_sHostMachine, c_sTaskHeader5)
@@ -617,14 +628,18 @@ void HostMachine::connectedCmd()
 {
     QString sLabel = QString("%0 %1").arg(c_uCommandPort).arg(qApp->translate(c_sHostMachine, c_sReady));
     m_pCmdLabel->setText(sLabel);
-    slotLogRecord(sLabel);
+
+    QString sInfo = QString("%0 %1").arg(m_sAddr).arg(sLabel);
+    slotLogRecord(sInfo);
 }
 
 void HostMachine::connectedData()
 {
     QString sLabel = QString("%0 %1").arg(c_uDataPort).arg(qApp->translate(c_sHostMachine, c_sReady));
     m_pDataLabel->setText(sLabel);
-    slotLogRecord(sLabel);
+
+    QString sInfo = QString("%0 %1").arg(m_sAddr).arg(sLabel);
+    slotLogRecord(sInfo);
 }
 
 /*****************************************************************************
@@ -638,7 +653,11 @@ void HostMachine::disconnectCmd()
     // 状态
     QString sLabel = QString("%0 %1").arg(c_uCommandPort).arg(qApp->translate(c_sHostMachine, c_sDisConnect));
     m_pCmdLabel->setText(sLabel);
-    slotLogRecord(sLabel);
+
+    QString sLog = QString("%0 %1").arg(m_sAddr).arg(sLabel);
+    slotLogRecord(sLog);
+
+    QMessageBox::warning(this, windowTitle(), qApp->translate(c_sHostMachine, c_sCmdDisconnect));
 }
 
 /*****************************************************************************
@@ -652,7 +671,11 @@ void HostMachine::disconnectData()
     // 状态
     QString sLabel = QString("%0 %1").arg(c_uDataPort).arg(qApp->translate(c_sHostMachine, c_sDisConnect));
     m_pDataLabel->setText(sLabel);
-    slotLogRecord(sLabel);
+
+    QString sLog = QString("%0 %1").arg(m_sAddr).arg(sLabel);
+    slotLogRecord(sLog);
+
+    QMessageBox::warning(this, windowTitle(), qApp->translate(c_sHostMachine, c_sDataDisconnect));
 }
 
 /*****************************************************************************
@@ -663,7 +686,6 @@ void HostMachine::disconnectData()
 *****************************************************************************/
 void HostMachine::errorCmd()
 {
-    statusBar()->showMessage(m_pCmdSocket->errorString());
     QString sLog = QString("%1 %2 %3").arg(m_sAddr).arg(c_uCommandPort).arg(m_pCmdSocket->errorString());
     slotLogRecord(sLog);
 }
@@ -676,7 +698,6 @@ void HostMachine::errorCmd()
 *****************************************************************************/
 void HostMachine::errorData()
 {
-    statusBar()->showMessage(m_pDataSocket->errorString());
     QString sLog = QString("%1 %2 %3").arg(m_sAddr).arg(c_uDataPort).arg(m_pDataSocket->errorString());
     slotLogRecord(sLog);
 }
@@ -743,19 +764,17 @@ void HostMachine::readyReadCmd()
     {
         quint32 tasknum;
         in >> tasknum;
-        if (tasknum > 0)
-        {
-            list<tagTaskInfo> lstTaskInfo;
-            for (int index=0;index<tasknum;++index)
-            {
-                tagTaskInfo taskInfo;
-                in >> taskInfo.flag >> taskInfo.area >> taskInfo.type
-                    >> taskInfo.finishedsize >> taskInfo.speed >> taskInfo.percent >> taskInfo.state;
-                lstTaskInfo.push_back(taskInfo);
-            }
 
-            readTaskQuery(lstTaskInfo);
+        list<tagTaskInfo> lstTaskInfo;
+        for (int index = 0; index < tasknum; ++index)
+        {
+            tagTaskInfo taskInfo;
+            in >> taskInfo.flag >> taskInfo.area >> taskInfo.type
+                >> taskInfo.finishedsize >> taskInfo.speed >> taskInfo.percent >> taskInfo.state;
+            lstTaskInfo.push_back(taskInfo);
         }
+
+        readTaskQuery(lstTaskInfo);
     }
     else if (respondType == SC_Record)
     {
@@ -764,6 +783,10 @@ void HostMachine::readyReadCmd()
 
         MWFileList* pWMFileList = (MWFileList*)m_pTabWgt->widget(area);
         pWMFileList->readRecord(area, state);
+        if (state == 0x00)
+        {
+            readRecord(area, state);
+        }
     }
     else if (respondType == SC_PlayBack)
     {
@@ -1527,7 +1550,22 @@ void HostMachine::readCheckSelf()
 *****************************************************************************/
 void HostMachine::readFormat(quint32 state)
 {
-    statusBar()->showMessage((state == 0x00) ? "format success" : "format error");
+    QString sInfo = "";
+    if (state == 0x00)
+    {
+        qApp->translate(c_sHostMachine, c_sFormatResult0);
+    }
+    else if (state == 0x01)
+    {
+        qApp->translate(c_sHostMachine, c_sFormatResult1);
+    }
+    else
+    {
+        qApp->translate(c_sHostMachine, c_sFormatResult2);
+    }
+
+    statusBar()->showMessage(sInfo);
+    slotLogRecord(sInfo);
 }
 
 /*****************************************************************************
@@ -1538,8 +1576,22 @@ void HostMachine::readFormat(quint32 state)
 *****************************************************************************/
 void HostMachine::readSystemConfig(quint32 choice, quint32 state)
 {
-    QString sMsg = QString("Channel %0 Config %1").arg(choice).arg((state == 0x00) ? "success" : "error");
-    statusBar()->showMessage(sMsg);
+    QString sInfo = "";
+    if (state == 0x00)
+    {
+        qApp->translate(c_sHostMachine, c_sSystemConfigResult0);
+    }
+    else if (state == 0x01)
+    {
+        qApp->translate(c_sHostMachine, c_sSystemConfigResult1);
+    }
+    else
+    {
+        qApp->translate(c_sHostMachine, c_sSystemConfigResult2);
+    }
+    
+    statusBar()->showMessage(sInfo);
+    slotLogRecord(sInfo);
 }
 
 /*****************************************************************************
@@ -1550,7 +1602,8 @@ void HostMachine::readSystemConfig(quint32 choice, quint32 state)
 *****************************************************************************/
 void HostMachine::readTaskQuery(list<tagTaskInfo>& lstTaskInfo)
 {
-
+    if (lstTaskInfo.empty())
+        return;
 }
 
 /*****************************************************************************
@@ -1636,4 +1689,20 @@ void HostMachine::slotUpdateProcess(QString fileName, float buffer, float total)
 {
     MWFileList* pWMFileList = (MWFileList*)m_pTabWgt->currentWidget();
     pWMFileList->updateProcess(fileName, buffer, total);
+}
+
+void HostMachine::readRecord(quint32 area, quint32 state)
+{
+    m_pTaskWgt->setRowCount(m_pTaskWgt->rowCount() + 1);
+
+    m_pTaskWgt->setItem(m_pTaskWgt->rowCount() - 1, 0, new QTableWidgetItem(m_pTabWgt->tabBar()->tabText(area)));
+    m_pTaskWgt->setItem(m_pTaskWgt->rowCount() - 1, 1, new QTableWidgetItem(qApp->translate(c_sHostMachine, c_sRecord)));
+    m_pTaskWgt->setItem(m_pTaskWgt->rowCount() - 1, 2, new QTableWidgetItem(QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss")));
+}
+
+void HostMachine::closeLog()
+{
+    QTextStream in(m_pLog);
+    in << "\r\n";
+    m_pLog->close();
 }
