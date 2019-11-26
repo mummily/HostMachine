@@ -5,6 +5,11 @@ CSocketManager::CSocketManager(void)
 {
     m_pCmdSocket = nullptr;
     m_pDataSocket = nullptr;
+    
+    m_bRecordStop = false;
+    m_bPlaybackStop = false;
+    m_bImportStop = false;
+    m_bExportStop = false;
 }
 
 
