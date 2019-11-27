@@ -66,7 +66,7 @@ void DataSocket::slotImport()
             len = write(buffer, len);
             bufferLen += len;
 
-            emit updateProcess(sFileName, bufferLen, fileSize);
+            emit importProcess(sFileName, bufferLen, fileSize);
         } while (bufferLen != fileSize);
 
         waitForReadyRead();
@@ -113,7 +113,7 @@ void DataSocket::respondExport(QByteArray buf)
         qint64 len = m_file.write(buf);
         m_bufferSize += len;
 
-        emit updateProcess(m_file.fileName(), m_bufferSize, m_fileSize);
+        emit exportProcess(m_file.fileName(), m_bufferSize, m_fileSize);
 
         if (m_bufferSize >= m_fileSize)
         {

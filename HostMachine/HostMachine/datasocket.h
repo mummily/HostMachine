@@ -16,7 +16,8 @@ private:
     void respondExport(QByteArray buf);
 
 signals:
-    void updateProcess(QString, float, float);
+    void importProcess(QString, float, float);
+    void exportProcess(QString, float, float);
     void importCompleted();
     void exportCompleted();
     void siglogRecord(QString);

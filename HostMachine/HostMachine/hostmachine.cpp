@@ -314,7 +314,8 @@ void HostMachine::initConnect()
     connect(m_pDataSocket, SIGNAL(disconnected()), this, SLOT(disconnectData()));
     connect(m_pDataSocket, SIGNAL(readyRead()), m_pDataSocket, SLOT(readyRead()));
     connect(m_pDataSocket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(errorData()));
-    connect(m_pDataSocket, SIGNAL(updateProcess(QString, float, float)), this, SLOT(slotUpdateProcess(QString, float, float)));
+    connect(m_pDataSocket, SIGNAL(importProcess(QString, float, float)), this, SLOT(slotImportProcess(QString, float, float)));
+    connect(m_pDataSocket, SIGNAL(exportProcess(QString, float, float)), this, SLOT(slotExportProcess(QString, float, float)));
     connect(m_pDataSocket, SIGNAL(importCompleted()), this, SLOT(slotRefresh()));
     connect(m_pDataSocket, SIGNAL(exportCompleted()), this, SLOT(slotForeachExport()));
 }
@@ -1684,7 +1685,15 @@ void HostMachine::initData()
     m_pLog->open(QIODevice::WriteOnly|QIODevice::Append);
 }
 
-void HostMachine::slotUpdateProcess(QString fileName, float buffer, float total)
+void HostMachine::slotImportProcess(QString fileName, float buffer, float total)
+{
+    MWFileList* pWMFileList = (MWFileList*)m_pTabWgt->currentWidget();
+    pWMFileList->updateProcess(fileName, buffer, total);
+
+
+}
+
+void HostMachine::slotExportProcess(QString fileName, float buffer, float total)
 {
     MWFileList* pWMFileList = (MWFileList*)m_pTabWgt->currentWidget();
     pWMFileList->updateProcess(fileName, buffer, total);

@@ -210,7 +210,8 @@ public:
         void slotInit();
         // Tab Changed
         void slotTabChanged(int index);
-        void slotUpdateProcess(QString fileName, float buffer, float total);
+        void slotImportProcess(QString fileName, float buffer, float total);
+        void slotExportProcess(QString fileName, float buffer, float total);
 
 private:
     void initUI();
