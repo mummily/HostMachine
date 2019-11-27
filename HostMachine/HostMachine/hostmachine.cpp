@@ -90,8 +90,8 @@ static const char *c_sTaskHeader1 = QT_TRANSLATE_NOOP("HostMachine", "序号");
 static const char *c_sTaskHeader2 = QT_TRANSLATE_NOOP("HostMachine", "所属分区");
 static const char *c_sTaskHeader3 = QT_TRANSLATE_NOOP("HostMachine", "任务类型");
 static const char *c_sTaskHeader4 = QT_TRANSLATE_NOOP("HostMachine", "任务开始时间");
-static const char *c_sTaskHeader5 = QT_TRANSLATE_NOOP("HostMachine", "总大小(GB)");
-static const char *c_sTaskHeader6 = QT_TRANSLATE_NOOP("HostMachine", "已完成大小(GB)");
+static const char *c_sTaskHeader5 = QT_TRANSLATE_NOOP("HostMachine", "总大小");
+static const char *c_sTaskHeader6 = QT_TRANSLATE_NOOP("HostMachine", "已完成大小");
 static const char *c_sTaskHeader7 = QT_TRANSLATE_NOOP("HostMachine", "百分比");
 static const char *c_sTaskHeader8 = QT_TRANSLATE_NOOP("HostMachine", "速率(MB/S)");
 static const char *c_sTaskHeader9 = QT_TRANSLATE_NOOP("HostMachine", "状态");
@@ -149,10 +149,12 @@ HostMachine::HostMachine(QWidget *parent)
 HostMachine::~HostMachine()
 {
     slotLogRecord(qApp->translate(c_sHostMachine, c_sCloseSoftware));
-    
-    m_pCmdSocket->close();
-    m_pDataSocket->close();
     closeLog();
+    
+    m_pCmdSocket->disconnect(this, SLOT(disconnectCmd()));
+    m_pCmdSocket->close();
+    m_pDataSocket->disconnect(this, SLOT(disconnectData()));
+    m_pDataSocket->close();
 }
 
 /*****************************************************************************
@@ -845,9 +847,6 @@ void HostMachine::readyReadCmd()
     }
     else if (respondType == SC_Import)
     {
-        MWFileList* pWMFileList = (MWFileList*)m_pTabWgt->currentWidget();
-        pWMFileList->m_pProgressBar->reset();
-
         quint32 areano, state;
         in >> areano;
 
@@ -855,16 +854,16 @@ void HostMachine::readyReadCmd()
         in.readRawData(filename, sizeof(filename));
 
         in >> state;
-        if (state != 0x00)
+
+        MWFileList* pWMFileList = (MWFileList*)m_pTabWgt->widget(areano);
+        pWMFileList->readImport(state);
+        if (state == 0x00)
         {
-            m_pDataSocket->importFileList.clear();
-            pWMFileList->statusBar()->hide();
-            QMessageBox::information(this, windowTitle(), tr("导入失败！"));
-            return;
+            QTimer::singleShot(10, m_pDataSocket, SLOT(slotImport()));
         }
         else
         {
-            QTimer::singleShot(10, m_pDataSocket, SLOT(slotImport()));
+            m_pDataSocket->importFileList.clear();
         }
     }
     else if (respondType == SC_Export)

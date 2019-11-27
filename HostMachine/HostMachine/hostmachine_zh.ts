@@ -13,6 +13,11 @@
         <source>无法连接服务器，请检查网络连接！</source>
         <translation>无法连接服务器，请检查网络连接！</translation>
     </message>
+    <message>
+        <location filename="datasocket.cpp" line="14"/>
+        <source>只读方式打开文件&lt;%0&gt;失败！</source>
+        <translation>只读方式打开文件&lt;%0&gt;失败！</translation>
+    </message>
 </context>
 <context>
     <name>DlgAreaFormat</name>
@@ -556,6 +561,7 @@
     </message>
     <message>
         <location filename="hostmachine.cpp" line="79"/>
+        <location filename="hostmachine.cpp" line="93"/>
         <source>总大小</source>
         <translation>总大小</translation>
     </message>
@@ -615,14 +621,10 @@
         <translation>任务开始时间</translation>
     </message>
     <message>
-        <location filename="hostmachine.cpp" line="93"/>
-        <source>总大小(GB)</source>
-        <translation>总大小(GB)</translation>
-    </message>
-    <message>
         <location filename="hostmachine.cpp" line="94"/>
-        <source>已完成大小(GB)</source>
-        <translation>已完成大小(GB)</translation>
+        <source>已完成大小</source>
+        <oldsource>已完成大小(GB)</oldsource>
+        <translation>已完成大小</translation>
     </message>
     <message>
         <location filename="hostmachine.cpp" line="95"/>
@@ -747,12 +749,11 @@
         <translation>系统配置失败</translation>
     </message>
     <message>
-        <location filename="hostmachine.cpp" line="862"/>
         <source>导入失败！</source>
-        <translation>导入失败！</translation>
+        <translation type="vanished">导入失败！</translation>
     </message>
     <message>
-        <location filename="hostmachine.cpp" line="881"/>
+        <location filename="hostmachine.cpp" line="880"/>
         <source>导出失败！</source>
         <translation>导出失败！</translation>
     </message>
@@ -864,6 +865,7 @@
         <location filename="mwfilelist.cpp" line="48"/>
         <location filename="mwfilelist.cpp" line="52"/>
         <location filename="mwfilelist.cpp" line="57"/>
+        <location filename="mwfilelist.cpp" line="62"/>
         <source>其它运行异常</source>
         <translation>其它运行异常</translation>
     </message>
@@ -880,6 +882,7 @@
     <message>
         <location filename="mwfilelist.cpp" line="47"/>
         <location filename="mwfilelist.cpp" line="56"/>
+        <location filename="mwfilelist.cpp" line="61"/>
         <source>资源不足</source>
         <translation>资源不足</translation>
     </message>
@@ -890,6 +893,11 @@
     </message>
     <message>
         <location filename="mwfilelist.cpp" line="55"/>
+        <source>开始导入</source>
+        <translation>开始导入</translation>
+    </message>
+    <message>
+        <location filename="mwfilelist.cpp" line="60"/>
         <source>开始导出</source>
         <translation>开始导出</translation>
     </message>

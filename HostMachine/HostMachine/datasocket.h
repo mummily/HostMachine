@@ -19,6 +19,7 @@ signals:
     void updateProcess(QString, float, float);
     void importCompleted();
     void exportCompleted();
+    void siglogRecord(QString);
 
 public slots:
     void slotImport();

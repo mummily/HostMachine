@@ -51,6 +51,11 @@ static const char *c_sRecordResult2 = QT_TRANSLATE_NOOP("MWFileList", "ÆäËüÔËÐÐÒ
 static const char *c_sTaskStopResult0 = QT_TRANSLATE_NOOP("MWFileList", "ÈÎÎñÍ£Ö¹³É¹¦");
 static const char *c_sTaskStopResult1 = QT_TRANSLATE_NOOP("MWFileList", "ÆäËüÔËÐÐÒì³£");
 
+// µ¼Èë½á¹û
+static const char *c_sImportResult0 = QT_TRANSLATE_NOOP("MWFileList", "¿ªÊ¼µ¼Èë");
+static const char *c_sImportResult1 = QT_TRANSLATE_NOOP("MWFileList", "×ÊÔ´²»×ã");
+static const char *c_sImportResult2 = QT_TRANSLATE_NOOP("MWFileList", "ÆäËüÔËÐÐÒì³£");
+
 // µ¼³ö½á¹û
 static const char *c_sExportResult0 = QT_TRANSLATE_NOOP("MWFileList", "¿ªÊ¼µ¼³ö");
 static const char *c_sExportResult1 = QT_TRANSLATE_NOOP("MWFileList", "×ÊÔ´²»×ã");
@@ -365,4 +370,25 @@ void MWFileList::readExport(quint32 area, quint32 state)
 
     QString sLog = QString("%0 %1").arg(area).arg(sInfo);
     emit siglogRecord(sLog);
+}
+
+void MWFileList::readImport(quint32 state)
+{
+    QString sInfo = "";
+    if (state == 0x00)
+    {
+        sInfo = qApp->translate(c_sMWFileList, c_sImportResult0);
+    }
+    else if (state == 0x01)
+    {
+        sInfo = qApp->translate(c_sMWFileList, c_sImportResult1);
+    }
+    else
+    {
+        sInfo = qApp->translate(c_sMWFileList, c_sImportResult2);
+    }
+
+    m_pProgressBar->reset();
+    m_pProgressBar->hide();
+    statusBar()->showMessage(sInfo);
 }

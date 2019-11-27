@@ -11,11 +11,12 @@
 static const char *c_sDataSocket = "DataSocket";
 static const char *c_sTitle = QT_TRANSLATE_NOOP("DataSocket", "网络应用软件");
 static const char *c_sNetConnectError = QT_TRANSLATE_NOOP("DataSocket", "无法连接服务器，请检查网络连接！");
+static const char *c_sOpenFileError = QT_TRANSLATE_NOOP("DataSocket", "只读方式打开文件<%0>失败！");
 
 DataSocket::DataSocket(QObject *parent)
     : QTcpSocket(parent), m_bStart(true), m_fileSize(0), m_bufferSize(0)
 {
-
+    connect(this, SIGNAL(siglogRecord(QString)), parent, SLOT(slotLogRecord(QString)));
 }
 
 DataSocket::~DataSocket()
@@ -41,8 +42,11 @@ void DataSocket::slotImport()
         QFile file;
         file.setFileName(sFileName);
         if (!file.open(QIODevice::ReadOnly))
-#pragma message("DataSocket::slotImport 日志记录")
+        {
+            QString sInfo = QString(qApp->translate(c_sDataSocket, c_sOpenFileError)).arg(sFileName);
+            emit siglogRecord(sInfo);
             continue;
+        }
 
         QFileInfo fileInfo = sFileName;
         qint64 fileSize = fileInfo.size();
