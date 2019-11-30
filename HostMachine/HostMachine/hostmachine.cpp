@@ -17,6 +17,7 @@
 #include <QFileDialog>
 #include <QDockWidget>
 #include <QProgressBar>
+#include <QElapsedTimer>
 
 #include <QTcpSocket>
 #include <QTcpServer>
@@ -89,13 +90,14 @@ static const char *c_sProperty1_8 = QT_TRANSLATE_NOOP("HostMachine", "通道带宽")
 static const char *c_sTaskHeader1 = QT_TRANSLATE_NOOP("HostMachine", "序号");
 static const char *c_sTaskHeader2 = QT_TRANSLATE_NOOP("HostMachine", "所属分区");
 static const char *c_sTaskHeader3 = QT_TRANSLATE_NOOP("HostMachine", "任务类型");
-static const char *c_sTaskHeader4 = QT_TRANSLATE_NOOP("HostMachine", "任务开始时间");
-static const char *c_sTaskHeader5 = QT_TRANSLATE_NOOP("HostMachine", "总大小");
-static const char *c_sTaskHeader6 = QT_TRANSLATE_NOOP("HostMachine", "已完成大小");
-static const char *c_sTaskHeader7 = QT_TRANSLATE_NOOP("HostMachine", "百分比");
-static const char *c_sTaskHeader8 = QT_TRANSLATE_NOOP("HostMachine", "速率(MB/S)");
-static const char *c_sTaskHeader9 = QT_TRANSLATE_NOOP("HostMachine", "状态");
-static const char *c_sTaskHeader10 = QT_TRANSLATE_NOOP("HostMachine", "耗时");
+static const char *c_sTaskHeader4 = QT_TRANSLATE_NOOP("HostMachine", "文件名称");
+static const char *c_sTaskHeader5 = QT_TRANSLATE_NOOP("HostMachine", "任务开始时间");
+static const char *c_sTaskHeader6 = QT_TRANSLATE_NOOP("HostMachine", "总大小");
+static const char *c_sTaskHeader7 = QT_TRANSLATE_NOOP("HostMachine", "已完成大小");
+static const char *c_sTaskHeader8 = QT_TRANSLATE_NOOP("HostMachine", "百分比");
+static const char *c_sTaskHeader9 = QT_TRANSLATE_NOOP("HostMachine", "速率(MB/S)");
+static const char *c_sTaskHeader10 = QT_TRANSLATE_NOOP("HostMachine", "状态");
+static const char *c_sTaskHeader11 = QT_TRANSLATE_NOOP("HostMachine", "耗时");
 
 // 日志输出
 static const char *c_sOpenSoftware = QT_TRANSLATE_NOOP("HostMachine", "打开软件");
@@ -132,8 +134,12 @@ static const char *c_sSystemConfigResult0 = QT_TRANSLATE_NOOP("HostMachine", "系
 static const char *c_sSystemConfigResult1 = QT_TRANSLATE_NOOP("HostMachine", "系统配置失败");
 static const char *c_sSystemConfigResult2 = QT_TRANSLATE_NOOP("HostMachine", "其它运行异常");
 
+// 任务状态
+static const char *c_sTaskState0 = QT_TRANSLATE_NOOP("HostMachine", "执行中");
+static const char *c_sTaskState1 = QT_TRANSLATE_NOOP("HostMachine", "完成");
+
 HostMachine::HostMachine(QWidget *parent)
-    : QMainWindow(parent), m_sAddr("")
+    : QMainWindow(parent), m_sAddr(""), m_nInterval(100)
 {
     m_spcheckSelf = make_shared<tagCheckSelf>();
 
@@ -267,6 +273,8 @@ void HostMachine::initUI()
     contactUs->setText(sText);
     contactUs->setOpenExternalLinks(true); //设置可以打开网站链接
     statusBar()->addPermanentWidget(contactUs); //显示永久信息
+
+    m_pElapsedTimer = new QElapsedTimer();
 }
 
 /*****************************************************************************
@@ -314,9 +322,10 @@ void HostMachine::initConnect()
     connect(m_pDataSocket, SIGNAL(disconnected()), this, SLOT(disconnectData()));
     connect(m_pDataSocket, SIGNAL(readyRead()), m_pDataSocket, SLOT(readyRead()));
     connect(m_pDataSocket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(errorData()));
-    connect(m_pDataSocket, SIGNAL(importProcess(QString, float, float)), this, SLOT(slotImportProcess(QString, float, float)));
-    connect(m_pDataSocket, SIGNAL(exportProcess(QString, float, float)), this, SLOT(slotExportProcess(QString, float, float)));
-    connect(m_pDataSocket, SIGNAL(importCompleted()), this, SLOT(slotRefresh()));
+    connect(m_pDataSocket, SIGNAL(exportUpdate(qint32, QString, float, float)), this, SLOT(slotExportProcess(qint32, QString, float, float)));
+    connect(m_pDataSocket, SIGNAL(importStart(qint32, QString, float, float)), this, SLOT(slotImportStart(qint32, QString, float, float)));
+    connect(m_pDataSocket, SIGNAL(importUpdate(qint32, QString, float, float)), this, SLOT(slotImportProcess(qint32, QString, float, float)));
+    connect(m_pDataSocket, SIGNAL(importCompleted(qint32, QString, float, float)), this, SLOT(slotImportCompleted(qint32, QString, float, float)));
     connect(m_pDataSocket, SIGNAL(exportCompleted()), this, SLOT(slotForeachExport()));
 }
 
@@ -337,11 +346,15 @@ void HostMachine::initTaskWgt()
         << qApp->translate(c_sHostMachine, c_sTaskHeader7)
         << qApp->translate(c_sHostMachine, c_sTaskHeader8)
         << qApp->translate(c_sHostMachine, c_sTaskHeader9)
-        << qApp->translate(c_sHostMachine, c_sTaskHeader10);
+        << qApp->translate(c_sHostMachine, c_sTaskHeader10)
+        << qApp->translate(c_sHostMachine, c_sTaskHeader11);
 
     m_pTaskWgt->setShowGrid(false);
     m_pTaskWgt->setColumnCount(headerList.size());
     m_pTaskWgt->setHorizontalHeaderLabels(headerList);
+    m_pTaskWgt->setSelectionBehavior(QAbstractItemView::SelectRows);
+    m_pTaskWgt->setEditTriggers(QAbstractItemView::NoEditTriggers);
+
     QHeaderView* headerView = m_pTaskWgt->horizontalHeader();
     headerView->setDefaultAlignment(Qt::AlignLeft);
     headerView->setStretchLastSection(true);
@@ -1685,15 +1698,76 @@ void HostMachine::initData()
     m_pLog->open(QIODevice::WriteOnly|QIODevice::Append);
 }
 
-void HostMachine::slotImportProcess(QString fileName, float buffer, float total)
+void HostMachine::slotImportStart(qint32 areano, QString fileName, float buffer, float total)
 {
-    MWFileList* pWMFileList = (MWFileList*)m_pTabWgt->currentWidget();
-    pWMFileList->updateProcess(fileName, buffer, total);
-
-
+    m_pTaskWgt->insertRow(m_pTaskWgt->rowCount());
+    m_pTaskWgt->setItem(m_pTaskWgt->rowCount() - 1, 0, new QTableWidgetItem(m_pTabWgt->tabBar()->tabText(areano)));
+    m_pTaskWgt->setItem(m_pTaskWgt->rowCount() - 1, 1, new QTableWidgetItem(qApp->translate(c_sHostMachine, c_sImport)));
+    m_pTaskWgt->setItem(m_pTaskWgt->rowCount() - 1, 2, new QTableWidgetItem(fileName));
+    m_pTaskWgt->setItem(m_pTaskWgt->rowCount() - 1, 3, new QTableWidgetItem(QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss")));
+    m_pTaskWgt->setItem(m_pTaskWgt->rowCount() - 1, 4, new QTableWidgetItem(CGlobalFun::formatSize(total)));
+    m_pTaskWgt->setItem(m_pTaskWgt->rowCount() - 1, 5, new QTableWidgetItem(""));
+    m_pTaskWgt->setItem(m_pTaskWgt->rowCount() - 1, 6, new QTableWidgetItem(""));
+    m_pTaskWgt->setItem(m_pTaskWgt->rowCount() - 1, 7, new QTableWidgetItem(""));
+    m_pTaskWgt->setItem(m_pTaskWgt->rowCount() - 1, 8, new QTableWidgetItem(""));
+    m_pTaskWgt->setItem(m_pTaskWgt->rowCount() - 1, 9, new QTableWidgetItem("0"));
+    m_pTaskWgt->viewport()->update();
+    m_pElapsedTimer->restart();
 }
 
-void HostMachine::slotExportProcess(QString fileName, float buffer, float total)
+void HostMachine::slotImportProcess(qint32 areano, QString fileName, float buffer, float total)
+{
+    if (m_pElapsedTimer->elapsed() / m_nInterval == 0)
+        return;
+    m_nInterval += 100;
+
+    MWFileList* pWMFileList = (MWFileList*)m_pTabWgt->widget(areano);
+    pWMFileList->updateProcess(fileName, buffer, total);
+
+    for (int nRow=0; nRow<m_pTaskWgt->rowCount(); ++nRow)
+    {
+        if (m_pTaskWgt->item(nRow, 0)->text() == m_pTabWgt->tabBar()->tabText(areano)
+            && m_pTaskWgt->item(nRow, 1)->text() == qApp->translate(c_sHostMachine, c_sImport)
+            && m_pTaskWgt->item(nRow, 2)->text() == fileName)
+        {
+            m_pTaskWgt->item(nRow, 5)->setText(CGlobalFun::formatSize(buffer));
+            QString sPecent = QString("%0%").arg(buffer*100/total);
+            m_pTaskWgt->item(nRow, 6)->setText(sPecent);
+            QString sSpeed = QString("%0").arg(1000 * buffer / c_kSizeMax / m_pElapsedTimer->elapsed());
+            m_pTaskWgt->item(nRow, 7)->setText(sSpeed);
+            m_pTaskWgt->item(nRow, 8)->setText(qApp->translate(c_sHostMachine, c_sTaskState0));
+            m_pTaskWgt->item(nRow, 9)->setText(CGlobalFun::formatElapsedTime(m_pElapsedTimer->elapsed()));
+            m_pTaskWgt->viewport()->update();
+            break;
+        }
+    }
+}
+
+void HostMachine::slotImportCompleted(qint32 areano, QString fileName, float buffer, float total)
+{
+    MWFileList* pWMFileList = (MWFileList*)m_pTabWgt->widget(areano);
+    pWMFileList->updateProcess(fileName, buffer, total);
+    for (int nRow=0; nRow<m_pTaskWgt->rowCount(); ++nRow)
+    {
+        if (m_pTaskWgt->item(nRow, 0)->text() == m_pTabWgt->tabBar()->tabText(areano)
+            && m_pTaskWgt->item(nRow, 1)->text() == qApp->translate(c_sHostMachine, c_sImport)
+            && m_pTaskWgt->item(nRow, 2)->text() == fileName)
+        {
+            m_pTaskWgt->item(nRow, 5)->setText(CGlobalFun::formatSize(buffer));
+            m_pTaskWgt->item(nRow, 6)->setText("100%");
+            QString sSpeed = QString("%0").arg(1000 * buffer / c_kSizeMax / m_pElapsedTimer->elapsed());
+            m_pTaskWgt->item(nRow, 7)->setText(sSpeed);
+            m_pTaskWgt->item(nRow, 8)->setText(qApp->translate(c_sHostMachine, c_sTaskState1));
+            m_pTaskWgt->item(nRow, 9)->setText(CGlobalFun::formatElapsedTime(m_pElapsedTimer->elapsed()));
+            m_pTaskWgt->viewport()->update();
+            break;
+        }
+    }
+
+    reallyRefresh();
+}
+
+void HostMachine::slotExportProcess(qint32 areano, QString fileName, float buffer, float total)
 {
     MWFileList* pWMFileList = (MWFileList*)m_pTabWgt->currentWidget();
     pWMFileList->updateProcess(fileName, buffer, total);
@@ -1711,6 +1785,6 @@ void HostMachine::readRecord(quint32 area, quint32 state)
 void HostMachine::closeLog()
 {
     QTextStream in(m_pLog);
-    in << "\r\n";
+    in << "****************************************" << "\r\n";
     m_pLog->close();
 }

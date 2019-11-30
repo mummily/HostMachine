@@ -38,8 +38,6 @@ class MWFileList : public QMainWindow
 public:
     MWFileList(QWidget *parent = 0);
     ~MWFileList();
-    
-    virtual void resizeEvent(QResizeEvent * event);
 
     void readDelete(quint32 area, quint32 state);
     void readRecord(quint32 area, quint32 state);

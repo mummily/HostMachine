@@ -58,6 +58,7 @@ void DataSocket::slotImport()
 
         SCOPE_EXIT([&]{ file.close(); });
 
+        emit importStart(areano, fileInfo.fileName(), 0, fileSize);
         qint64 bufferLen = 0;
         do
         {
@@ -66,12 +67,12 @@ void DataSocket::slotImport()
             len = write(buffer, len);
             bufferLen += len;
 
-            emit importProcess(sFileName, bufferLen, fileSize);
+            emit importUpdate(areano, fileInfo.fileName(), bufferLen, fileSize);
         } while (bufferLen != fileSize);
 
         waitForReadyRead();
 
-        emit importCompleted();
+        emit importCompleted(areano, fileInfo.fileName(), bufferLen, fileSize);
     }
 }
 
@@ -97,9 +98,9 @@ void DataSocket::respondExport(QByteArray buf)
         m_bStart = false;
 
         QString sBuf = QString::fromLocal8Bit(buf);
-        int areNo = sBuf.section("##", 0, 0).toInt();
+        areano = sBuf.section("##", 0, 0).toInt();
         QString fileName = sBuf.section("##", 1, 1);
-        QString filePath = QString("%0/%1_%2").arg(exportFilePath).arg(areNo).arg(fileName);
+        QString filePath = QString("%0/%1_%2").arg(exportFilePath).arg(areano).arg(fileName);
 
         m_file.setFileName(filePath);
         m_file.open(QIODevice::WriteOnly);
@@ -113,7 +114,7 @@ void DataSocket::respondExport(QByteArray buf)
         qint64 len = m_file.write(buf);
         m_bufferSize += len;
 
-        emit exportProcess(m_file.fileName(), m_bufferSize, m_fileSize);
+        emit exportUpdate(areano, m_file.fileName(), m_bufferSize, m_fileSize);
 
         if (m_bufferSize >= m_fileSize)
         {

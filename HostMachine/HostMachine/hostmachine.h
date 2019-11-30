@@ -9,6 +9,8 @@ using namespace std;
 #include "QNetworkReply"
 
 class QtProperty;
+class QElapsedTimer;
+class QTimer;
 
 // 任务查询应答-任务信息
 struct tagTaskInfo
@@ -210,8 +212,10 @@ public:
         void slotInit();
         // Tab Changed
         void slotTabChanged(int index);
-        void slotImportProcess(QString fileName, float buffer, float total);
-        void slotExportProcess(QString fileName, float buffer, float total);
+        void slotImportStart(qint32 areano, QString fileName, float buffer, float total);
+        void slotImportProcess(qint32 areano, QString fileName, float buffer, float total);
+        void slotImportCompleted(qint32 areano, QString fileName, float buffer, float total);
+        void slotExportProcess(qint32 areano, QString fileName, float buffer, float total);
 
 private:
     void initUI();
@@ -257,6 +261,8 @@ private:
     MWFileList              *m_pHHDataWgt;      // 混合数据分区
 
     QTableWidget            *m_pTaskWgt;        // 任务列表框
+    QElapsedTimer           *m_pElapsedTimer;
+    quint64                 m_nInterval;
 
     QtTreePropertyBrowser   *m_pPropertyWgt;   // 磁盘控制面板
 
