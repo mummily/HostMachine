@@ -83,6 +83,7 @@ void DataSocket::slotExport()
         return;
 
     QFileInfo fileInfo = fileFullPath;
+    fileSize = qMin(fileSize, fileInfo.size() - startPos);
     QString sHeader = QString("%0##%1##%2").arg(areaNo).arg(fileInfo.fileName()).arg(fileSize);
     qint64 len = write(sHeader.toLocal8Bit());
     waitForReadyRead();

@@ -10,7 +10,6 @@ using namespace std;
 
 class QtProperty;
 class QElapsedTimer;
-class QTimer;
 
 // 任务查询应答-任务信息
 struct tagTaskInfo
@@ -213,9 +212,11 @@ public:
         // Tab Changed
         void slotTabChanged(int index);
         void slotImportStart(qint32 areano, QString fileName, float buffer, float total);
-        void slotImportProcess(qint32 areano, QString fileName, float buffer, float total);
+        void slotImportUpdate(qint32 areano, QString fileName, float buffer, float total);
         void slotImportCompleted(qint32 areano, QString fileName, float buffer, float total);
-        void slotExportProcess(qint32 areano, QString fileName, float buffer, float total);
+        void slotExportStart(qint32 areano, QString fileName, float buffer, float total);
+        void slotExportUpdate(qint32 areano, QString fileName, float buffer, float total);
+        void slotExportCompleted(qint32 areano, QString fileName, float buffer, float total);
 
 private:
     void initUI();

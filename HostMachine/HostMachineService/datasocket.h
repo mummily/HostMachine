@@ -28,7 +28,7 @@ private slots:
 public:
     qint32 areaNo;
     QString sFileName;
-    float startPos, fileSize;
+    qint64 startPos, fileSize;
 
 private:
     qint64  m_fileSize;

@@ -16,11 +16,15 @@ private:
     void respondExport(QByteArray buf);
 
 signals:
-    void importUpdate(qint32, QString, float, float);
+    // 导入
     void importStart(qint32, QString, float, float);
+    void importUpdate(qint32, QString, float, float);
     void importCompleted(qint32, QString, float, float);
+    // 导出
+    void exportStart(qint32, QString, float, float);
     void exportUpdate(qint32, QString, float, float);
-    void exportCompleted();
+    void exportCompleted(qint32, QString, float, float);
+    // 日志
     void siglogRecord(QString);
 
 public slots:
