@@ -385,29 +385,34 @@
 <context>
     <name>HostMachine</name>
     <message>
-        <location filename="hostmachine.cpp" line="40"/>
+        <location filename="hostmachine.cpp" line="39"/>
         <source>网络应用软件</source>
         <translation>网络应用软件</translation>
     </message>
     <message>
-        <location filename="hostmachine.cpp" line="41"/>
+        <location filename="hostmachine.cpp" line="40"/>
         <source>选择要导入的文件</source>
         <translation>选择要导入的文件</translation>
     </message>
     <message>
-        <location filename="hostmachine.cpp" line="42"/>
+        <location filename="hostmachine.cpp" line="41"/>
         <source>DAT文件(*.dat);;所有文件(*.*)</source>
         <translation>DAT文件(*.dat);;所有文件(*.*)</translation>
     </message>
     <message>
-        <location filename="hostmachine.cpp" line="43"/>
+        <location filename="hostmachine.cpp" line="42"/>
         <source>是否停止？</source>
         <translation>是否停止？</translation>
     </message>
     <message>
-        <location filename="hostmachine.cpp" line="44"/>
+        <location filename="hostmachine.cpp" line="43"/>
         <source>请选择要停止的任务！</source>
         <translation>请选择要停止的任务！</translation>
+    </message>
+    <message>
+        <location filename="hostmachine.cpp" line="44"/>
+        <source>请选择执行中的任务！</source>
+        <translation>请选择执行中的任务！</translation>
     </message>
     <message>
         <location filename="hostmachine.cpp" line="45"/>
@@ -768,7 +773,7 @@
         <translation type="vanished">导入失败！</translation>
     </message>
     <message>
-        <location filename="hostmachine.cpp" line="895"/>
+        <location filename="hostmachine.cpp" line="897"/>
         <source>导出失败！</source>
         <translation>导出失败！</translation>
     </message>

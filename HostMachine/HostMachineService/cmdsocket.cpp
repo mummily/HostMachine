@@ -9,6 +9,7 @@
 #include "QTimer"
 #include "datasocket.h"
 #include "SocketManager.h"
+#include "TaskStoper.h"
 
 CmdSocket::CmdSocket(QObject *parent)
     : QTcpSocket(parent)
@@ -195,31 +196,21 @@ void CmdSocket::respondPlayBack(quint32 data1, quint32 data2,
 
 void CmdSocket::respondTaskStop(quint32 areano, quint32 tasktype)
 {
-    QByteArray block;
-    QDataStream out(&block, QIODevice::WriteOnly);
-    out.setVersion(QDataStream::Qt_5_5);
+    CTaskStoper::getInstance()->setRequestType((RequestType)tasktype);
 
-    qint32 result = 0x00;
-    out << quint32(SC_TaskStop) << areano << tasktype << result; // 0x00 成功 0x01 失败 其它 保留
-    write(block);
-
-    if (result == 0x00)
+    QTimer::singleShot(10000, [&]()
     {
-        switch (tasktype)
-        {
-        case CS_Record:
-            CSocketManager::getInstance()->SetRecordStop(true);
-            break;
-        case CS_PlayBack:
-            CSocketManager::getInstance()->SetPlaybackStop(true);
-            break;
-        case CS_Import:
-            CSocketManager::getInstance()->SetImportStop(true);
-        case CS_Export:
-            CSocketManager::getInstance()->SetExportStop(true);
-            break;
-        }
-    }
+        QByteArray block;
+        QDataStream out(&block, QIODevice::WriteOnly);
+        out.setVersion(QDataStream::Qt_5_5);
+
+        qint32 result = 0x00;
+        out << quint32(SC_TaskStop)
+            << CTaskStoper::getInstance()->getAreano()
+            << CTaskStoper::getInstance()->getRespondType()
+            << CTaskStoper::getInstance()->getResult(); // 0x00 成功 0x01 失败 其它 保留
+        write(block);
+    });
 }
 
 void CmdSocket::respondDelete(quint32 areano, char* filename)

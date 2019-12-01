@@ -40,7 +40,8 @@ static const char *c_sTitle = QT_TRANSLATE_NOOP("HostMachine", "网络应用软件");
 static const char *c_sImportFileTip = QT_TRANSLATE_NOOP("HostMachine", "选择要导入的文件");
 static const char *c_sImportFileExt = QT_TRANSLATE_NOOP("HostMachine", "DAT文件(*.dat);;所有文件(*.*)");
 static const char *c_sIsStop = QT_TRANSLATE_NOOP("HostMachine", "是否停止？");
-static const char *c_sIsStopTip = QT_TRANSLATE_NOOP("HostMachine", "请选择要停止的任务！");
+static const char *c_sIsStopTip1 = QT_TRANSLATE_NOOP("HostMachine", "请选择要停止的任务！");
+static const char *c_sIsStopTip2 = QT_TRANSLATE_NOOP("HostMachine", "请选择执行中的任务！");
 static const char *c_sIsDelete = QT_TRANSLATE_NOOP("HostMachine", "是否删除？");
 static const char *c_sYes = QT_TRANSLATE_NOOP("HostMachine", "是");
 static const char *c_sNo = QT_TRANSLATE_NOOP("HostMachine", "否");
@@ -1373,15 +1374,15 @@ void HostMachine::slotStop()
     }
 
     QList<QTableWidgetItem*> selectedItems = m_pTaskWgt->selectedItems();
-    QList<quint32> rowNos;
+    QSet<quint32> rowNos;
     foreach(QTableWidgetItem* pItem, selectedItems)
     {
-        rowNos.push_back(pItem->row());
+        rowNos.insert(pItem->row());
     }
 
-    if (rowNos.size() < 1)
+    if (rowNos.size() != 1)
     {
-        QMessageBox::information(this, qApp->translate(c_sHostMachine, c_sTitle), qApp->translate(c_sHostMachine, c_sIsStopTip));
+        QMessageBox::information(this, qApp->translate(c_sHostMachine, c_sTitle), qApp->translate(c_sHostMachine, c_sIsStopTip1));
         return;
     }
 
@@ -1396,17 +1397,41 @@ void HostMachine::slotStop()
         return;
     }
 
-    foreach (quint32 rowNo, rowNos)
+    if (m_pTaskWgt->item(*rowNos.begin(), 8)->text() != qApp->translate(c_sHostMachine, c_sTaskState0))
     {
-        quint32 tasktype = m_pTaskWgt->item(rowNo, 0)->text().toInt();
-
-        QByteArray block;
-        QDataStream out(&block, QIODevice::WriteOnly);
-        out << CS_TaskStop << m_pTabWgt->currentIndex() << tasktype;
-
-        m_pCmdSocket->write(block);
-        m_pCmdSocket->waitForReadyRead();
+        QMessageBox::information(this, qApp->translate(c_sHostMachine, c_sTitle), qApp->translate(c_sHostMachine, c_sIsStopTip2));
+        return;
     }
+
+    quint32 tasktype = 0;
+    QString sTaskType = m_pTaskWgt->item(*rowNos.begin(), 1)->text();
+    if (sTaskType == qApp->translate(c_sHostMachine, c_sImport))
+    {
+        tasktype = CS_Import;
+    }
+    else if (sTaskType == qApp->translate(c_sHostMachine, c_sExport))
+    {
+        tasktype = CS_Export;
+    }
+    else if (sTaskType == qApp->translate(c_sHostMachine, c_sRecord))
+    {
+        tasktype = CS_Record;
+    }
+    else if (sTaskType == qApp->translate(c_sHostMachine, c_sPlayBack))
+    {
+        tasktype = CS_PlayBack;
+    }
+    else
+    {
+        return;
+    }
+
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out << CS_TaskStop << m_pTabWgt->currentIndex() << tasktype;
+
+    m_pCmdSocket->write(block);
+    m_pCmdSocket->waitForReadyRead();
 }
 
 /*****************************************************************************

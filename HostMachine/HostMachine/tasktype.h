@@ -4,6 +4,7 @@
 // 请求类型
 enum RequestType
 {
+    CS_Unknown = 0x00,      // 未知
     CS_CheckSelf = 0x11,    // 自检
     CS_Format = 0xA1,       // 格式化
     CS_SystemConfig = 0xB1, // 系统配置
@@ -21,6 +22,7 @@ enum RequestType
 // 应答类型
 enum RespondType
 {
+    SC_Unknown = 0x00,          // 未知
     SC_CheckSelf = 0x1011,      // 自检
     SC_Format = 0x10A1,         // 格式化
     SC_SystemConfig = 0x10B1,   // 系统配置
