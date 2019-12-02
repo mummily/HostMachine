@@ -109,6 +109,10 @@ void CmdSocket::readClient()
 
         respondExport(areano, filename, startpos, filesize);
     }
+    else if (requestType == CS_TaskQuery) // 任务查询
+    {
+        respondTaskQuery();
+    }
 }
 
 
@@ -122,6 +126,11 @@ void CmdSocket::respondImport(quint32 areano, float filesize, QDateTime time, ch
     quint32 result = 0/*qrand() % 3*/; // 0x00 成功 0x01 资源不足 0x02 其它
     out << result;
     write(block);
+
+    if (result == 0x00)
+    {
+        CSocketManager::getInstance()->dataSocket()->initData();
+    }
 }
 
 void CmdSocket::respondCheckSelf()
@@ -268,4 +277,27 @@ void CmdSocket::respondExport(quint32 areano, char* filename, float startpos, fl
 
         QTimer::singleShot(10, CSocketManager::getInstance()->dataSocket(), SLOT(slotExport()));
     }
+}
+
+void CmdSocket::respondTaskQuery()
+{
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out.setVersion(QDataStream::Qt_5_5);
+    qint32 result = 0x00;
+    out << quint32(SC_TaskQuery);   // 0x00 开始导出 0x01 资源不足 其它 保留
+    qint32 taskNum = 0/*qint32(qrand() % 5)*/;   // 4以内任务个数
+    out << taskNum;
+    for (qint32 taskIndex=0; taskIndex<taskNum; ++taskIndex)
+    {
+        out << qint32(qrand() % 2)  // 1 有效任务 0 无效任务
+            << qint32(0)    // 分区
+            << SC_Record    // 任务类型
+            << qint32(100)  // 任务已完成大小 LBA
+            << qint32(10)   // 任务速度 KB/s
+            << qint32(22)   // 任务进度百分比
+            << qint32(qrand() % 3); // 0 等待执行 1 执行中 2 已完成
+    }
+
+    write(block);
 }

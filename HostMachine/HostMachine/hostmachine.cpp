@@ -53,6 +53,7 @@ static const char *c_sIPSettingTip = QT_TRANSLATE_NOOP("HostMachine", "Çë½øÐÐIPÉ
 static const char *c_sPathTitle = QT_TRANSLATE_NOOP("HostMachine", "Ñ¡Ôñµ¼³öÎÄ¼þÂ·¾¶");
 static const char *c_sNetConnectError = QT_TRANSLATE_NOOP("HostMachine", "ÎÞ·¨Á¬½Ó·þÎñÆ÷£¬Çë¼ì²éÍøÂçÁ¬½Ó£¡");
 static const char *c_sPlayBackTip = QT_TRANSLATE_NOOP("HostMachine", "ÇëÑ¡ÔñÒ»¸öÎÄ¼þ»Ø·Å£¡");
+static const char *c_sRequestCancel = QT_TRANSLATE_NOOP("HostMachine", "ÓÐÖ´ÐÐÖÐÈÎÎñ£¬µ±Ç°ÇëÇóÒÑÈ¡Ïû£¡");
 
 // ÏµÍ³²Ëµ¥
 static const char *c_sSystemConfig = QT_TRANSLATE_NOOP("HostMachine", "ÏµÍ³ÅäÖÃ");
@@ -173,7 +174,7 @@ HostMachine::~HostMachine()
 void HostMachine::initTcp()
 {
     m_pCmdSocket = new QTcpSocket(this);
-    m_pDataSocket = new DataSocket(this);
+    m_pDataSocket = new CDataSocket(this);
 }
 
 /*****************************************************************************
@@ -217,11 +218,11 @@ void HostMachine::initUI()
     m_pTabWgt->setTabPosition(QTabWidget::South);
     m_pTabWgt->setDocumentMode(true);
 
-    m_pLDOriginalWgt = new MWFileList(this);
-    m_pLDResultWgt = new MWFileList(this);
-    m_pGDImgWgt = new MWFileList(this);
-    m_pGDVidioWgt = new MWFileList(this);
-    m_pHHDataWgt = new MWFileList(this);
+    m_pLDOriginalWgt = new CMWFileList(this);
+    m_pLDResultWgt = new CMWFileList(this);
+    m_pGDImgWgt = new CMWFileList(this);
+    m_pGDVidioWgt = new CMWFileList(this);
+    m_pHHDataWgt = new CMWFileList(this);
 
     m_pTabWgt->addTab(m_pLDOriginalWgt, qApp->translate(c_sHostMachine, c_sPropertyGroup1_1));
     m_pTabWgt->addTab(m_pLDResultWgt, qApp->translate(c_sHostMachine, c_sPropertyGroup1_2));
@@ -780,26 +781,26 @@ void HostMachine::readyReadCmd()
     }
     else if (respondType == SC_TaskQuery)
     {
-        quint32 tasknum;
+        qint32 tasknum;
         in >> tasknum;
 
-        list<tagTaskInfo> lstTaskInfo;
+        m_lstTaskInfo.clear();
         for (int index = 0; index < tasknum; ++index)
         {
-            tagTaskInfo taskInfo;
-            in >> taskInfo.flag >> taskInfo.area >> taskInfo.type
-                >> taskInfo.finishedsize >> taskInfo.speed >> taskInfo.percent >> taskInfo.state;
-            lstTaskInfo.push_back(taskInfo);
+            shared_ptr<tagTaskInfo> spTaskInfo = make_shared<tagTaskInfo>();
+            in >> spTaskInfo->flag >> spTaskInfo->area >> spTaskInfo->type
+                >> spTaskInfo->finishedsize >> spTaskInfo->speed >> spTaskInfo->percent >> spTaskInfo->state;
+            m_lstTaskInfo.push_back(spTaskInfo);
         }
 
-        readTaskQuery(lstTaskInfo);
+        readTaskQuery();
     }
     else if (respondType == SC_Record)
     {
         quint32 area, state;
         in >> area >> state;
 
-        MWFileList* pWMFileList = (MWFileList*)m_pTabWgt->widget(area);
+        CMWFileList* pWMFileList = (CMWFileList*)m_pTabWgt->widget(area);
         pWMFileList->readRecord(area, state);
         if (state == 0x00)
         {
@@ -811,7 +812,7 @@ void HostMachine::readyReadCmd()
         quint32 area, state;
         in >> area >> state;
 
-        MWFileList* pWMFileList = (MWFileList*)m_pTabWgt->widget(area);
+        CMWFileList* pWMFileList = (CMWFileList*)m_pTabWgt->widget(area);
         pWMFileList->readPlayBack(area, state);
     }
     else if (respondType == SC_TaskStop)
@@ -819,7 +820,7 @@ void HostMachine::readyReadCmd()
         quint32 area, tasktype, state;
         in >> area >> tasktype >> state;
 
-        MWFileList* pWMFileList = (MWFileList*)m_pTabWgt->widget(area);
+        CMWFileList* pWMFileList = (CMWFileList*)m_pTabWgt->widget(area);
         pWMFileList->readTaskStop(area, tasktype, state);
     }
     else if (respondType == SC_Delete)
@@ -827,7 +828,7 @@ void HostMachine::readyReadCmd()
         quint32 area, state;
         in >> area >> state;
 
-        MWFileList* pWMFileList = (MWFileList*)m_pTabWgt->widget(area);
+        CMWFileList* pWMFileList = (CMWFileList*)m_pTabWgt->widget(area);
         pWMFileList->readDelete(area, state);
     }
     else if (respondType == SC_Refresh)
@@ -858,7 +859,7 @@ void HostMachine::readyReadCmd()
         }
         fileInfos.lstFileInfo.swap(lstFileInfo);
 
-        MWFileList* pWMFileList = (MWFileList*)m_pTabWgt->widget(fileInfos.areano);
+        CMWFileList* pWMFileList = (CMWFileList*)m_pTabWgt->widget(fileInfos.areano);
         pWMFileList->readRefresh(fileInfos);
     }
     else if (respondType == SC_Import)
@@ -871,7 +872,7 @@ void HostMachine::readyReadCmd()
 
         in >> state;
 
-        MWFileList* pWMFileList = (MWFileList*)m_pTabWgt->widget(areano);
+        CMWFileList* pWMFileList = (CMWFileList*)m_pTabWgt->widget(areano);
         pWMFileList->readImport(state);
         if (state == 0x00)
         {
@@ -884,7 +885,7 @@ void HostMachine::readyReadCmd()
     }
     else if (respondType == SC_Export)
     {
-        MWFileList* pWMFileList = (MWFileList*)m_pTabWgt->currentWidget();
+        CMWFileList* pWMFileList = (CMWFileList*)m_pTabWgt->currentWidget();
         pWMFileList->m_pProgressBar->reset();
 
         quint32 areano, state;
@@ -894,6 +895,10 @@ void HostMachine::readyReadCmd()
             m_lstExportParam.clear();
             pWMFileList->statusBar()->hide();
             QMessageBox::information(this, windowTitle(), tr("µ¼³öÊ§°Ü£¡"));
+        }
+        else
+        {
+            m_pDataSocket->initData();
         }
     }
 }
@@ -906,6 +911,18 @@ void HostMachine::readyReadCmd()
 *****************************************************************************/
 void HostMachine::slotIPSetting()
 {
+    // ÈôÒÑÁ¬½Ó£¬ÖØÉèIPÐè±£Ö¤ÎÞÖ´ÐÐÖÐÈÎÎñ
+    if (m_pCmdSocket->state() == QAbstractSocket::ConnectedState)
+    {
+        reallyTaskQuery();
+        if (m_lstTaskInfo.size() > 0)
+        {
+            QMessageBox::information(this, qApp->translate(c_sHostMachine, c_sTitle),
+                qApp->translate(c_sHostMachine, c_sRequestCancel));
+            return;
+        }
+    }
+
     DlgIPSetting dlg(this);
     if (QDialog::Accepted != dlg.exec())
         return;
@@ -917,6 +934,12 @@ void HostMachine::slotIPSetting()
     m_pDataSocket->connectToHost(QHostAddress(m_sAddr), c_uDataPort);
 }
 
+/*****************************************************************************
+* @brief   : ×Ô¼ì
+* @author  : wb
+* @date    : 2019/12/02
+* @param:  : 
+*****************************************************************************/
 void HostMachine::reallyCheckSelf()
 {
     QByteArray block;
@@ -982,6 +1005,16 @@ void HostMachine::slotFormat()
         }
     }
 
+    // ÊÇ·ñÓÐÖ´ÐÐÖÐÈÎÎñ
+    reallyTaskQuery();
+    if (m_lstTaskInfo.size() > 0)
+    {
+        QMessageBox::information(this, qApp->translate(c_sHostMachine, c_sTitle),
+            qApp->translate(c_sHostMachine, c_sRequestCancel));
+        return;
+    }
+
+    // ×Ô¼ì
     reallyCheckSelf();
 
     DlgAreaFormat dlg(m_spcheckSelf->areaInfo0->areasize, m_spcheckSelf->areaInfo1->areasize,
@@ -1028,6 +1061,15 @@ void HostMachine::slotSystemConfig()
         }
     }
 
+    // ÊÇ·ñÓÐÖ´ÐÐÖÐÈÎÎñ
+    reallyTaskQuery();
+    if (m_lstTaskInfo.size() > 0)
+    {
+        QMessageBox::information(this, qApp->translate(c_sHostMachine, c_sTitle),
+            qApp->translate(c_sHostMachine, c_sRequestCancel));
+        return;
+    }
+
     DlgSystemConfig dlg(this);
     if (QDialog::Accepted != dlg.exec())
         return;
@@ -1045,6 +1087,23 @@ void HostMachine::slotSystemConfig()
         m_pCmdSocket->waitForReadyRead();
     }
 }
+
+/*****************************************************************************
+* @brief   : ÈÎÎñ²éÑ¯
+* @author  : wb
+* @date    : 2019/12/02
+* @param:  : 
+*****************************************************************************/
+void HostMachine::reallyTaskQuery()
+{
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out << CS_TaskQuery;
+
+    m_pCmdSocket->write(block);
+    m_pCmdSocket->waitForReadyRead();
+}
+
 
 /*****************************************************************************
 * @brief   : ÇëÇó-ÈÎÎñ²éÑ¯
@@ -1072,10 +1131,8 @@ void HostMachine::slotTaskQuery()
         }
     }
 
-
+    reallyTaskQuery();
 }
-
-
 
 /*****************************************************************************
 * @brief   : ÇëÇó-¼ÇÂ¼
@@ -1154,7 +1211,7 @@ void HostMachine::slotPlayBack()
         }
     }
 
-    MWFileList* pFileList = (MWFileList*)m_pTabWgt->currentWidget();
+    CMWFileList* pFileList = (CMWFileList*)m_pTabWgt->currentWidget();
     QTableWidget *pFileListWgt = pFileList->m_pFileListWgt;
     QList<QTableWidgetItem*> selectedItems = pFileListWgt->selectedItems();
     QSet<quint32> fileNos;
@@ -1268,7 +1325,7 @@ void HostMachine::slotExport()
         }
     }
 
-    MWFileList* pFileList = (MWFileList*)m_pTabWgt->currentWidget();
+    CMWFileList* pFileList = (CMWFileList*)m_pTabWgt->currentWidget();
     QTableWidget *pFileListWgt = pFileList->m_pFileListWgt;
     QList<QTableWidgetItem*> selectedItems = pFileListWgt->selectedItems();
     if (selectedItems.count() < 1)
@@ -1320,6 +1377,12 @@ void HostMachine::slotExport()
     slotForeachExport();
 }
 
+/*****************************************************************************
+* @brief   : µ¼³ö
+* @author  : wb
+* @date    : 2019/12/02
+* @param:  : 
+*****************************************************************************/
 void HostMachine::slotForeachExport()
 {
     if (m_lstExportParam.size() < 1)
@@ -1328,7 +1391,7 @@ void HostMachine::slotForeachExport()
     shared_ptr<tagExportParam> spExportParam = m_lstExportParam.first();
     m_lstExportParam.pop_front();
 
-    MWFileList* pFileList = (MWFileList*)m_pTabWgt->currentWidget();
+    CMWFileList* pFileList = (CMWFileList*)m_pTabWgt->currentWidget();
     QTableWidget *pFileListWgt = pFileList->m_pFileListWgt;
     QString sFileName = QString("%0.%1").arg(pFileListWgt->item(spExportParam->rowNo, 1)->text()) // ÎÄ¼þÃû³Æ
         .arg(pFileListWgt->item(spExportParam->rowNo, 4)->text());// ÎÄ¼þºó×º
@@ -1460,21 +1523,34 @@ void HostMachine::slotDelete()
         }
     }
 
-    MWFileList* pFileList = (MWFileList*)m_pTabWgt->currentWidget();
+    // ÊÇ·ñÓÐÖ´ÐÐÖÐÈÎÎñ
+    reallyTaskQuery();
+    if (m_lstTaskInfo.size() > 0)
+    {
+        QMessageBox::information(this, qApp->translate(c_sHostMachine, c_sTitle),
+            qApp->translate(c_sHostMachine, c_sRequestCancel));
+        return;
+    }
+
+    // ÅÐ¶ÏÑ¡ÔñÏî
+    CMWFileList* pFileList = (CMWFileList*)m_pTabWgt->currentWidget();
     QTableWidget *pFileListWgt = pFileList->m_pFileListWgt;
     QList<QTableWidgetItem*> selectedItems = pFileListWgt->selectedItems();
     if (selectedItems.count() < 1)
     {
-        QMessageBox::information(this, qApp->translate(c_sHostMachine, c_sTitle), qApp->translate(c_sHostMachine, c_sIsDeleteTip));
+        QMessageBox::information(this, qApp->translate(c_sHostMachine, c_sTitle),
+            qApp->translate(c_sHostMachine, c_sIsDeleteTip));
         return;
     }
 
+    // ÊÇ·ñÉ¾³ý
     QMessageBox box(this);
     box.setWindowTitle(qApp->translate(c_sHostMachine, c_sTitle));
     box.setText(qApp->translate(c_sHostMachine, c_sIsDelete));
     box.setIcon(QMessageBox::Question);
-    box.addButton(qApp->translate(c_sHostMachine, c_sYes), QMessageBox::YesRole);
-    box.addButton(qApp->translate(c_sHostMachine, c_sNo), QMessageBox::NoRole);
+    QPushButton *yesBtn = box.addButton(qApp->translate(c_sHostMachine, c_sYes), QMessageBox::YesRole);
+    QPushButton *noBtn = box.addButton(qApp->translate(c_sHostMachine, c_sNo), QMessageBox::NoRole);
+    box.setDefaultButton(yesBtn);
     if (box.exec())
     {
         return;
@@ -1505,6 +1581,12 @@ void HostMachine::slotDelete()
     reallyRefresh();
 }
 
+/*****************************************************************************
+* @brief   : Ë¢ÐÂ
+* @author  : wb
+* @date    : 2019/12/02
+* @param:  : 
+*****************************************************************************/
 void HostMachine::reallyRefresh()
 {
     // Ë¢ÐÂÇ°ÏÈ×Ô¼ì
@@ -1639,10 +1721,13 @@ void HostMachine::readSystemConfig(quint32 choice, quint32 state)
 * @date    : 2019/10/28
 * @param:  : 
 *****************************************************************************/
-void HostMachine::readTaskQuery(list<tagTaskInfo>& lstTaskInfo)
+void HostMachine::readTaskQuery()
 {
-    if (lstTaskInfo.empty())
+    if (m_lstTaskInfo.empty())
         return;
+
+    // TODO£ºÈÎÎñ²éÑ¯½á¹û
+
 }
 
 /*****************************************************************************
@@ -1691,6 +1776,12 @@ void HostMachine::slotInit()
     emit m_pActIPSetting->triggered();
 }
 
+/*****************************************************************************
+* @brief   : TabË÷ÒýÇÐ»»
+* @author  : wb
+* @date    : 2019/12/02
+* @param:  : 
+*****************************************************************************/
 void HostMachine::slotTabChanged(int index)
 {
     QString sTabText = m_pTabWgt->tabText(index);
@@ -1709,6 +1800,12 @@ void HostMachine::slotTabChanged(int index)
     }
 }
 
+/*****************************************************************************
+* @brief   : ³õÊ¼»¯Êý¾Ý
+* @author  : wb
+* @date    : 2019/12/02
+* @param:  : 
+*****************************************************************************/
 void HostMachine::initData()
 {
     QString sLogFile = QString("%0/%1.log").arg(qApp->applicationDirPath()).arg(qApp->applicationName());
@@ -1724,6 +1821,12 @@ void HostMachine::initData()
     m_pLog->open(QIODevice::WriteOnly|QIODevice::Append);
 }
 
+/*****************************************************************************
+* @brief   : µ¼Èë¿ªÊ¼
+* @author  : wb
+* @date    : 2019/12/02
+* @param:  : 
+*****************************************************************************/
 void HostMachine::slotImportStart(qint32 areano, QString fileName, float buffer, float total)
 {
     // ÈôÓÐÖØ¸´ÐÐ£¬É¾³ý
@@ -1755,13 +1858,19 @@ void HostMachine::slotImportStart(qint32 areano, QString fileName, float buffer,
     m_nInterval = 100;
 }
 
+/*****************************************************************************
+* @brief   : µ¼Èë¸üÐÂ½ø¶È
+* @author  : wb
+* @date    : 2019/12/02
+* @param:  : 
+*****************************************************************************/
 void HostMachine::slotImportUpdate(qint32 areano, QString fileName, float buffer, float total)
 {
     if (m_pElapsedTimer->elapsed() / m_nInterval == 0)
         return;
     m_nInterval += 100;
 
-    MWFileList* pWMFileList = (MWFileList*)m_pTabWgt->widget(areano);
+    CMWFileList* pWMFileList = (CMWFileList*)m_pTabWgt->widget(areano);
     pWMFileList->updateProcess(fileName, buffer, total);
 
     for (int nRow=0; nRow<m_pTaskWgt->rowCount(); ++nRow)
@@ -1783,9 +1892,15 @@ void HostMachine::slotImportUpdate(qint32 areano, QString fileName, float buffer
     }
 }
 
+/*****************************************************************************
+* @brief   : µ¼ÈëÍê³É
+* @author  : wb
+* @date    : 2019/12/02
+* @param:  : 
+*****************************************************************************/
 void HostMachine::slotImportCompleted(qint32 areano, QString fileName, float buffer, float total)
 {
-    MWFileList* pWMFileList = (MWFileList*)m_pTabWgt->widget(areano);
+    CMWFileList* pWMFileList = (CMWFileList*)m_pTabWgt->widget(areano);
     pWMFileList->updateProcess(fileName, buffer, total);
     for (int nRow=0; nRow<m_pTaskWgt->rowCount(); ++nRow)
     {
@@ -1808,6 +1923,12 @@ void HostMachine::slotImportCompleted(qint32 areano, QString fileName, float buf
     reallyRefresh();
 }
 
+/*****************************************************************************
+* @brief   : ¼ÇÂ¼
+* @author  : wb
+* @date    : 2019/12/02
+* @param:  : 
+*****************************************************************************/
 void HostMachine::readRecord(quint32 area, quint32 state)
 {
     m_pTaskWgt->setRowCount(m_pTaskWgt->rowCount() + 1);
@@ -1817,6 +1938,12 @@ void HostMachine::readRecord(quint32 area, quint32 state)
     m_pTaskWgt->setItem(m_pTaskWgt->rowCount() - 1, 2, new QTableWidgetItem(QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss")));
 }
 
+/*****************************************************************************
+* @brief   : ¹Ø±Õlog¼ÇÂ¼
+* @author  : wb
+* @date    : 2019/12/02
+* @param:  : 
+*****************************************************************************/
 void HostMachine::closeLog()
 {
     QTextStream in(m_pLog);
@@ -1824,6 +1951,12 @@ void HostMachine::closeLog()
     m_pLog->close();
 }
 
+/*****************************************************************************
+* @brief   : µ¼³ö¿ªÊ¼
+* @author  : wb
+* @date    : 2019/12/02
+* @param:  : 
+*****************************************************************************/
 void HostMachine::slotExportStart(qint32 areano, QString fileName, float buffer, float total)
 {
     // ÈôÓÐÖØ¸´ÐÐ£¬É¾³ý
@@ -1855,13 +1988,19 @@ void HostMachine::slotExportStart(qint32 areano, QString fileName, float buffer,
     m_nInterval = 100;
 }
 
+/*****************************************************************************
+* @brief   : µ¼³ö¸üÐÂ½ø¶È
+* @author  : wb
+* @date    : 2019/12/02
+* @param:  : 
+*****************************************************************************/
 void HostMachine::slotExportUpdate(qint32 areano, QString fileName, float buffer, float total)
 {
     if (m_pElapsedTimer->elapsed() / m_nInterval == 0)
         return;
     m_nInterval += 100;
 
-    MWFileList* pWMFileList = (MWFileList*)m_pTabWgt->widget(areano);
+    CMWFileList* pWMFileList = (CMWFileList*)m_pTabWgt->widget(areano);
     pWMFileList->updateProcess(fileName, buffer, total);
 
     for (int nRow=0; nRow<m_pTaskWgt->rowCount(); ++nRow)
@@ -1883,9 +2022,15 @@ void HostMachine::slotExportUpdate(qint32 areano, QString fileName, float buffer
     }
 }
 
+/*****************************************************************************
+* @brief   : µ¼³öÍê³É
+* @author  : wb
+* @date    : 2019/12/02
+* @param:  : 
+*****************************************************************************/
 void HostMachine::slotExportCompleted(qint32 areano, QString fileName, float buffer, float total)
 {
-    MWFileList* pWMFileList = (MWFileList*)m_pTabWgt->widget(areano);
+    CMWFileList* pWMFileList = (CMWFileList*)m_pTabWgt->widget(areano);
     pWMFileList->updateProcess(fileName, buffer, total);
     for (int nRow=0; nRow<m_pTaskWgt->rowCount(); ++nRow)
     {

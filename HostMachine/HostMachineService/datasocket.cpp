@@ -13,10 +13,12 @@ const QString c_sImportHead= "{2585E781-1C60-416E-9A18-CC7ACD2522AF}";
 const QString c_sExportHead= "{FFEE539A-6E91-4461-AD05-8B5F21CAF18D}";
 
 DataSocket::DataSocket(QObject *parent)
-    : QTcpSocket(parent), m_blockSize(0), m_fileSize(0), m_bStart(true)
+    : QTcpSocket(parent)
 {
     connect(this, SIGNAL(readyRead()), this, SLOT(readClient()));
     connect(this, SIGNAL(disconnect()), this, SLOT(deleteLater()));
+
+    initData();
 }
 
 DataSocket::~DataSocket()
@@ -104,4 +106,11 @@ void DataSocket::slotExport()
     } while (bufferLen < fileSize);
 
     waitForReadyRead();
+}
+
+void DataSocket::initData()
+{
+    m_blockSize = 0;
+    m_fileSize = 0;
+    m_bStart = true;
 }

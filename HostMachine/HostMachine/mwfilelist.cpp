@@ -33,6 +33,10 @@ static const char *c_sIsDelete = QT_TRANSLATE_NOOP("MWFileList", "是否删除？");
 static const char *c_sYes = QT_TRANSLATE_NOOP("MWFileList", "是");
 static const char *c_sNo = QT_TRANSLATE_NOOP("MWFileList", "否");
 static const char *c_sToolBar = QT_TRANSLATE_NOOP("MWFileList", "工具栏");
+static const char *c_sArea = QT_TRANSLATE_NOOP("MWFileList", "分区");
+
+// 刷新结果
+static const char *c_sRefreshResult = QT_TRANSLATE_NOOP("MWFileList", "刷新成功");
 
 // 回放结果
 static const char *c_sPlayBackResult0 = QT_TRANSLATE_NOOP("MWFileList", "回放成功");
@@ -62,14 +66,14 @@ static const char *c_sExportResult1 = QT_TRANSLATE_NOOP("MWFileList", "资源不足"
 static const char *c_sExportResult2 = QT_TRANSLATE_NOOP("MWFileList", "其它运行异常");
 
 
-MWFileList::MWFileList(QWidget *parent)
+CMWFileList::CMWFileList(QWidget *parent)
     : QMainWindow(parent)
 {
     initUI();
     initConnect();
 }
 
-MWFileList::~MWFileList()
+CMWFileList::~CMWFileList()
 {
 }
 
@@ -79,7 +83,7 @@ MWFileList::~MWFileList()
 * @date    : 2019/10/19
 * @param:  :
 *****************************************************************************/
-void MWFileList::initUI()
+void CMWFileList::initUI()
 {
     // 工具栏
     QToolBar *toolBar = addToolBar(qApp->translate(c_sMWFileList, c_sToolBar));
@@ -137,7 +141,7 @@ void MWFileList::initUI()
 * @date    : 2019/10/19
 * @param:  :
 *****************************************************************************/
-void MWFileList::initConnect()
+void CMWFileList::initConnect()
 {
     connect(m_pActRecord, SIGNAL(triggered(bool)), parentWidget(), SLOT(slotLogRecordAct()));
     connect(m_pActRecord, SIGNAL(triggered(bool)), parentWidget(), SLOT(slotRecord()));
@@ -170,7 +174,7 @@ void MWFileList::initConnect()
 * @date    : 2019/10/19
 * @param:  :
 *****************************************************************************/
-void MWFileList::initFileListWgt()
+void CMWFileList::initFileListWgt()
 {
     QStringList headerList;
     headerList << qApp->translate(c_sMWFileList, c_sFileNo)
@@ -202,7 +206,7 @@ void MWFileList::initFileListWgt()
 * @date    : 2019/10/28
 * @param:  :
 *****************************************************************************/
-void MWFileList::readRefresh(tagAreaFileInfos &fileInfos)
+void CMWFileList::readRefresh(tagAreaFileInfos &fileInfos)
 {
     while (m_pFileListWgt->rowCount() > 0)
     {
@@ -227,9 +231,15 @@ void MWFileList::readRefresh(tagAreaFileInfos &fileInfos)
         QString sFileLBA = QString("%0").arg(spFileInfo->filesize / c_bSizeMax);
         m_pFileListWgt->setItem(m_pFileListWgt->rowCount() - 1, 5, new QTableWidgetItem(sFileLBA));
     }
+
+    QString sInfo = qApp->translate(c_sMWFileList, c_sRefreshResult);
+
+    m_pProgressBar->hide();
+    statusBar()->showMessage(sInfo);
+    emit siglogRecord(sInfo);
 }
 
-void MWFileList::updateProcess(QString fileName, float buffer, float total)
+void CMWFileList::updateProcess(QString fileName, float buffer, float total)
 {
     m_pProgressBar->show();
     m_pProgressBar->setMinimum(0);
@@ -240,7 +250,7 @@ void MWFileList::updateProcess(QString fileName, float buffer, float total)
     m_pProgressBar->setFormat(sFormat);
 }
 
-void MWFileList::readPlayBack(quint32 area, quint32 state)
+void CMWFileList::readPlayBack(quint32 area, quint32 state)
 {
     QString sInfo = "";
     if (state == 0x00)
@@ -259,7 +269,7 @@ void MWFileList::readPlayBack(quint32 area, quint32 state)
     emit siglogRecord(sLog);
 }
 
-void MWFileList::readRecord(quint32 area, quint32 state)
+void CMWFileList::readRecord(quint32 area, quint32 state)
 {
     QString sInfo = "";
     if (state == 0x00)
@@ -282,7 +292,7 @@ void MWFileList::readRecord(quint32 area, quint32 state)
     emit siglogRecord(sLog);
 }
 
-void MWFileList::readDelete(quint32 area, quint32 state)
+void CMWFileList::readDelete(quint32 area, quint32 state)
 {
     QString sInfo = "";
     if (state == 0x00)
@@ -296,8 +306,7 @@ void MWFileList::readDelete(quint32 area, quint32 state)
 
     m_pProgressBar->hide();
     statusBar()->showMessage(sInfo);
-
-    QString sLog = QString("%0 %1").arg(area).arg(sInfo);
+    QString sLog = QString("%0%1 %2").arg(qApp->translate(c_sMWFileList, c_sArea)).arg(area).arg(sInfo);
     emit siglogRecord(sLog);
 }
 
@@ -307,7 +316,7 @@ void MWFileList::readDelete(quint32 area, quint32 state)
 * @date    : 2019/10/28
 * @param:  :
 *****************************************************************************/
-void MWFileList::readTaskStop(quint32 area, quint32 tasktype, quint32 state)
+void CMWFileList::readTaskStop(quint32 area, quint32 tasktype, quint32 state)
 {
     QString sInfo = "";
     if (state == 0x00)
@@ -332,7 +341,7 @@ void MWFileList::readTaskStop(quint32 area, quint32 tasktype, quint32 state)
 * @date    : 2019/10/28
 * @param:  :
 *****************************************************************************/
-void MWFileList::readExport(quint32 area, quint32 state)
+void CMWFileList::readExport(quint32 area, quint32 state)
 {
     QString sInfo = "";
     if (state == 0x00)
@@ -355,7 +364,7 @@ void MWFileList::readExport(quint32 area, quint32 state)
     emit siglogRecord(sLog);
 }
 
-void MWFileList::readImport(quint32 state)
+void CMWFileList::readImport(quint32 state)
 {
     QString sInfo = "";
     if (state == 0x00)

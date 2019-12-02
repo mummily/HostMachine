@@ -4,16 +4,16 @@
 #include <QTcpSocket>
 #include <QFile>
 
-class DataSocket : public QTcpSocket
+class CDataSocket : public QTcpSocket
 {
     Q_OBJECT
 
 public:
-    DataSocket(QObject *parent);
-    ~DataSocket();
+    CDataSocket(QObject *parent);
+    ~CDataSocket();
 
-private:
-    void respondExport(QByteArray buf);
+public:
+    void initData();
 
 signals:
     // 导入
@@ -30,6 +30,9 @@ signals:
 public slots:
     void slotImport();
     void readyRead();
+
+private:
+    void respondExport(QByteArray buf);
 
 public:
     QFile   m_file;             // 文件

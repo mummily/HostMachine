@@ -155,9 +155,9 @@ class QSplitter;
 class QtTreePropertyBrowser;
 class QLabel;
 class QTcpSocket;
-class MWFileList;
+class CMWFileList;
 class QFile;
-class DataSocket;
+class CDataSocket;
 class HostMachine : public QMainWindow
 {
     Q_OBJECT
@@ -231,10 +231,11 @@ private:
 
     void reallyCheckSelf();
     void reallyRefresh();
+    void reallyTaskQuery();
     void readCheckSelf();
     void readFormat(quint32 state);
     void readSystemConfig(quint32 choice, quint32 state);
-    void readTaskQuery(list<tagTaskInfo>& lstTaskInfo);
+    void readTaskQuery();
     void readRecord(quint32 area, quint32 state);
 
 private:
@@ -243,6 +244,7 @@ private:
     shared_ptr<TaskType>    m_spTaskType;
     QString                 m_sAddr;
     QList<shared_ptr<tagExportParam>> m_lstExportParam;
+    QList<shared_ptr<tagTaskInfo>> m_lstTaskInfo;
 
 private:
     QAction                 *m_pActCheckSelf;   // 自检
@@ -253,13 +255,13 @@ private:
     QMenu                   *m_pMenuSystemControl;
 
     QTcpSocket              *m_pCmdSocket;      // 命令Socket
-    DataSocket              *m_pDataSocket;     // 数据Socket
+    CDataSocket             *m_pDataSocket;     // 数据Socket
 
-    MWFileList              *m_pLDOriginalWgt;  // 雷达原始数据分区
-    MWFileList              *m_pLDResultWgt;    // 雷达结果数据分区
-    MWFileList              *m_pGDImgWgt;       // 光电图片分区
-    MWFileList              *m_pGDVidioWgt;     // 光电视频分区
-    MWFileList              *m_pHHDataWgt;      // 混合数据分区
+    CMWFileList             *m_pLDOriginalWgt;  // 雷达原始数据分区
+    CMWFileList             *m_pLDResultWgt;    // 雷达结果数据分区
+    CMWFileList             *m_pGDImgWgt;       // 光电图片分区
+    CMWFileList             *m_pGDVidioWgt;     // 光电视频分区
+    CMWFileList             *m_pHHDataWgt;      // 混合数据分区
 
     QTableWidget            *m_pTaskWgt;        // 任务列表框
     QElapsedTimer           *m_pElapsedTimer;

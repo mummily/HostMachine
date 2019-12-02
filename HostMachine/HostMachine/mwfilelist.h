@@ -31,13 +31,13 @@ struct tagAreaFileInfos
     list<shared_ptr<tagAreaFileInfo>> lstFileInfo;
 };
 
-class MWFileList : public QMainWindow
+class CMWFileList : public QMainWindow
 {
     Q_OBJECT
 
 public:
-    MWFileList(QWidget *parent = 0);
-    ~MWFileList();
+    CMWFileList(QWidget *parent = 0);
+    ~CMWFileList();
 
     void readDelete(quint32 area, quint32 state);
     void readRecord(quint32 area, quint32 state);

@@ -21,6 +21,7 @@ public:
     void respondRefresh(quint32 areano, quint32 fileno, quint32 filenum);
     void respondImport(quint32 areano, float filesize, QDateTime time, char* filename);
     void respondExport(quint32 areano, char* filename, float startpos, float filesize);
+    void respondTaskQuery();
 private slots:
     void readClient();
 };

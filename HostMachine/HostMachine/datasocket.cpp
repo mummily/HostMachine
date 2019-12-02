@@ -13,18 +13,19 @@ static const char *c_sTitle = QT_TRANSLATE_NOOP("DataSocket", "网络应用软件");
 static const char *c_sNetConnectError = QT_TRANSLATE_NOOP("DataSocket", "无法连接服务器，请检查网络连接！");
 static const char *c_sOpenFileError = QT_TRANSLATE_NOOP("DataSocket", "只读方式打开文件<%0>失败！");
 
-DataSocket::DataSocket(QObject *parent)
-    : QTcpSocket(parent), m_bStart(true), m_fileSize(0), m_bufferSize(0)
+CDataSocket::CDataSocket(QObject *parent)
+    : QTcpSocket(parent)
 {
     connect(this, SIGNAL(siglogRecord(QString)), parent, SLOT(slotLogRecord(QString)));
+    initData();
 }
 
-DataSocket::~DataSocket()
+CDataSocket::~CDataSocket()
 {
 
 }
 
-void DataSocket::slotImport()
+void CDataSocket::slotImport()
 {
     if (state() != QAbstractSocket::ConnectedState)
     {
@@ -78,7 +79,7 @@ void DataSocket::slotImport()
     }
 }
 
-void DataSocket::readyRead()
+void CDataSocket::readyRead()
 {
     QDataStream in(this);
     in.setVersion(QDataStream::Qt_5_5);
@@ -93,7 +94,7 @@ void DataSocket::readyRead()
     respondExport(buf);
 }
 
-void DataSocket::respondExport(QByteArray buf)
+void CDataSocket::respondExport(QByteArray buf)
 {
     if (m_bStart)
     {
@@ -140,4 +141,11 @@ void DataSocket::respondExport(QByteArray buf)
             m_bufferSize = 0;
         }
     }
+}
+
+void CDataSocket::initData()
+{
+    m_bStart = true;
+    m_fileSize = 0;
+    m_bufferSize = 0;
 }

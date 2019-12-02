@@ -20,10 +20,15 @@ public:
     DataSocket(QObject *parent);
     ~DataSocket();
 
-    void respondImport(QByteArray buf);
+public:
+    void initData();
+
 private slots:
     void readClient();
     void slotExport();
+
+private:
+    void respondImport(QByteArray buf);
 
 public:
     qint32 areaNo;
