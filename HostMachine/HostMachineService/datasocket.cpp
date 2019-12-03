@@ -91,7 +91,7 @@ void DataSocket::slotExport()
     waitForReadyRead();
     if (len == -1)
         return;
-    SCOPE_EXIT([&]{ file.close(); });
+    SCOPE_EXIT { file.close(); };
 
     file.seek(startPos);
 

@@ -57,7 +57,7 @@ void CDataSocket::slotImport()
             return;
         waitForReadyRead();
 
-        SCOPE_EXIT([&]{ file.close(); });
+        SCOPE_EXIT { file.close(); };
 
         emit importStart(areano, fileInfo.fileName(), 0, fileSize);
         qint64 bufferLen = 0;

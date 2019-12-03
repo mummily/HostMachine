@@ -1265,6 +1265,17 @@ void HostMachine::slotImport()
         }
     }
 
+    if (m_pDataSocket->state() != QAbstractSocket::ConnectedState)
+    {
+        m_pDataSocket->connectToHost(QHostAddress(m_sAddr), c_uDataPort);
+        if (!m_pDataSocket->waitForConnected())
+        {
+            QMessageBox::information(this, qApp->translate(c_sHostMachine, c_sTitle),
+                qApp->translate(c_sHostMachine, c_sNetConnectError));
+            return;
+        }
+    }
+
     QStringList importFileList = QFileDialog::getOpenFileNames(this, qApp->translate(c_sHostMachine, c_sImportFileTip),
         "/", qApp->translate(c_sHostMachine, c_sImportFileExt));
     if (importFileList.isEmpty())
@@ -1318,6 +1329,17 @@ void HostMachine::slotExport()
     {
         m_pCmdSocket->connectToHost(QHostAddress(m_sAddr), c_uCommandPort);
         if (!m_pCmdSocket->waitForConnected())
+        {
+            QMessageBox::information(this, qApp->translate(c_sHostMachine, c_sTitle),
+                qApp->translate(c_sHostMachine, c_sNetConnectError));
+            return;
+        }
+    }
+
+    if (m_pDataSocket->state() != QAbstractSocket::ConnectedState)
+    {
+        m_pDataSocket->connectToHost(QHostAddress(m_sAddr), c_uDataPort);
+        if (!m_pDataSocket->waitForConnected())
         {
             QMessageBox::information(this, qApp->translate(c_sHostMachine, c_sTitle),
                 qApp->translate(c_sHostMachine, c_sNetConnectError));
