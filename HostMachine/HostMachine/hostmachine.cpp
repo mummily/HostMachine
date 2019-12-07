@@ -143,13 +143,10 @@ static const char *c_sTaskState1 = QT_TRANSLATE_NOOP("HostMachine", "完成");
 HostMachine::HostMachine(QWidget *parent)
     : QMainWindow(parent), m_sAddr(""), m_nInterval(0)
 {
-    m_spcheckSelf = make_shared<tagCheckSelf>();
-
-    initTcp();
+    initData();
     initUI();
     initLayout();
     initConnect();
-    initData();
 
     QTimer::singleShot(10, this, SLOT(slotInit()));
 }
@@ -163,18 +160,6 @@ HostMachine::~HostMachine()
     m_pCmdSocket->close();
     m_pDataSocket->disconnect(this, SLOT(disconnectData()));
     m_pDataSocket->close();
-}
-
-/*****************************************************************************
-* @brief   : 初始化TCP
-* @author  : wb
-* @date    : 2019/10/26
-* @param:  : 
-*****************************************************************************/
-void HostMachine::initTcp()
-{
-    m_pCmdSocket = new QTcpSocket(this);
-    m_pDataSocket = new CDataSocket(this);
 }
 
 /*****************************************************************************
@@ -373,8 +358,7 @@ void HostMachine::initPropertyWgt()
 {
     m_groupManager = new QtGroupPropertyManager(m_pPropertyWgt);
     m_stringManager = new QtStringPropertyManager(m_pPropertyWgt);
-    m_doubleManager = new QtDoublePropertyManager(m_pPropertyWgt);
-    m_ddoubleManager = new DecoratedDoublePropertyManager(m_pPropertyWgt);
+    m_doubleManager = new DecoratedDoublePropertyManager(m_pPropertyWgt);
     m_intManager = new QtIntPropertyManager(m_pPropertyWgt);
     m_enumManager = new QtEnumPropertyManager(m_pPropertyWgt);
 
@@ -401,7 +385,7 @@ void HostMachine::initPropertyWgt()
     // 参数信息
     {
         shared_ptr<tagChannelProperty> channelProperty = make_shared<tagChannelProperty>();
-        m_areaProperties.channelProperty = channelProperty;
+        m_spAreaProperties->channelProperty = channelProperty;
 
         QtProperty *topItem = m_groupManager->addProperty(qApp->translate(c_sHostMachine, c_sPropertyGroup1_6));
         m_pPropertyWgt->addProperty(topItem);
@@ -427,7 +411,7 @@ void HostMachine::initPropertyWgt()
     // 原始数据分区
     {
         shared_ptr<tagAreaProperty> areaProperty = make_shared<tagAreaProperty>();
-        m_areaProperties.ldProperty1 = areaProperty;
+        m_spAreaProperties->ldProperty1 = areaProperty;
 
         QtProperty *topItem = m_groupManager->addProperty(qApp->translate(c_sHostMachine, c_sPropertyGroup1_1));
         m_pPropertyWgt->addProperty(topItem);
@@ -446,11 +430,11 @@ void HostMachine::initPropertyWgt()
         m_doubleManager->setDecimals(item, 3);
         topItem->addSubProperty(item);
 
-        item = m_ddoubleManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_3));
+        item = m_doubleManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_3));
         areaProperty->pItem3 = item;
-        m_ddoubleManager->setValue(item, 0);
-        m_ddoubleManager->setMinimum(item, 0);
-        m_ddoubleManager->setSuffix(item, "%");
+        m_doubleManager->setValue(item, 0);
+        m_doubleManager->setMinimum(item, 0);
+        m_doubleManager->setSuffix(item, "%");
         topItem->addSubProperty(item);
 
         item = m_intManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_4));
@@ -468,7 +452,7 @@ void HostMachine::initPropertyWgt()
     // 雷达结果分区
     {
         shared_ptr<tagAreaProperty> areaProperty = make_shared<tagAreaProperty>();
-        m_areaProperties.ldProperty2 = areaProperty;
+        m_spAreaProperties->ldProperty2 = areaProperty;
 
         QtProperty *topItem = m_groupManager->addProperty(qApp->translate(c_sHostMachine, c_sPropertyGroup1_2));
         m_pPropertyWgt->addProperty(topItem);
@@ -487,12 +471,12 @@ void HostMachine::initPropertyWgt()
         m_doubleManager->setDecimals(item, 3);
         topItem->addSubProperty(item);
 
-        item = m_ddoubleManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_3));
+        item = m_doubleManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_3));
         areaProperty->pItem3 = item;
-        m_ddoubleManager->setValue(item, 0);
-        m_ddoubleManager->setMinimum(item, 0);
-        m_ddoubleManager->setDecimals(item, 2);
-        m_ddoubleManager->setSuffix(item, "%");
+        m_doubleManager->setValue(item, 0);
+        m_doubleManager->setMinimum(item, 0);
+        m_doubleManager->setDecimals(item, 2);
+        m_doubleManager->setSuffix(item, "%");
         topItem->addSubProperty(item);
 
         item = m_intManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_4));
@@ -510,7 +494,7 @@ void HostMachine::initPropertyWgt()
     // 光电图片分区
     {
         shared_ptr<tagAreaProperty> areaProperty = make_shared<tagAreaProperty>();
-        m_areaProperties.gdProperty1 = areaProperty;
+        m_spAreaProperties->gdProperty1 = areaProperty;
 
         QtProperty *topItem = m_groupManager->addProperty(qApp->translate(c_sHostMachine, c_sPropertyGroup1_3));
         m_pPropertyWgt->addProperty(topItem);
@@ -529,12 +513,12 @@ void HostMachine::initPropertyWgt()
         m_doubleManager->setDecimals(item, 3);
         topItem->addSubProperty(item);
 
-        item = m_ddoubleManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_3));
+        item = m_doubleManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_3));
         areaProperty->pItem3 = item;
-        m_ddoubleManager->setValue(item, 0);
-        m_ddoubleManager->setMinimum(item, 0);
-        m_ddoubleManager->setDecimals(item, 2);
-        m_ddoubleManager->setSuffix(item, "%");
+        m_doubleManager->setValue(item, 0);
+        m_doubleManager->setMinimum(item, 0);
+        m_doubleManager->setDecimals(item, 2);
+        m_doubleManager->setSuffix(item, "%");
         topItem->addSubProperty(item);
 
         item = m_intManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_4));
@@ -552,7 +536,7 @@ void HostMachine::initPropertyWgt()
     // 光电视频分区
     {
         shared_ptr<tagAreaProperty> areaProperty = make_shared<tagAreaProperty>();
-        m_areaProperties.gdProperty2 = areaProperty;
+        m_spAreaProperties->gdProperty2 = areaProperty;
 
         QtProperty *topItem = m_groupManager->addProperty(qApp->translate(c_sHostMachine, c_sPropertyGroup1_4));
         m_pPropertyWgt->addProperty(topItem);
@@ -571,11 +555,11 @@ void HostMachine::initPropertyWgt()
         m_doubleManager->setDecimals(item, 3);
         topItem->addSubProperty(item);
 
-        item = m_ddoubleManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_3));
+        item = m_doubleManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_3));
         areaProperty->pItem3 = item;
-        m_ddoubleManager->setValue(item, 0);
-        m_ddoubleManager->setMinimum(item, 0);
-        m_ddoubleManager->setSuffix(item, "%");
+        m_doubleManager->setValue(item, 0);
+        m_doubleManager->setMinimum(item, 0);
+        m_doubleManager->setSuffix(item, "%");
         topItem->addSubProperty(item);
 
         item = m_intManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_4));
@@ -593,7 +577,7 @@ void HostMachine::initPropertyWgt()
     // 混合数据分区
     {
         shared_ptr<tagAreaProperty> areaProperty = make_shared<tagAreaProperty>();
-        m_areaProperties.hhProperty = areaProperty;
+        m_spAreaProperties->hhProperty = areaProperty;
 
         QtProperty *topItem = m_groupManager->addProperty(qApp->translate(c_sHostMachine, c_sPropertyGroup1_5));
         m_pPropertyWgt->addProperty(topItem);
@@ -612,11 +596,11 @@ void HostMachine::initPropertyWgt()
         m_doubleManager->setDecimals(item, 3);
         topItem->addSubProperty(item);
 
-        item = m_ddoubleManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_3));
+        item = m_doubleManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_3));
         areaProperty->pItem3 = item;
-        m_ddoubleManager->setValue(item, 0);
-        m_ddoubleManager->setMinimum(item, 0);
-        m_ddoubleManager->setSuffix(item, "%");
+        m_doubleManager->setValue(item, 0);
+        m_doubleManager->setMinimum(item, 0);
+        m_doubleManager->setSuffix(item, "%");
         topItem->addSubProperty(item);
 
         item = m_intManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_4));
@@ -676,7 +660,7 @@ void HostMachine::disconnectCmd()
     QString sLog = QString("%0 %1").arg(m_sAddr).arg(sLabel);
     slotLogRecord(sLog);
 
-    QMessageBox::warning(this, windowTitle(), qApp->translate(c_sHostMachine, c_sCmdDisconnect));
+    // QMessageBox::warning(this, windowTitle(), qApp->translate(c_sHostMachine, c_sCmdDisconnect));
 }
 
 /*****************************************************************************
@@ -694,7 +678,7 @@ void HostMachine::disconnectData()
     QString sLog = QString("%0 %1").arg(m_sAddr).arg(sLabel);
     slotLogRecord(sLog);
 
-    QMessageBox::warning(this, windowTitle(), qApp->translate(c_sHostMachine, c_sDataDisconnect));
+    // QMessageBox::warning(this, windowTitle(), qApp->translate(c_sHostMachine, c_sDataDisconnect));
 }
 
 /*****************************************************************************
@@ -739,29 +723,44 @@ void HostMachine::readyReadCmd()
     in >> respondType;
     if (respondType == SC_CheckSelf)
     {
-        shared_ptr<tagAreaInfo> areaInfo = make_shared<tagAreaInfo>();
-        areaInfo->read(in);
-        m_spcheckSelf->areaInfo0 = areaInfo;
+        // 磁盘总大小
+        in >> m_spcheckSelf->totalsize;
 
-        areaInfo = make_shared<tagAreaInfo>();
-        areaInfo->read(in);
-        m_spcheckSelf->areaInfo1 = areaInfo;
+        if (nullptr == m_spcheckSelf->areaInfo0)
+            m_spcheckSelf->areaInfo0 = make_shared<tagAreaInfo>();
+        m_spcheckSelf->areaInfo0->read(in);
 
-        areaInfo = make_shared<tagAreaInfo>();
-        areaInfo->read(in);
-        m_spcheckSelf->areaInfo2 = areaInfo;
+        if (nullptr == m_spcheckSelf->areaInfo1)
+            m_spcheckSelf->areaInfo1 = make_shared<tagAreaInfo>();
+        m_spcheckSelf->areaInfo1->read(in);
 
-        areaInfo = make_shared<tagAreaInfo>();
-        areaInfo->read(in);
-        m_spcheckSelf->areaInfo3 = areaInfo;
+        if (nullptr == m_spcheckSelf->areaInfo2)
+            m_spcheckSelf->areaInfo2 = make_shared<tagAreaInfo>();
+        m_spcheckSelf->areaInfo2->read(in);
 
-        areaInfo = make_shared<tagAreaInfo>();
-        areaInfo->read(in);
-        m_spcheckSelf->areaInfo4 = areaInfo;
+        if (nullptr == m_spcheckSelf->areaInfo3)
+            m_spcheckSelf->areaInfo3 = make_shared<tagAreaInfo>();
+        m_spcheckSelf->areaInfo3->read(in);
+
+        if (nullptr == m_spcheckSelf->areaInfo4)
+            m_spcheckSelf->areaInfo4 = make_shared<tagAreaInfo>();
+        m_spcheckSelf->areaInfo4->read(in);
+
+        m_spcheckSelf->areaInfo0->area = 0;
+        m_spcheckSelf->areaInfo1->area = 1;
+        m_spcheckSelf->areaInfo2->area = 2;
+        m_spcheckSelf->areaInfo3->area = 3;
+        m_spcheckSelf->areaInfo4->area = 4;
 
         shared_ptr<tagChannelInfo> channelInfo = make_shared<tagChannelInfo>();
         channelInfo->read(in);
         m_spcheckSelf->channelInfo = channelInfo;
+
+        while(!in.atEnd())
+        {
+            quint32 endtag;
+            in >> endtag;
+        }
 
         readCheckSelf();
     }
@@ -770,12 +769,24 @@ void HostMachine::readyReadCmd()
         quint32 state;
         in >> state;
 
+        while(!in.atEnd())
+        {
+            quint32 endtag;
+            in >> endtag;
+        }
+
         readFormat(state);
     }
     else if (respondType == SC_SystemConfig)
     {
         quint32 choice, state;
         in >> choice >> state;
+
+        while(!in.atEnd())
+        {
+            quint32 endtag;
+            in >> endtag;
+        }
 
         readSystemConfig(choice, state);
     }
@@ -793,12 +804,24 @@ void HostMachine::readyReadCmd()
             m_lstTaskInfo.push_back(spTaskInfo);
         }
 
+        while(!in.atEnd())
+        {
+            quint32 endtag;
+            in >> endtag;
+        }
+
         readTaskQuery();
     }
     else if (respondType == SC_Record)
     {
         quint32 area, state;
         in >> area >> state;
+
+        while(!in.atEnd())
+        {
+            quint32 endtag;
+            in >> endtag;
+        }
 
         CMWFileList* pWMFileList = (CMWFileList*)m_pTabWgt->widget(area);
         pWMFileList->readRecord(area, state);
@@ -812,6 +835,12 @@ void HostMachine::readyReadCmd()
         quint32 area, state;
         in >> area >> state;
 
+        while(!in.atEnd())
+        {
+            quint32 endtag;
+            in >> endtag;
+        }
+
         CMWFileList* pWMFileList = (CMWFileList*)m_pTabWgt->widget(area);
         pWMFileList->readPlayBack(area, state);
     }
@@ -819,6 +848,12 @@ void HostMachine::readyReadCmd()
     {
         quint32 area, tasktype, state;
         in >> area >> tasktype >> state;
+
+        while(!in.atEnd())
+        {
+            quint32 endtag;
+            in >> endtag;
+        }
 
         CMWFileList* pWMFileList = (CMWFileList*)m_pTabWgt->widget(area);
         pWMFileList->readTaskStop(area, tasktype, state);
@@ -828,23 +863,27 @@ void HostMachine::readyReadCmd()
         quint32 area, state;
         in >> area >> state;
 
+        while(!in.atEnd())
+        {
+            quint32 endtag;
+            in >> endtag;
+        }
+
         CMWFileList* pWMFileList = (CMWFileList*)m_pTabWgt->widget(area);
         pWMFileList->readDelete(area, state);
     }
     else if (respondType == SC_Refresh)
     {
-        tagAreaFileInfos fileInfos;
-        in >> fileInfos.areano >> fileInfos.fileno >> fileInfos.filenum;
+        in >> m_spFileInfos->areano >> m_spFileInfos->filenum;
 
-        list<shared_ptr<tagAreaFileInfo>> lstFileInfo;
-        for (int nIndex=0;nIndex<fileInfos.filenum;++nIndex)
+        for (int nIndex=0; nIndex < m_spFileInfos->filenum; ++nIndex)
         {
-            char filename[128] = {0};
+            char filename[40] = {0};
             in.readRawData(filename, sizeof(filename));
 
             quint64 datetime;
             quint32 fileno;
-            quint64 filesize;
+            quint32 filesize;
             in >> datetime >> fileno >> filesize;
 
             shared_ptr<tagAreaFileInfo> spFileInfo = make_shared<tagAreaFileInfo>();
@@ -855,22 +894,36 @@ void HostMachine::readyReadCmd()
             spFileInfo->fileno = fileno;
             spFileInfo->filesize = filesize;
 
-            lstFileInfo.push_back(spFileInfo);
+            m_spFileInfos->lstFileInfo.push_back(spFileInfo);
         }
-        fileInfos.lstFileInfo.swap(lstFileInfo);
 
-        CMWFileList* pWMFileList = (CMWFileList*)m_pTabWgt->widget(fileInfos.areano);
-        pWMFileList->readRefresh(fileInfos);
+        while(!in.atEnd())
+        {
+            quint32 endtag;
+            in >> endtag;
+        }
+
+        if (m_spFileInfos->filenum != c_uRefreshFileNum)
+        {
+            CMWFileList* pWMFileList = (CMWFileList*)m_pTabWgt->widget(m_spFileInfos->areano);
+            pWMFileList->readRefresh(m_spFileInfos.get());
+        }
     }
     else if (respondType == SC_Import)
     {
         quint32 areano, state;
         in >> areano;
 
-        char filename[128] = {0};
+        char filename[40] = {0};
         in.readRawData(filename, sizeof(filename));
 
         in >> state;
+
+        while(!in.atEnd())
+        {
+            quint32 endtag;
+            in >> endtag;
+        }
 
         CMWFileList* pWMFileList = (CMWFileList*)m_pTabWgt->widget(areano);
         pWMFileList->readImport(state);
@@ -890,6 +943,13 @@ void HostMachine::readyReadCmd()
 
         quint32 areano, state;
         in >> areano >> state;
+
+        while(!in.atEnd())
+        {
+            quint32 endtag;
+            in >> endtag;
+        }
+
         if (state != 0x00)
         {
             m_lstExportParam.clear();
@@ -1174,7 +1234,7 @@ void HostMachine::slotRecord()
         quint64 time = QDateTime::currentMSecsSinceEpoch();
         out << CS_Record << areano << time;
 
-        char filename[128] = {0};
+        char filename[40] = {0};
         QByteArray ba = sFileName.toLocal8Bit();
         strncpy(filename, ba.data(), sizeof(filename));
 
@@ -1301,7 +1361,7 @@ void HostMachine::slotImport()
 
     // 文件名
     QString sFileName = importFileList.first();
-    char filename[128] = {0};
+    char filename[40] = {0};
     QByteArray ba = sFileName.toLocal8Bit();
     strncpy(filename, ba.data(), sizeof(filename));
     out.writeRawData(filename, sizeof(filename));
@@ -1422,7 +1482,7 @@ void HostMachine::slotForeachExport()
     QDataStream out(&block, QIODevice::WriteOnly);
     out << CS_Export << m_pTabWgt->currentIndex();
 
-    char filename[128] = {0};
+    char filename[40] = {0};
     QByteArray ba = sFileName.toLocal8Bit();
     strncpy(filename, ba.data(), sizeof(filename));
     out.writeRawData(filename, sizeof(filename));
@@ -1588,13 +1648,7 @@ void HostMachine::slotDelete()
     {
         QByteArray block;
         QDataStream out(&block, QIODevice::WriteOnly);
-        out << CS_Delete << m_pTabWgt->currentIndex();
-
-        QString sFileName = pFileListWgt->item(rowNo, 1)->text() + "." + pFileListWgt->item(rowNo, 4)->text();
-        QByteArray ba = sFileName.toLocal8Bit();
-        char filename[128] = {0};
-        strncpy(filename, ba, sizeof(filename));
-        out.writeRawData(filename, sizeof(filename));
+        out << CS_Delete << (quint32)m_pTabWgt->currentIndex() << (quint32)pFileListWgt->item(rowNo, 0)->text().toInt();
 
         m_pCmdSocket->write(block);
         m_pCmdSocket->waitForReadyRead();
@@ -1614,14 +1668,16 @@ void HostMachine::reallyRefresh()
     // 刷新前先自检
     reallyCheckSelf();
 
+    m_spFileInfos->lstFileInfo.clear();
+
     // 起始文件编号
-    quint32 fileno = 1;
+    quint32 fileno = 0;
     // 刷新文件数
-    quint32 filenum = 8;
+    quint32 filenum = c_uRefreshFileNum;
 
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
-    out << CS_Refresh << m_pTabWgt->currentIndex() << fileno << filenum;
+    out << CS_Refresh << qint32(m_pTabWgt->currentIndex()) << fileno << filenum;;
 
     m_pCmdSocket->write(block);
     m_pCmdSocket->waitForReadyRead();
@@ -1667,22 +1723,30 @@ void HostMachine::readCheckSelf()
 {
     auto updatevalue=[&](shared_ptr<tagAreaProperty> areaProperty, shared_ptr<tagAreaInfo> areaInfo)->void
     {
-        m_doubleManager->setValue(areaProperty->pItem1, areaInfo->areasize);
-        m_doubleManager->setValue(areaProperty->pItem2, areaInfo->areasize - areaInfo->areaunuse);
-        m_ddoubleManager->setValue(areaProperty->pItem3, areaInfo->areaunuse *100 / areaInfo->areasize);
+        qint64 newSize = 0;
+        QString sUnit = "";
+        CGlobalFun::formatSize(areaInfo->areasize, newSize, sUnit);
+        m_doubleManager->setValue(areaProperty->pItem1, (double)newSize);
+        m_doubleManager->setSuffix(areaProperty->pItem1, sUnit);
+
+        CGlobalFun::formatSize(areaInfo->areasize - areaInfo->areaunuse, newSize, sUnit);
+        m_doubleManager->setValue(areaProperty->pItem2, (double)newSize);
+        m_doubleManager->setSuffix(areaProperty->pItem2, sUnit);
+
+        m_doubleManager->setValue(areaProperty->pItem3, areaInfo->areaunuse *100 / areaInfo->areasize);
         m_intManager->setValue(areaProperty->pItem4, areaInfo->areafilenum);
         m_enumManager->setValue(areaProperty->pItem5, areaInfo->areastate + 1);
     };
 
-    updatevalue(m_areaProperties.ldProperty1, m_spcheckSelf->areaInfo0);
-    updatevalue(m_areaProperties.ldProperty2, m_spcheckSelf->areaInfo1);
-    updatevalue(m_areaProperties.gdProperty1, m_spcheckSelf->areaInfo2);
-    updatevalue(m_areaProperties.gdProperty2, m_spcheckSelf->areaInfo3);
-    updatevalue(m_areaProperties.hhProperty, m_spcheckSelf->areaInfo4);
+    updatevalue(m_spAreaProperties->ldProperty1, m_spcheckSelf->areaInfo0);
+    updatevalue(m_spAreaProperties->ldProperty2, m_spcheckSelf->areaInfo1);
+    updatevalue(m_spAreaProperties->gdProperty1, m_spcheckSelf->areaInfo2);
+    updatevalue(m_spAreaProperties->gdProperty2, m_spcheckSelf->areaInfo3);
+    updatevalue(m_spAreaProperties->hhProperty, m_spcheckSelf->areaInfo4);
 
-    m_enumManager->setValue(m_areaProperties.channelProperty->pItem1, m_spcheckSelf->channelInfo->state + 1);
-    m_enumManager->setValue(m_areaProperties.channelProperty->pItem2, m_spcheckSelf->channelInfo->choice + 1);
-    m_enumManager->setValue(m_areaProperties.channelProperty->pItem3, m_spcheckSelf->channelInfo->bandwidth + 1);
+    m_enumManager->setValue(m_spAreaProperties->channelProperty->pItem1, m_spcheckSelf->channelInfo->state + 1);
+    m_enumManager->setValue(m_spAreaProperties->channelProperty->pItem2, m_spcheckSelf->channelInfo->choice + 1);
+    m_enumManager->setValue(m_spAreaProperties->channelProperty->pItem3, m_spcheckSelf->channelInfo->bandwidth + 1);
 }
 
 /*****************************************************************************
@@ -1830,6 +1894,12 @@ void HostMachine::slotTabChanged(int index)
 *****************************************************************************/
 void HostMachine::initData()
 {
+    m_pCmdSocket = new QTcpSocket(this);
+    m_pDataSocket = new CDataSocket(this);
+    m_spcheckSelf = make_shared<tagCheckSelf>();
+    m_spFileInfos = make_shared<tagAreaFileInfos>();
+    m_spAreaProperties = make_shared<tagAreaProperties>();
+
     QString sLogFile = QString("%0/%1.log").arg(qApp->applicationDirPath()).arg(qApp->applicationName());
     QFileInfo info(sLogFile);
     if (info.size() / c_kSizeMax > 10) // 10M

@@ -1,6 +1,8 @@
 #pragma once
+#include "qglobal.h"
 
-
+const quint16 c_uCommandPort = 9000;
+const quint16 c_uDataPort = 9001;
 
 // «Î«Û¿‡–Õ
 enum RequestType

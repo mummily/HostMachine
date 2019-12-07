@@ -206,14 +206,14 @@ void CMWFileList::initFileListWgt()
 * @date    : 2019/10/28
 * @param:  :
 *****************************************************************************/
-void CMWFileList::readRefresh(tagAreaFileInfos &fileInfos)
+void CMWFileList::readRefresh(tagAreaFileInfos* pFileInfos)
 {
     while (m_pFileListWgt->rowCount() > 0)
     {
         m_pFileListWgt->removeRow(m_pFileListWgt->rowCount() - 1);
     }
 
-    foreach(shared_ptr<tagAreaFileInfo> spFileInfo, fileInfos.lstFileInfo)
+    foreach(shared_ptr<tagAreaFileInfo> spFileInfo, pFileInfos->lstFileInfo)
     {
         m_pFileListWgt->setRowCount(m_pFileListWgt->rowCount() + 1);
 

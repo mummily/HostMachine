@@ -1,8 +1,14 @@
 #pragma once
 #include <QString>
+#include <QDateTime>
+#include <QDataStream>
+#include <memory>
 
-const quint16 c_uCommandPort = 6178;
-const quint16 c_uDataPort = 6188;
+using namespace std;
+
+const quint16 c_uCommandPort = 9000;
+const quint16 c_uDataPort = 9001;
+const int c_uRefreshFileNum = 8;
 
 const int c_bSizeMax = 1024;
 const int c_kSizeMax = c_bSizeMax * 1024;
@@ -10,5 +16,20 @@ const int c_mSizeMax = c_kSizeMax * 1024;
 const qint64 c_gSizeMax = c_mSizeMax * 1024;
 const int c_bufferSize = 4 * c_bSizeMax;
 
-const QString c_sImportHead= "{2585E781-1C60-416E-9A18-CC7ACD2522AF}";
-const QString c_sExportHead= "{FFEE539A-6E91-4461-AD05-8B5F21CAF18D}";
+// 刷新 - 文件信息
+struct tagAreaFileInfo
+{
+    quint32 fileno;     // 文件编号
+    QString sFileName;  // 文件名称
+    quint32 filesize;     // 文件大小
+    QDateTime datetime; // 创建时间
+};
+
+// 刷新 - 文件信息
+struct tagAreaFileInfos
+{
+    quint32 areano;     // 分区号
+    quint32 fileno;     // 起始文件编号
+    quint32 filenum;    // 文件数
+    list<shared_ptr<tagAreaFileInfo>> lstFileInfo;
+};

@@ -17,7 +17,7 @@ public:
     void respondSystemConfig(quint32 choice, quint32 setting);
     void respondRecord(quint32 areano, quint64 time, QString filename);
     void respondTaskStop(quint32 areano, quint32 tasktype);
-    void respondDelete(quint32 areano, char* filename);
+    void respondDelete(quint32 areano, quint32 fileno);
     void respondRefresh(quint32 areano, quint32 fileno, quint32 filenum);
     void respondImport(quint32 areano, float filesize, QDateTime time, char* filename);
     void respondExport(quint32 areano, char* filename, float startpos, float filesize);

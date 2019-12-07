@@ -1,11 +1,8 @@
 #include <QtWidgets/QApplication>
 #include <QPushButton>
-#include <QDebug>
 #include "hostmachineserver.h"
 #include "QHostAddress"
-
-const quint16 c_uCommandPort = 6178;
-const quint16 c_uDataPort = 6188;
+#include "common.h"
 
 int main(int argc, char *argv[])
 {

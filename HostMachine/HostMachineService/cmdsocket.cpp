@@ -53,7 +53,7 @@ void CmdSocket::readClient()
     {
         quint32 areano;
         quint64 time;
-        char filename[128] = {0};
+        char filename[40] = {0};
         in >> areano >> time;
         in.readRawData(filename, sizeof(filename));
         respondRecord(areano, time, QString::fromLocal8Bit(filename));
@@ -72,11 +72,9 @@ void CmdSocket::readClient()
     }
     else if (requestType == CS_Delete) // 分区文件删除
     {
-        quint32 areano;
-        in >> areano;
-        char filename[128] = {0};
-        in.readRawData(filename, 128);
-        respondDelete(areano, filename);
+        quint32 areano, fileno;
+        in >> areano >> fileno;
+        respondDelete(areano, fileno);
     }
     else if (requestType == CS_Refresh) // 分区文件刷新
     {
@@ -91,7 +89,7 @@ void CmdSocket::readClient()
         quint64 time;
         in >> areano >> filesize >> time;
 
-        char filename[128] = {0};
+        char filename[40] = {0};
         in.readRawData(filename, sizeof(filename));
 
         respondImport(areano, filesize, QDateTime::fromMSecsSinceEpoch(time), filename);
@@ -101,7 +99,7 @@ void CmdSocket::readClient()
         quint32 areano;
         in >> areano;
 
-        char filename[128] = {0};
+        char filename[40] = {0};
         in.readRawData(filename, sizeof(filename));
 
         float startpos, filesize;
@@ -122,7 +120,7 @@ void CmdSocket::respondImport(quint32 areano, float filesize, QDateTime time, ch
     QDataStream out(&block, QIODevice::WriteOnly);
     out.setVersion(QDataStream::Qt_5_5);
     out << quint32(SC_Import) << areano;
-    out.writeRawData(filename, 128);
+    out.writeRawData(filename, 40);
     quint32 result = 0/*qrand() % 3*/; // 0x00 成功 0x01 资源不足 0x02 其它
     out << result;
     write(block);
@@ -141,16 +139,15 @@ void CmdSocket::respondCheckSelf()
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
     out.setVersion(QDataStream::Qt_5_5);
-    out << quint32(SC_CheckSelf); // 类型码
+    out << quint32(SC_CheckSelf) << quint32(5*100); // 类型码
     for (int nIndex = 0; nIndex < 5; ++nIndex)
     {
-        QString sDir = QString("D:/HostMachine/%0").arg(nIndex);
+        QString sDir = QString("%0/%1").arg(qApp->applicationDirPath()).arg(nIndex);
         QDir dir(sDir);
         dir.setNameFilters(filter);
         QList<QFileInfo> fileInfo(dir.entryInfoList(filter, QDir::Files));
 
-        out << quint32(nIndex) // 分区号
-            << quint32(100) // 分区大小
+        out << quint32(100) // 分区大小
             << quint32(qrand() % 100)  // 分区未使用大小
             << quint32(fileInfo.count())  // 分区文件个数
             << quint32(qrand() % 3);  // 分区状态
@@ -222,11 +219,11 @@ void CmdSocket::respondTaskStop(quint32 areano, quint32 tasktype)
     });
 }
 
-void CmdSocket::respondDelete(quint32 areano, char* filename)
+void CmdSocket::respondDelete(quint32 areano, quint32 fileno)
 {
-    QString sFileName = QString::fromLocal8Bit(filename);
-    QString sFileFullPath = QString("%0/%1/%2").arg(qApp->applicationDirPath()).arg(areano).arg(sFileName);
-    bool bOk = QFile::remove(sFileFullPath);
+    // QString sFileName = QString::fromLocal8Bit(filename);
+    // QString sFileFullPath = QString("%0/%1/%2").arg(qApp->applicationDirPath()).arg(areano).arg(sFileName);
+    bool bOk = true/*QFile::remove(sFileFullPath)*/;
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
     out.setVersion(QDataStream::Qt_5_5);
@@ -243,17 +240,17 @@ void CmdSocket::respondRefresh(quint32 areano, quint32 fileno, quint32 filenum)
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
     out.setVersion(QDataStream::Qt_5_5);
-    out << quint32(SC_Refresh) << areano << fileno << fileInfos.count(); // 0x00 成功 0x01 失败 其它 保留
+    out << quint32(SC_Refresh) << areano << fileInfos.count(); // 0x00 成功 0x01 失败 其它 保留
     int nIndex = 1;
     foreach(QFileInfo fileInfo, fileInfos)
     {
-        char filename[128] = {0};
+        char filename[40] = {0};
         QString sFileName = fileInfo.fileName();
         QByteArray ba = fileInfo.fileName().toLocal8Bit();
         strncpy(filename, ba.data(), sizeof(filename));
 
         out.writeRawData(filename, sizeof(filename));
-        out << fileInfo.created().toMSecsSinceEpoch() << quint32(nIndex++) << quint64(fileInfo.size());
+        out << fileInfo.created().toMSecsSinceEpoch() << quint32(nIndex++) << quint32(fileInfo.size());
     }
     write(block);
 }

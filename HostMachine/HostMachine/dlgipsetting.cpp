@@ -23,6 +23,7 @@ DlgIPSetting::DlgIPSetting(QWidget *parent)
 
     QLabel* label = new QLabel(qApp->translate(c_sDlgIPSetting, c_sIPSetting), this);
     m_pIPAddr = new IPAddrLineEdit(this);
+    // m_pIPAddr->settext("192.168.0.2");
     m_pIPAddr->settext("127.0.0.1");
 
     label->setGeometry(50, 50, 50, 20);

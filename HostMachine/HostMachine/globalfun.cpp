@@ -11,10 +11,10 @@ CGlobalFun::~CGlobalFun(void)
 {
 }
 
-QString CGlobalFun::formatSize(qint64 oldBytes)
+void CGlobalFun::formatSize(qint64 oldBytes, qint64& newBytes, QString& sUnit)
 {
-    float newBytes= oldBytes;
-    QString sUnit = "B";
+    newBytes= oldBytes;
+    sUnit = "B";
 
     if (oldBytes / c_mSizeMax > 0)
     {
@@ -31,7 +31,13 @@ QString CGlobalFun::formatSize(qint64 oldBytes)
         newBytes = oldBytes / (float)c_bSizeMax;
         sUnit = "KB";
     }
+}
 
+QString CGlobalFun::formatSize(qint64 oldBytes)
+{
+    qint64 newBytes = 0;
+    QString sUnit = "";
+    formatSize(oldBytes, newBytes, sUnit);
     return QString("%0 %1").arg(newBytes).arg(sUnit);
 }
 

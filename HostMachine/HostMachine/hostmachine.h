@@ -10,6 +10,55 @@ using namespace std;
 
 class QtProperty;
 class QElapsedTimer;
+class QtGroupPropertyManager;
+class QtStringPropertyManager;
+class QtDoublePropertyManager;
+class QtIntPropertyManager;
+class QtEnumPropertyManager;
+class DecoratedDoublePropertyManager;
+
+class QTableWidget;
+class QTabWidget;
+class QSplitter;
+class QtTreePropertyBrowser;
+class QLabel;
+class QTcpSocket;
+class CMWFileList;
+class QFile;
+class CDataSocket;
+
+// 分区属性
+struct tagAreaProperty
+{
+    QtProperty *pItem1, *pItem2, *pItem3, *pItem4, *pItem5;
+    tagAreaProperty()
+    {
+    }
+};
+
+// 通道属性
+struct tagChannelProperty
+{
+    QtProperty *pItem1, *pItem2, *pItem3;
+    tagChannelProperty()
+    {
+    }
+};
+
+// 界面显示：磁盘控制面板
+struct tagAreaProperties
+{
+    shared_ptr<tagAreaProperty> ldProperty1;    // 原始数据分区
+    shared_ptr<tagAreaProperty> ldProperty2;    // 雷达结果分区
+    shared_ptr<tagAreaProperty> gdProperty1;    // 光电图片分区
+    shared_ptr<tagAreaProperty> gdProperty2;    // 光电视频分区
+    shared_ptr<tagAreaProperty> hhProperty;     // 混合数据分区
+    shared_ptr<tagChannelProperty> channelProperty; // 参数信息
+
+    tagAreaProperties()
+    {
+    }
+};
 
 // 任务查询应答-任务信息
 struct tagTaskInfo
@@ -24,7 +73,6 @@ struct tagTaskInfo
 
     tagTaskInfo()
     {
-
     }
 };
 
@@ -39,13 +87,11 @@ struct tagAreaInfo
 
     tagAreaInfo()
     {
-
     }
 
     void read(QDataStream& in)
     {
-        in >> area
-            >> areasize
+        in >> areasize
             >> areaunuse
             >> areafilenum
             >> areastate;
@@ -63,7 +109,6 @@ struct tagChannelInfo
 
     tagChannelInfo()
     {
-
     }
 
     void read(QDataStream& in)
@@ -81,54 +126,10 @@ struct tagCheckSelf
 {
     shared_ptr<tagAreaInfo> areaInfo0, areaInfo1, areaInfo2, areaInfo3, areaInfo4;
     shared_ptr<tagChannelInfo> channelInfo;
+    quint32 totalsize;
 
     tagCheckSelf()
     {
-
-    }
-};
-
-// 分区属性
-struct tagAreaProperty
-{
-    QtProperty* pItem1;
-    QtProperty* pItem2;
-    QtProperty* pItem3;
-    QtProperty* pItem4;
-    QtProperty* pItem5;
-
-    tagAreaProperty()
-    {
-
-    }
-};
-
-// 通道属性
-struct tagChannelProperty
-{
-    QtProperty* pItem1;
-    QtProperty* pItem2;
-    QtProperty* pItem3;
-
-    tagChannelProperty()
-    {
-
-    }
-};
-
-// 界面显示：磁盘控制面板
-struct tagAreaProperties
-{
-    shared_ptr<tagAreaProperty> ldProperty1;    // 原始数据分区
-    shared_ptr<tagAreaProperty> ldProperty2;    // 雷达结果分区
-    shared_ptr<tagAreaProperty> gdProperty1;    // 光电图片分区
-    shared_ptr<tagAreaProperty> gdProperty2;    // 光电视频分区
-    shared_ptr<tagAreaProperty> hhProperty;     // 混合数据分区
-    shared_ptr<tagChannelProperty> channelProperty; // 参数信息
-
-    tagAreaProperties()
-    {
-
     }
 };
 
@@ -138,26 +139,9 @@ struct tagExportParam
     float startPos, fileSize;
     tagExportParam()
     {
-
     }
 };
 
-class QtGroupPropertyManager;
-class QtStringPropertyManager;
-class QtDoublePropertyManager;
-class QtIntPropertyManager;
-class QtEnumPropertyManager;
-class DecoratedDoublePropertyManager;
-
-class QTableWidget;
-class QTabWidget;
-class QSplitter;
-class QtTreePropertyBrowser;
-class QLabel;
-class QTcpSocket;
-class CMWFileList;
-class QFile;
-class CDataSocket;
 class HostMachine : public QMainWindow
 {
     Q_OBJECT
@@ -220,7 +204,6 @@ public:
 
 private:
     void initUI();
-    void initTcp();
     void initLayout();
     void initConnect();
     void initData();
@@ -239,49 +222,49 @@ private:
     void readRecord(quint32 area, quint32 state);
 
 private:
-    tagAreaProperties       m_areaProperties;
-    shared_ptr<tagCheckSelf> m_spcheckSelf;
-    shared_ptr<TaskType>    m_spTaskType;
-    QString                 m_sAddr;
-    QList<shared_ptr<tagExportParam>> m_lstExportParam;
-    QList<shared_ptr<tagTaskInfo>> m_lstTaskInfo;
+    shared_ptr<tagAreaProperties>       m_spAreaProperties;
+    shared_ptr<tagCheckSelf>            m_spcheckSelf;
+    shared_ptr<TaskType>                m_spTaskType;
+    shared_ptr<tagAreaFileInfos>        m_spFileInfos;
+    QString                             m_sAddr;
+    QList<shared_ptr<tagExportParam>>   m_lstExportParam;
+    QList<shared_ptr<tagTaskInfo>>      m_lstTaskInfo;
 
 private:
-    QAction                 *m_pActCheckSelf;   // 自检
-    QAction                 *m_pActFormat;      // 格式化
-    QAction                 *m_pActIPSetting;   // IP设置
-    QAction                 *m_pActSystemConfig;//系统设置
-    QAction                 *m_pActAbout;       // 关于
-    QMenu                   *m_pMenuSystemControl;
+    QAction                             *m_pActCheckSelf;       // 自检
+    QAction                             *m_pActFormat;          // 格式化
+    QAction                             *m_pActIPSetting;       // IP设置
+    QAction                             *m_pActSystemConfig;    //系统设置
+    QAction                             *m_pActAbout;           // 关于
+    QMenu                               *m_pMenuSystemControl;
 
-    QTcpSocket              *m_pCmdSocket;      // 命令Socket
-    CDataSocket             *m_pDataSocket;     // 数据Socket
+    QTcpSocket                          *m_pCmdSocket;          // 命令Socket
+    CDataSocket                         *m_pDataSocket;         // 数据Socket
 
-    CMWFileList             *m_pLDOriginalWgt;  // 雷达原始数据分区
-    CMWFileList             *m_pLDResultWgt;    // 雷达结果数据分区
-    CMWFileList             *m_pGDImgWgt;       // 光电图片分区
-    CMWFileList             *m_pGDVidioWgt;     // 光电视频分区
-    CMWFileList             *m_pHHDataWgt;      // 混合数据分区
+    CMWFileList                         *m_pLDOriginalWgt;      // 雷达原始数据分区
+    CMWFileList                         *m_pLDResultWgt;        // 雷达结果数据分区
+    CMWFileList                         *m_pGDImgWgt;           // 光电图片分区
+    CMWFileList                         *m_pGDVidioWgt;         // 光电视频分区
+    CMWFileList                         *m_pHHDataWgt;          // 混合数据分区
 
-    QTableWidget            *m_pTaskWgt;        // 任务列表框
-    QElapsedTimer           *m_pElapsedTimer;
-    quint64                 m_nInterval;
+    QTableWidget                        *m_pTaskWgt;            // 任务列表框
+    QElapsedTimer                       *m_pElapsedTimer;
+    quint64                             m_nInterval;
 
-    QtTreePropertyBrowser   *m_pPropertyWgt;   // 磁盘控制面板
+    QtTreePropertyBrowser               *m_pPropertyWgt;        // 磁盘控制面板
 
-    QTabWidget              *m_pTabWgt;
-    QSplitter               *m_pSplitter;
-    QLabel                  *m_pIPLabel;        // 状态
-    QLabel                  *m_pCmdLabel;       // 状态
-    QLabel                  *m_pDataLabel;      // 状态
-    QFile                   *m_pLog;
+    QTabWidget                          *m_pTabWgt;
+    QSplitter                           *m_pSplitter;
+    QLabel                              *m_pIPLabel;            // 状态
+    QLabel                              *m_pCmdLabel;           // 状态
+    QLabel                              *m_pDataLabel;          // 状态
+    QFile                               *m_pLog;
 
-    QtGroupPropertyManager  *m_groupManager;
-    QtStringPropertyManager *m_stringManager;
-    QtDoublePropertyManager *m_doubleManager;
-    DecoratedDoublePropertyManager *m_ddoubleManager;
-    QtIntPropertyManager    *m_intManager;
-    QtEnumPropertyManager   *m_enumManager;
+    QtGroupPropertyManager              *m_groupManager;
+    QtStringPropertyManager             *m_stringManager;
+    DecoratedDoublePropertyManager      *m_doubleManager;
+    QtIntPropertyManager                *m_intManager;
+    QtEnumPropertyManager               *m_enumManager;
 };
 
 #endif // HOSTMACHINE_H
