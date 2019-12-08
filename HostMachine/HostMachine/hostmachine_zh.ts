@@ -719,13 +719,15 @@
     </message>
     <message>
         <location filename="hostmachine.cpp" line="123"/>
-        <source>连接</source>
-        <translation>连接</translation>
+        <source>已连接</source>
+        <oldsource>连接</oldsource>
+        <translation>已连接</translation>
     </message>
     <message>
         <location filename="hostmachine.cpp" line="126"/>
-        <source>选择</source>
-        <translation>选择</translation>
+        <source>已选择</source>
+        <oldsource>选择</oldsource>
+        <translation>已选择</translation>
     </message>
     <message>
         <location filename="hostmachine.cpp" line="127"/>
@@ -778,7 +780,7 @@
         <translation type="vanished">导入失败！</translation>
     </message>
     <message>
-        <location filename="hostmachine.cpp" line="897"/>
+        <location filename="hostmachine.cpp" line="945"/>
         <source>导出失败！</source>
         <translation>导出失败！</translation>
     </message>

@@ -120,10 +120,10 @@ static const char *c_sAreaState3 = QT_TRANSLATE_NOOP("HostMachine", "读写");
 
 // 通道状态
 static const char *c_sChannelState0 = QT_TRANSLATE_NOOP("HostMachine", "未连接");
-static const char *c_sChannelState1 = QT_TRANSLATE_NOOP("HostMachine", "连接");
+static const char *c_sChannelState1 = QT_TRANSLATE_NOOP("HostMachine", "已连接");
 
 // 通道选择
-static const char *c_sChannelChoice0 = QT_TRANSLATE_NOOP("HostMachine", "选择");
+static const char *c_sChannelChoice0 = QT_TRANSLATE_NOOP("HostMachine", "已选择");
 static const char *c_sChannelChoice1 = QT_TRANSLATE_NOOP("HostMachine", "未选择");
 
 // 格式化结果
@@ -369,16 +369,6 @@ void HostMachine::initPropertyWgt()
         << qApp->translate(c_sHostMachine, c_sAreaState2)
         << qApp->translate(c_sHostMachine, c_sAreaState3);
 
-    QStringList enumChannelstate;
-    enumChannelstate << "" 
-        << qApp->translate(c_sHostMachine, c_sChannelState0)
-        << qApp->translate(c_sHostMachine, c_sChannelState1);
-
-    QStringList enumChannelchoice;
-    enumChannelchoice << "" 
-        << qApp->translate(c_sHostMachine, c_sChannelChoice0)
-        << qApp->translate(c_sHostMachine, c_sChannelChoice1);
-
     QStringList enumChannelWidth;
     enumChannelWidth << "" << "1.25G" << "2G" << "2.5G" << "3.125G" << "5G" << "6.25G";
 
@@ -390,16 +380,14 @@ void HostMachine::initPropertyWgt()
         QtProperty *topItem = m_groupManager->addProperty(qApp->translate(c_sHostMachine, c_sPropertyGroup1_6));
         m_pPropertyWgt->addProperty(topItem);
 
-        QtProperty *item = m_enumManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_6));
+        QtProperty *item = m_stringManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_6));
         channelProperty->pItem1 = item;
-        m_enumManager->setEnumNames(item, enumChannelstate);
-        m_enumManager->setValue(item, 0);
+        m_stringManager->setValue(item, "");
         topItem->addSubProperty(item);
 
-        item = m_enumManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_7));
+        item = m_stringManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_7));
         channelProperty->pItem2 = item;
-        m_enumManager->setEnumNames(item, enumChannelchoice);
-        m_enumManager->setValue(item, 0);
+        m_stringManager->setValue(item, "");
         topItem->addSubProperty(item);
 
         item = m_enumManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_8));
@@ -1740,8 +1728,67 @@ void HostMachine::readCheckSelf()
     updatevalue(m_spAreaProperties->gdProperty2, m_spcheckSelf->areaInfo3);
     updatevalue(m_spAreaProperties->hhProperty, m_spcheckSelf->areaInfo4);
 
-    m_enumManager->setValue(m_spAreaProperties->channelProperty->pItem1, m_spcheckSelf->channelInfo->state + 1);
-    m_enumManager->setValue(m_spAreaProperties->channelProperty->pItem2, m_spcheckSelf->channelInfo->choice + 1);
+    // 通道状态
+    QString sChannelState = "";
+    if (m_spcheckSelf->channelInfo->state & 0x01)
+        sChannelState = "1";
+    if (m_spcheckSelf->channelInfo->state & 0x02)
+        sChannelState = (sChannelState == "") ? "2" : (sChannelState + "/2");
+    if (m_spcheckSelf->channelInfo->state & 0x04)
+        sChannelState = (sChannelState == "") ? "3" : (sChannelState + "/3");
+    if (m_spcheckSelf->channelInfo->state & 0x08)
+        sChannelState = (sChannelState == "") ? "4" : (sChannelState + "/4");
+    if (m_spcheckSelf->channelInfo->state & 0x10)
+        sChannelState = (sChannelState == "") ? "5" : (sChannelState + "/5");
+    if (m_spcheckSelf->channelInfo->state & 0x20)
+        sChannelState = (sChannelState == "") ? "6" : (sChannelState + "/6");
+    if (m_spcheckSelf->channelInfo->state & 0x40)
+        sChannelState = (sChannelState == "") ? "7" : (sChannelState + "/7");
+    if (m_spcheckSelf->channelInfo->state & 0x80)
+        sChannelState = (sChannelState == "") ? "8" : (sChannelState + "/8");
+    if (sChannelState != "")
+    {
+        sChannelState.append(" ");
+        sChannelState.append(qApp->translate(c_sHostMachine, c_sChannelState1));
+    }
+    else
+    {
+        sChannelState.append(qApp->translate(c_sHostMachine, c_sChannelState0));
+    }
+
+    m_stringManager->setValue(m_spAreaProperties->channelProperty->pItem1, sChannelState);
+
+    // 通道选择
+    QString sChannelChoice = "";
+    if (m_spcheckSelf->channelInfo->choice & 0x01)
+        sChannelChoice = "1";
+    if (m_spcheckSelf->channelInfo->choice & 0x02)
+        sChannelChoice = (sChannelChoice == "") ? "2" : (sChannelChoice + "/2");
+    if (m_spcheckSelf->channelInfo->choice & 0x04)
+        sChannelChoice = (sChannelChoice == "") ? "3" : (sChannelChoice + "/3");
+    if (m_spcheckSelf->channelInfo->choice & 0x08)
+        sChannelChoice = (sChannelChoice == "") ? "4" : (sChannelChoice + "/4");
+    if (m_spcheckSelf->channelInfo->choice & 0x10)
+        sChannelChoice = (sChannelChoice == "") ? "5" : (sChannelChoice + "/5");
+    if (m_spcheckSelf->channelInfo->choice & 0x20)
+        sChannelChoice = (sChannelChoice == "") ? "6" : (sChannelChoice + "/6");
+    if (m_spcheckSelf->channelInfo->choice & 0x40)
+        sChannelChoice = (sChannelChoice == "") ? "7" : (sChannelChoice + "/7");
+    if (m_spcheckSelf->channelInfo->choice & 0x80)
+        sChannelChoice = (sChannelChoice == "") ? "8" : (sChannelChoice + "/8");
+    if (sChannelChoice != "")
+    {
+        sChannelChoice.append(" ");
+        sChannelChoice.append(qApp->translate(c_sHostMachine, c_sChannelChoice0));
+    }
+    else
+    {
+        sChannelChoice.append(qApp->translate(c_sHostMachine, c_sChannelChoice1));
+    }
+
+    m_stringManager->setValue(m_spAreaProperties->channelProperty->pItem2, sChannelChoice);
+
+    // 通道带宽
     m_enumManager->setValue(m_spAreaProperties->channelProperty->pItem3, m_spcheckSelf->channelInfo->bandwidth + 1);
 }
 
