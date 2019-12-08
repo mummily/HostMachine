@@ -79,31 +79,25 @@ void DataSocket::respondImport(QByteArray buf)
 void DataSocket::slotExport()
 {
     QString fileFullPath = QString("%0/%1/%2").arg(qApp->applicationDirPath()).arg(areaNo).arg(sFileName);
+    QFileInfo fileInfo = fileFullPath;
+    fileSize = qMin(fileSize, fileInfo.size() - startPos);
+
     QFile file;
     file.setFileName(fileFullPath);
     if (!file.open(QIODevice::ReadOnly))
-        return;
-
-    QFileInfo fileInfo = fileFullPath;
-    fileSize = qMin(fileSize, fileInfo.size() - startPos);
-    QString sHeader = QString("%0##%1##%2").arg(areaNo).arg(fileInfo.fileName()).arg(fileSize);
-    qint64 len = write(sHeader.toLocal8Bit());
-    waitForReadyRead();
-    if (len == -1)
         return;
     SCOPE_EXIT { file.close(); };
 
     file.seek(startPos);
 
     qint64 bufferLen = 0;
-    do
+    while (bufferLen < fileSize)
     {
         char buffer[4 * 1024] = {0};
         qint64 len = file.read(buffer, sizeof(buffer));
         len = write(buffer, len);
         bufferLen += len;
-
-    } while (bufferLen < fileSize);
+    }
 
     waitForReadyRead();
 }

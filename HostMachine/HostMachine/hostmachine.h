@@ -136,7 +136,8 @@ struct tagCheckSelf
 struct tagExportParam
 {
     qint32 rowNo;
-    float startPos, fileSize;
+    qint32 startPos, fileSize;
+    QString filePath;
     tagExportParam()
     {
     }

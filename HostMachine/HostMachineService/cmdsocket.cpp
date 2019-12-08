@@ -96,16 +96,10 @@ void CmdSocket::readClient()
     }
     else if (requestType == CS_Export) // 导出
     {
-        quint32 areano;
-        in >> areano;
+        quint32 areano, fileno, startpos, filesize;
+        in >> areano >> fileno >> startpos >> filesize;
 
-        char filename[40] = {0};
-        in.readRawData(filename, sizeof(filename));
-
-        float startpos, filesize;
-        in >> startpos >> filesize;
-
-        respondExport(areano, filename, startpos, filesize);
+        respondExport(areano, fileno, startpos, filesize);
     }
     else if (requestType == CS_TaskQuery) // 任务查询
     {
@@ -255,7 +249,7 @@ void CmdSocket::respondRefresh(quint32 areano, quint32 fileno, quint32 filenum)
     write(block);
 }
 
-void CmdSocket::respondExport(quint32 areano, char* filename, float startpos, float filesize)
+void CmdSocket::respondExport(quint32 areano, quint32 fileno, quint32 startpos, quint32 filesize)
 {
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
@@ -268,7 +262,7 @@ void CmdSocket::respondExport(quint32 areano, char* filename, float startpos, fl
     if (result == 0x00)
     {
         CSocketManager::getInstance()->dataSocket()->areaNo = areano;
-        CSocketManager::getInstance()->dataSocket()->sFileName = QString::fromLocal8Bit(filename);
+        CSocketManager::getInstance()->dataSocket()->sFileName = QString::number(fileno) + ".dat";
         CSocketManager::getInstance()->dataSocket()->startPos = startpos * 1024;
         CSocketManager::getInstance()->dataSocket()->fileSize = filesize * 1024;
 

@@ -13,7 +13,7 @@ public:
     ~CDataSocket();
 
 public:
-    void initData();
+    void preExport(qint32 areaNo, QString filePath, qint64 fileSize);
 
 signals:
     // 导入
@@ -33,7 +33,6 @@ public slots:
 
 private:
     void respondExport(QByteArray buf);
-
 public:
     QFile   m_file;             // 文件
     bool    m_bStart;           // 是否开始
@@ -43,9 +42,6 @@ public:
     qint32 areano;              // 导入文件所在的分区
     QStringList importFileList; // 导入文件
     QString sIPAddr;            // IP
-
-    // 导出参数
-    QString exportFilePath;     // 导出到的本地路径
 };
 
 #endif // DATASOCKET_H

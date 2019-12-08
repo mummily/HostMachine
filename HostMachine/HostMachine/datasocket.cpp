@@ -17,7 +17,6 @@ CDataSocket::CDataSocket(QObject *parent)
     : QTcpSocket(parent)
 {
     connect(this, SIGNAL(siglogRecord(QString)), parent, SLOT(slotLogRecord(QString)));
-    initData();
 }
 
 CDataSocket::~CDataSocket()
@@ -96,56 +95,39 @@ void CDataSocket::readyRead()
 
 void CDataSocket::respondExport(QByteArray buf)
 {
-    if (m_bStart)
+    qint64 len = m_file.write(buf);
+    m_bufferSize += len;
+
+    bool bComplete = false;
+    if (m_bufferSize >= m_fileSize)
+        bComplete = true;
+
+    if(!bComplete)
     {
-        m_bStart = false;
-
-        QString sBuf = QString::fromLocal8Bit(buf);
-        areano = sBuf.section("##", 0, 0).toInt();
-        QString fileName = sBuf.section("##", 1, 1);
-        QString filePath = QString("%0/%1_%2").arg(exportFilePath).arg(areano).arg(fileName);
-
-        m_file.setFileName(filePath);
-        m_file.open(QIODevice::WriteOnly);
-
-        m_fileSize = (qint64)sBuf.section("##", 2, 2).toLong();
-
-        write("Completed!");
-
         QFileInfo fileInfo = m_file.fileName();
-        emit exportStart(areano, fileInfo.fileName(), 0, m_fileSize);
+        emit exportUpdate(areano, fileInfo.fileName(), m_bufferSize, m_fileSize);
     }
     else
     {
-        qint64 len = m_file.write(buf);
-        m_bufferSize += len;
+        m_file.close();
+        write("Completed!");
 
-        bool bComplete = false;
-        if (m_bufferSize >= m_fileSize)
-            bComplete = true;
+        QFileInfo fileInfo = m_file.fileName();
+        emit exportCompleted(areano, fileInfo.fileName(), m_bufferSize, m_fileSize);
 
-        if(!bComplete)
-        {
-            QFileInfo fileInfo = m_file.fileName();
-            emit exportUpdate(areano, fileInfo.fileName(), m_bufferSize, m_fileSize);
-        }
-        else
-        {
-            m_file.close();
-            write("Completed!");
-
-            QFileInfo fileInfo = m_file.fileName();
-            emit exportCompleted(areano, fileInfo.fileName(), m_bufferSize, m_fileSize);
-
-            m_bStart = true;
-            m_bufferSize = 0;
-        }
+        m_bufferSize = 0;
     }
 }
 
-void CDataSocket::initData()
+void CDataSocket::preExport(qint32 areaNo, QString filePath, qint64 fileSize)
 {
-    m_bStart = true;
-    m_fileSize = 0;
+    areano = areaNo;
+    m_file.setFileName(filePath);
+    m_file.open(QIODevice::WriteOnly);
+
+    m_fileSize = fileSize;
     m_bufferSize = 0;
+
+    QFileInfo fileInfo = m_file.fileName();
+    emit exportStart(areano, fileInfo.fileName(), 0, m_fileSize);
 }

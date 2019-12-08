@@ -958,7 +958,8 @@ void HostMachine::readyReadCmd()
         }
         else
         {
-            m_pDataSocket->initData();
+            shared_ptr<tagExportParam> spExportParam = m_lstExportParam.first();
+            m_pDataSocket->preExport(m_pTabWgt->currentIndex(), spExportParam->filePath, (spExportParam->fileSize - spExportParam->startPos) * c_bSizeMax);
         }
     }
 }
@@ -1429,11 +1430,13 @@ void HostMachine::slotExport()
         if (QDialog::Accepted != dlg.exec())
             return;
 
-        m_pDataSocket->exportFilePath = dlg.ExportPath();
         shared_ptr<tagExportParam> spExportParam = make_shared<tagExportParam>();
         spExportParam->rowNo = *rowNos.begin();
         spExportParam->startPos = dlg.Startpos();
         spExportParam->fileSize = dlg.Exportsize();
+        spExportParam->filePath = QString("%0/%1.%2").arg(dlg.ExportPath())
+            .arg(pFileListWgt->item(*rowNos.begin(), 1)->text())
+            .arg(pFileListWgt->item(*rowNos.begin(), 4)->text());
 
         m_lstExportParam.push_back(spExportParam);
     }
@@ -1443,14 +1446,15 @@ void HostMachine::slotExport()
         if(sExportPath.isEmpty())
             return;
 
-        m_pDataSocket->exportFilePath = sExportPath;
-
         foreach (quint32 rowNo, rowNos)
         {
             shared_ptr<tagExportParam> spExportParam = make_shared<tagExportParam>();
             spExportParam->rowNo = rowNo;
             spExportParam->startPos = 0;
             spExportParam->fileSize = pFileListWgt->item(rowNo, 5)->text().toFloat();
+            spExportParam->filePath = QString("%0/%1.%2").arg(sExportPath)
+                .arg(pFileListWgt->item(*rowNos.begin(), 1)->text())
+                .arg(pFileListWgt->item(*rowNos.begin(), 4)->text());
 
             m_lstExportParam.push_back(spExportParam);
         }
@@ -1471,23 +1475,15 @@ void HostMachine::slotForeachExport()
         return;
 
     shared_ptr<tagExportParam> spExportParam = m_lstExportParam.first();
-    m_lstExportParam.pop_front();
 
     CMWFileList* pFileList = (CMWFileList*)m_pTabWgt->currentWidget();
     QTableWidget *pFileListWgt = pFileList->m_pFileListWgt;
-    QString sFileName = QString("%0.%1").arg(pFileListWgt->item(spExportParam->rowNo, 1)->text()) // 文件名称
-        .arg(pFileListWgt->item(spExportParam->rowNo, 4)->text());// 文件后缀
 
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
-    out << CS_Export << m_pTabWgt->currentIndex();
-
-    char filename[40] = {0};
-    QByteArray ba = sFileName.toLocal8Bit();
-    strncpy(filename, ba.data(), sizeof(filename));
-    out.writeRawData(filename, sizeof(filename));
-
-    out << spExportParam->startPos << spExportParam->fileSize;
+    out << CS_Export << (quint32)m_pTabWgt->currentIndex()
+        << (quint32)pFileListWgt->item(spExportParam->rowNo, 0)->text().toInt()
+        << spExportParam->startPos << spExportParam->fileSize;
 
     m_pCmdSocket->write(block);
 }
@@ -2138,10 +2134,12 @@ void HostMachine::slotExportCompleted(qint32 areano, QString fileName, float buf
             m_pTaskWgt->item(nRow, 8)->setText(qApp->translate(c_sHostMachine, c_sTaskState1));
             m_pTaskWgt->item(nRow, 9)->setText(CGlobalFun::formatElapsedTime(m_pElapsedTimer->elapsed()));
             m_pTaskWgt->viewport()->update();
+
             break;
         }
     }
 
+    m_lstExportParam.pop_front();
     if (m_lstExportParam.size() > 0)
         slotForeachExport();
 }
