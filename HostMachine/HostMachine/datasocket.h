@@ -37,7 +37,7 @@ private:
 public:
     QFile   m_file;             // 文件
     bool    m_bStart;           // 是否开始
-    float   m_fileSize, m_bufferSize;    // 文件大小，缓存大小
+    qint64  m_fileSize, m_bufferSize;    // 文件大小，缓存大小
 
     // 导入参数
     qint32 areano;              // 导入文件所在的分区

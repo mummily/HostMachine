@@ -339,7 +339,8 @@ void HostMachine::initTaskWgt()
         << qApp->translate(c_sHostMachine, c_sTaskHeader8)
         << qApp->translate(c_sHostMachine, c_sTaskHeader9)
         << qApp->translate(c_sHostMachine, c_sTaskHeader10)
-        << qApp->translate(c_sHostMachine, c_sTaskHeader11);
+        << qApp->translate(c_sHostMachine, c_sTaskHeader11)
+        << "";
 
     m_pTaskWgt->setShowGrid(false);
     m_pTaskWgt->setColumnCount(headerList.size());
@@ -1996,6 +1997,12 @@ void HostMachine::slotImportStart(qint32 areano, QString fileName, float buffer,
     m_pTaskWgt->setItem(m_pTaskWgt->rowCount() - 1, 7, new QTableWidgetItem(""));
     m_pTaskWgt->setItem(m_pTaskWgt->rowCount() - 1, 8, new QTableWidgetItem(""));
     m_pTaskWgt->setItem(m_pTaskWgt->rowCount() - 1, 9, new QTableWidgetItem("0"));
+    QPushButton *pushButton = new QPushButton(qApp->translate(c_sHostMachine, c_sStop), this);
+    connect(pushButton, &QPushButton::clicked, [&](){
+#pragma message("HostMachine::slotExportStart 导入停止")
+    });
+    m_pTaskWgt->setCellWidget(m_pTaskWgt->rowCount() - 1, 10, pushButton);
+
     m_pTaskWgt->viewport()->update();
     m_pElapsedTimer->restart();
     m_nInterval = c_uProgressBarUpdateInterval;
@@ -2058,6 +2065,7 @@ void HostMachine::slotImportCompleted(qint32 areano, QString fileName, float buf
             m_pTaskWgt->item(nRow, 7)->setText(sSpeed);
             m_pTaskWgt->item(nRow, 8)->setText(qApp->translate(c_sHostMachine, c_sTaskState1));
             m_pTaskWgt->item(nRow, 9)->setText(CGlobalFun::formatElapsedTime(m_pElapsedTimer->elapsed()));
+            m_pTaskWgt->cellWidget(nRow, 10)->setEnabled(false);
             m_pTaskWgt->viewport()->update();
             break;
         }
@@ -2127,6 +2135,11 @@ void HostMachine::slotExportStart(qint32 areano, QString fileName, float buffer,
     m_pTaskWgt->setItem(m_pTaskWgt->rowCount() - 1, 7, new QTableWidgetItem(""));
     m_pTaskWgt->setItem(m_pTaskWgt->rowCount() - 1, 8, new QTableWidgetItem(""));
     m_pTaskWgt->setItem(m_pTaskWgt->rowCount() - 1, 9, new QTableWidgetItem("0"));
+    QPushButton *pushButton = new QPushButton(qApp->translate(c_sHostMachine, c_sStop), this);
+    connect(pushButton, &QPushButton::clicked, [&](){
+#pragma message("HostMachine::slotExportStart 导出停止")
+    });
+    m_pTaskWgt->setCellWidget(m_pTaskWgt->rowCount() - 1, 10, pushButton);
     m_pTaskWgt->viewport()->update();
     m_pElapsedTimer->restart();
     m_nInterval = c_uProgressBarUpdateInterval;
@@ -2189,6 +2202,7 @@ void HostMachine::slotExportCompleted(qint32 areano, QString fileName, float buf
             m_pTaskWgt->item(nRow, 7)->setText(sSpeed);
             m_pTaskWgt->item(nRow, 8)->setText(qApp->translate(c_sHostMachine, c_sTaskState1));
             m_pTaskWgt->item(nRow, 9)->setText(CGlobalFun::formatElapsedTime(m_pElapsedTimer->elapsed()));
+            m_pTaskWgt->cellWidget(nRow, 10)->setEnabled(false);
             m_pTaskWgt->viewport()->update();
 
             break;
