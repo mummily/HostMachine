@@ -9,6 +9,7 @@ using namespace std;
 const quint16 c_uCommandPort = 9000;
 const quint16 c_uDataPort = 9001;
 const int c_uRefreshFileNum = 8;
+const int c_uProgressBarUpdateInterval = 100;
 
 const int c_bSizeMax = 1024;
 const int c_kSizeMax = c_bSizeMax * 1024;

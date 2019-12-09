@@ -10,6 +10,7 @@
 #include "datasocket.h"
 #include "SocketManager.h"
 #include "TaskStoper.h"
+#include "..\HostMachine\globalfun.h"
 
 CmdSocket::CmdSocket(QObject *parent)
     : QTcpSocket(parent)
@@ -92,7 +93,7 @@ void CmdSocket::readClient()
         char filename[40] = {0};
         in.readRawData(filename, sizeof(filename));
 
-        respondImport(areano, filesize, QDateTime::fromMSecsSinceEpoch(time), filename);
+        respondImport(areano, filesize, CGlobalFun::Int2Dt(time), filename);
     }
     else if (requestType == CS_Export) // µ¼³ö
     {
@@ -176,7 +177,7 @@ void CmdSocket::respondSystemConfig(quint32 choice, quint32 setting)
 
 void CmdSocket::respondRecord(quint32 areano, quint64 time, QString filename)
 {
-    QDateTime datetime = QDateTime::fromMSecsSinceEpoch(time);
+    QDateTime datetime = CGlobalFun::Int2Dt(time);
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
     out.setVersion(QDataStream::Qt_5_5);
@@ -244,7 +245,7 @@ void CmdSocket::respondRefresh(quint32 areano, quint32 fileno, quint32 filenum)
         strncpy(filename, ba.data(), sizeof(filename));
 
         out.writeRawData(filename, sizeof(filename));
-        out << fileInfo.created().toMSecsSinceEpoch() << quint32(nIndex++) << quint32(fileInfo.size());
+        out << CGlobalFun::Dt2Int(fileInfo.created()) << quint32(nIndex++) << quint32(fileInfo.size());
     }
     write(block);
 }

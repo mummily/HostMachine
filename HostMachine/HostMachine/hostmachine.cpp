@@ -877,7 +877,7 @@ void HostMachine::readyReadCmd()
             shared_ptr<tagAreaFileInfo> spFileInfo = make_shared<tagAreaFileInfo>();
             spFileInfo->sFileName = QString::fromLocal8Bit(filename);
 
-            spFileInfo->datetime = QDateTime::fromMSecsSinceEpoch(datetime);
+            spFileInfo->datetime = CGlobalFun::Int2Dt(datetime);
 
             spFileInfo->fileno = fileno;
             spFileInfo->filesize = filesize;
@@ -947,7 +947,9 @@ void HostMachine::readyReadCmd()
         else
         {
             shared_ptr<tagExportParam> spExportParam = m_lstExportParam.first();
-            m_pDataSocket->preExport(m_pTabWgt->currentIndex(), spExportParam->filePath, (spExportParam->fileSize - spExportParam->startPos) * c_bSizeMax);
+            qint64 filesize = spExportParam->fileSize - spExportParam->startPos;
+            filesize *= c_bSizeMax;
+            m_pDataSocket->preExport(m_pTabWgt->currentIndex(), spExportParam->filePath, filesize);
         }
     }
 }
@@ -1220,7 +1222,7 @@ void HostMachine::slotRecord()
         QByteArray block;
         QDataStream out(&block, QIODevice::WriteOnly);
 
-        quint64 time = QDateTime::currentMSecsSinceEpoch();
+        quint64 time = CGlobalFun::Dt2Int(QDateTime::currentDateTime());
         out << CS_Record << areano << time;
 
         char filename[40] = {0};
@@ -1346,7 +1348,7 @@ void HostMachine::slotImport()
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
     out << CS_Import << m_pTabWgt->currentIndex() << filesize
-        << QDateTime::currentMSecsSinceEpoch();
+        << CGlobalFun::Dt2Int(QDateTime::currentDateTime());
 
     // ÎÄ¼þÃû
     QString sFileName = importFileList.first();
@@ -1990,7 +1992,7 @@ void HostMachine::slotImportStart(qint32 areano, QString fileName, float buffer,
     m_pTaskWgt->setItem(m_pTaskWgt->rowCount() - 1, 9, new QTableWidgetItem("0"));
     m_pTaskWgt->viewport()->update();
     m_pElapsedTimer->restart();
-    m_nInterval = 100;
+    m_nInterval = c_uProgressBarUpdateInterval;
 }
 
 /*****************************************************************************
@@ -2003,7 +2005,7 @@ void HostMachine::slotImportUpdate(qint32 areano, QString fileName, float buffer
 {
     if (m_pElapsedTimer->elapsed() / m_nInterval == 0)
         return;
-    m_nInterval += 100;
+    m_nInterval += c_uProgressBarUpdateInterval;
 
     CMWFileList* pWMFileList = (CMWFileList*)m_pTabWgt->widget(areano);
     pWMFileList->updateProcess(fileName, buffer, total);
@@ -2120,7 +2122,7 @@ void HostMachine::slotExportStart(qint32 areano, QString fileName, float buffer,
     m_pTaskWgt->setItem(m_pTaskWgt->rowCount() - 1, 9, new QTableWidgetItem("0"));
     m_pTaskWgt->viewport()->update();
     m_pElapsedTimer->restart();
-    m_nInterval = 100;
+    m_nInterval = c_uProgressBarUpdateInterval;
 }
 
 /*****************************************************************************
@@ -2133,7 +2135,7 @@ void HostMachine::slotExportUpdate(qint32 areano, QString fileName, float buffer
 {
     if (m_pElapsedTimer->elapsed() / m_nInterval == 0)
         return;
-    m_nInterval += 100;
+    m_nInterval += c_uProgressBarUpdateInterval;
 
     CMWFileList* pWMFileList = (CMWFileList*)m_pTabWgt->widget(areano);
     pWMFileList->updateProcess(fileName, buffer, total);

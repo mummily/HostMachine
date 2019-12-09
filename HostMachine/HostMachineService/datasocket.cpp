@@ -96,6 +96,7 @@ void DataSocket::slotExport()
         char buffer[4 * 1024] = {0};
         qint64 len = file.read(buffer, sizeof(buffer));
         len = write(buffer, len);
+        waitForBytesWritten();
         bufferLen += len;
     }
 

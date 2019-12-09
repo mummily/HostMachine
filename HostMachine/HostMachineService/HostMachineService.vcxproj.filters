@@ -71,6 +71,9 @@
     <ClCompile Include="TaskStoper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\HostMachine\globalfun.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="hostmachineserver.h">
@@ -91,6 +94,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="TaskStoper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\HostMachine\globalfun.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

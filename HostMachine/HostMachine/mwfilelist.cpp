@@ -243,8 +243,8 @@ void CMWFileList::updateProcess(QString fileName, float buffer, float total)
 {
     m_pProgressBar->show();
     m_pProgressBar->setMinimum(0);
-    m_pProgressBar->setMaximum(total);
-    m_pProgressBar->setValue(buffer);
+    m_pProgressBar->setMaximum(total > c_bSizeMax ? total / c_bSizeMax : total);
+    m_pProgressBar->setValue(buffer > c_bSizeMax ? buffer / c_bSizeMax : buffer);
 
     QString sFormat = QString("%0 -> %1/%2  %p%").arg(fileName).arg(CGlobalFun::formatSize(buffer)).arg(CGlobalFun::formatSize(total));
     m_pProgressBar->setFormat(sFormat);

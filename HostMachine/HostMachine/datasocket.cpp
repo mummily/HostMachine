@@ -65,6 +65,7 @@ void CDataSocket::slotImport()
             char buffer[c_bufferSize] = {0};
             qint64 len = file.read(buffer, sizeof(buffer));
             len = write(buffer, len);
+            waitForBytesWritten();
             bufferLen += len;
             if (bufferLen < fileSize)
                 emit importUpdate(areano, fileInfo.fileName(), bufferLen, fileSize);
