@@ -79,6 +79,7 @@ static const char *c_sPropertyGroup1_3 = QT_TRANSLATE_NOOP("HostMachine", "π‚µÁÕ
 static const char *c_sPropertyGroup1_4 = QT_TRANSLATE_NOOP("HostMachine", "π‚µÁ ”∆µ∑÷«¯");
 static const char *c_sPropertyGroup1_5 = QT_TRANSLATE_NOOP("HostMachine", "ªÏ∫œ ˝æ›∑÷«¯");
 static const char *c_sPropertyGroup1_6 = QT_TRANSLATE_NOOP("HostMachine", "≤Œ ˝–≈œ¢");
+static const char *c_sPropertyGroup1_7 = QT_TRANSLATE_NOOP("HostMachine", "∞Ê±æ∫≈");
 static const char *c_sProperty1_1 = QT_TRANSLATE_NOOP("HostMachine", "◊‹¥Û–°");
 static const char *c_sProperty1_2 = QT_TRANSLATE_NOOP("HostMachine", "“—”√¥Û–°");
 static const char *c_sProperty1_3 = QT_TRANSLATE_NOOP("HostMachine", "Œ¥”√∞Ÿ∑÷±»");
@@ -87,6 +88,8 @@ static const char *c_sProperty1_5 = QT_TRANSLATE_NOOP("HostMachine", "µ±«∞◊¥Ã¨")
 static const char *c_sProperty1_6 = QT_TRANSLATE_NOOP("HostMachine", "Õ®µ¿¡¨Ω”◊¥Ã¨");
 static const char *c_sProperty1_7 = QT_TRANSLATE_NOOP("HostMachine", "Õ®µ¿—°‘Ò◊¥Ã¨");
 static const char *c_sProperty1_8 = QT_TRANSLATE_NOOP("HostMachine", "Õ®µ¿¥¯øÌ");
+static const char *c_sProperty1_9 = QT_TRANSLATE_NOOP("HostMachine", "πÃº˛∞Ê±æ∫≈");
+static const char *c_sProperty1_10 = QT_TRANSLATE_NOOP("HostMachine", "FPGA∞Ê±æ∫≈");
 
 // »ŒŒÒ¡–±ÌøÚ
 static const char *c_sTaskHeader1 = QT_TRANSLATE_NOOP("HostMachine", "–Ú∫≈");
@@ -394,6 +397,24 @@ void HostMachine::initPropertyWgt()
         channelProperty->pItem3 = item;
         m_enumManager->setEnumNames(item, enumChannelWidth);
         m_enumManager->setValue(item, 0);
+        topItem->addSubProperty(item);
+    }
+    // ∞Ê±æ∫≈–≈œ¢
+    {
+        shared_ptr<tagVersionProperty> versionProperty = make_shared<tagVersionProperty>();
+        m_spAreaProperties->versionProperty = versionProperty;
+
+        QtProperty *topItem = m_groupManager->addProperty(qApp->translate(c_sHostMachine, c_sPropertyGroup1_7));
+        m_pPropertyWgt->addProperty(topItem);
+
+        QtProperty *item = m_stringManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_9));
+        versionProperty->pItem1 = item;
+        m_stringManager->setValue(item, "");
+        topItem->addSubProperty(item);
+
+        item = m_stringManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_10));
+        versionProperty->pItem2 = item;
+        m_stringManager->setValue(item, "");
         topItem->addSubProperty(item);
     }
     // ‘≠ º ˝æ›∑÷«¯
@@ -734,15 +755,13 @@ void HostMachine::readyReadCmd()
             m_spcheckSelf->areaInfo4 = make_shared<tagAreaInfo>();
         m_spcheckSelf->areaInfo4->read(in);
 
-        m_spcheckSelf->areaInfo0->area = 0;
-        m_spcheckSelf->areaInfo1->area = 1;
-        m_spcheckSelf->areaInfo2->area = 2;
-        m_spcheckSelf->areaInfo3->area = 3;
-        m_spcheckSelf->areaInfo4->area = 4;
+        if (nullptr == m_spcheckSelf->channelInfo)
+            m_spcheckSelf->channelInfo = make_shared<tagChannelInfo>();
+        m_spcheckSelf->channelInfo->read(in);
 
-        shared_ptr<tagChannelInfo> channelInfo = make_shared<tagChannelInfo>();
-        channelInfo->read(in);
-        m_spcheckSelf->channelInfo = channelInfo;
+        if (nullptr == m_spcheckSelf->versionInfo)
+            m_spcheckSelf->versionInfo = make_shared<tagVersionInfo>();
+        m_spcheckSelf->versionInfo->read(in);
 
         while(!in.atEnd())
         {
@@ -1731,23 +1750,7 @@ void HostMachine::readCheckSelf()
     updatevalue(m_spAreaProperties->hhProperty, m_spcheckSelf->areaInfo4);
 
     // Õ®µ¿◊¥Ã¨
-    QString sChannelState = "";
-    if (m_spcheckSelf->channelInfo->state & 0x01)
-        sChannelState = "1";
-    if (m_spcheckSelf->channelInfo->state & 0x02)
-        sChannelState = (sChannelState == "") ? "2" : (sChannelState + "/2");
-    if (m_spcheckSelf->channelInfo->state & 0x04)
-        sChannelState = (sChannelState == "") ? "3" : (sChannelState + "/3");
-    if (m_spcheckSelf->channelInfo->state & 0x08)
-        sChannelState = (sChannelState == "") ? "4" : (sChannelState + "/4");
-    if (m_spcheckSelf->channelInfo->state & 0x10)
-        sChannelState = (sChannelState == "") ? "5" : (sChannelState + "/5");
-    if (m_spcheckSelf->channelInfo->state & 0x20)
-        sChannelState = (sChannelState == "") ? "6" : (sChannelState + "/6");
-    if (m_spcheckSelf->channelInfo->state & 0x40)
-        sChannelState = (sChannelState == "") ? "7" : (sChannelState + "/7");
-    if (m_spcheckSelf->channelInfo->state & 0x80)
-        sChannelState = (sChannelState == "") ? "8" : (sChannelState + "/8");
+    QString sChannelState = CGlobalFun::formatChannel(m_spcheckSelf->channelInfo->state);
     if (sChannelState != "")
     {
         sChannelState.append(" ");
@@ -1761,23 +1764,7 @@ void HostMachine::readCheckSelf()
     m_stringManager->setValue(m_spAreaProperties->channelProperty->pItem1, sChannelState);
 
     // Õ®µ¿—°‘Ò
-    QString sChannelChoice = "";
-    if (m_spcheckSelf->channelInfo->choice & 0x01)
-        sChannelChoice = "1";
-    if (m_spcheckSelf->channelInfo->choice & 0x02)
-        sChannelChoice = (sChannelChoice == "") ? "2" : (sChannelChoice + "/2");
-    if (m_spcheckSelf->channelInfo->choice & 0x04)
-        sChannelChoice = (sChannelChoice == "") ? "3" : (sChannelChoice + "/3");
-    if (m_spcheckSelf->channelInfo->choice & 0x08)
-        sChannelChoice = (sChannelChoice == "") ? "4" : (sChannelChoice + "/4");
-    if (m_spcheckSelf->channelInfo->choice & 0x10)
-        sChannelChoice = (sChannelChoice == "") ? "5" : (sChannelChoice + "/5");
-    if (m_spcheckSelf->channelInfo->choice & 0x20)
-        sChannelChoice = (sChannelChoice == "") ? "6" : (sChannelChoice + "/6");
-    if (m_spcheckSelf->channelInfo->choice & 0x40)
-        sChannelChoice = (sChannelChoice == "") ? "7" : (sChannelChoice + "/7");
-    if (m_spcheckSelf->channelInfo->choice & 0x80)
-        sChannelChoice = (sChannelChoice == "") ? "8" : (sChannelChoice + "/8");
+    QString sChannelChoice = CGlobalFun::formatChannel(m_spcheckSelf->channelInfo->choice);
     if (sChannelChoice != "")
     {
         sChannelChoice.append(" ");
@@ -1792,6 +1779,10 @@ void HostMachine::readCheckSelf()
 
     // Õ®µ¿¥¯øÌ
     m_enumManager->setValue(m_spAreaProperties->channelProperty->pItem3, m_spcheckSelf->channelInfo->bandwidth + 1);
+
+    // ∞Ê±æ∫≈
+    m_stringManager->setValue(m_spAreaProperties->versionProperty->pItem1, CGlobalFun::formatVersionNo(m_spcheckSelf->versionInfo->hardversion));
+    m_stringManager->setValue(m_spAreaProperties->versionProperty->pItem2, CGlobalFun::formatVersionNo(m_spcheckSelf->versionInfo->fpgaversion));
 }
 
 /*****************************************************************************
@@ -1920,6 +1911,7 @@ void HostMachine::slotTabChanged(int index)
     {
         QString sItemText = pBrowserItem->property()->propertyName();
         if (sItemText == qApp->translate(c_sHostMachine, c_sPropertyGroup1_6)
+            || sItemText == qApp->translate(c_sHostMachine, c_sPropertyGroup1_7)
             || sItemText == sTabText)
         {
             m_pPropertyWgt->setExpanded(pBrowserItem, true);

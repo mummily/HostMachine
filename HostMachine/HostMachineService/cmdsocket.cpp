@@ -151,8 +151,8 @@ void CmdSocket::respondCheckSelf()
     out << quint32(0xEE)   // 通道状态
         << quint32(0xFF)   // 通道选择
         << quint32(qrand() % 5)   // 带宽
-        << quint32(0)   // 固件版本号
-        << quint32(0);  // FPGA版本号
+        << quint32(0x00020304)   // 固件版本号
+        << quint32(0x00040302);  // FPGA版本号
 
     write(block);
 }

@@ -11,6 +11,12 @@ CGlobalFun::~CGlobalFun(void)
 {
 }
 
+/**************************************************
+*功能       :   转换文件大小
+*创建者     :   wb
+*创建日期   :   2019.12.09
+*描述       :   
+***************************************************/
 void CGlobalFun::formatSize(qint64 oldBytes, qint64& newBytes, QString& sUnit)
 {
     newBytes= oldBytes;
@@ -33,6 +39,12 @@ void CGlobalFun::formatSize(qint64 oldBytes, qint64& newBytes, QString& sUnit)
     }
 }
 
+/**************************************************
+*功能       :   转换文件大小
+*创建者     :   wb
+*创建日期   :   2019.12.09
+*描述       :   
+***************************************************/
 QString CGlobalFun::formatSize(qint64 oldBytes)
 {
     qint64 newBytes = 0;
@@ -41,6 +53,12 @@ QString CGlobalFun::formatSize(qint64 oldBytes)
     return QString("%0 %1").arg(newBytes).arg(sUnit);
 }
 
+/**************************************************
+*功能       :   转换用时
+*创建者     :   wb
+*创建日期   :   2019.12.09
+*描述       :   
+***************************************************/
 QString CGlobalFun::formatElapsedTime(qint64 elapsed)
 {
     qint64 newElapsed = elapsed;
@@ -60,13 +78,19 @@ QString CGlobalFun::formatElapsedTime(qint64 elapsed)
     return QString("%0 min %1 s %2 ms").arg(newElapsed).arg(second).arg(msecond);
 }
 
+/**************************************************
+*功能       :   时间格式转换
+*创建者     :   wb
+*创建日期   :   2019.12.09
+*描述       :   
+***************************************************/
 qint64 CGlobalFun::Dt2Int(QDateTime dt)
 {
     qint64 datetime = 0x00;
+
     qint64 year = dt.date().year() - 2000;
     qint64 month = dt.date().month();
     qint64 day = dt.date().day();
-
     qint64 hour = dt.time().hour();
     qint64 minute = dt.time().minute();
     qint64 second = dt.time().second();
@@ -81,15 +105,21 @@ qint64 CGlobalFun::Dt2Int(QDateTime dt)
     return datetime;
 }
 
+/**************************************************
+*功能       :   时间格式转换
+*创建者     :   wb
+*创建日期   :   2019.12.09
+*描述       :   
+***************************************************/
 QDateTime CGlobalFun::Int2Dt(qint64 datetime)
 {
-    QString sDateTime = "20";
+    QString sDateTime = "";
     // year
     {
         qint64 year  = datetime;
         year = year << 8*1;
         year = year >> 8*7;
-        sDateTime += QString::number(year);
+        sDateTime = QString::number(2000 + year);
     }
     // month
     {
@@ -133,4 +163,70 @@ QDateTime CGlobalFun::Int2Dt(qint64 datetime)
     }
 
     return QDateTime::fromString(sDateTime, "yyyy-MM-dd hh:mm:ss");
+}
+
+/**************************************************
+*功能       :   版本号
+*创建者     :   wb
+*创建日期   :   2019.12.09
+*描述       :   
+***************************************************/
+QString CGlobalFun::formatVersionNo(qint32 versionNo)
+{
+    QString sVersionNo = "";
+
+    // major
+    {
+        qint32 major  = versionNo;
+        major  = major << 8*1;
+        major  = major >> 8*3;
+        sVersionNo = QString::number(major);
+    }
+    // middle
+    {
+        qint32 middle  = versionNo;
+        middle  = middle << 8*2;
+        middle  = middle >> 8*3;
+        sVersionNo += ".";
+        sVersionNo += QString::number(middle);
+    }
+    // minor
+    {
+        qint32 minor  = versionNo;
+        minor  = minor << 8*3;
+        minor  = minor >> 8*3;
+        sVersionNo += ".";
+        sVersionNo += QString::number(minor);
+    }
+
+    return sVersionNo;
+}
+
+/**************************************************
+*功能       :   通道
+*创建者     :   wb
+*创建日期   :   2019.12.09
+*描述       :   
+***************************************************/
+QString CGlobalFun::formatChannel(qint32 channel)
+{
+    QString sChannel = "";
+    if (channel & 0x01)
+        sChannel = "1";
+    if (channel & 0x02)
+        sChannel = (sChannel == "") ? "2" : (sChannel + "/2");
+    if (channel & 0x04)
+        sChannel = (sChannel == "") ? "3" : (sChannel + "/3");
+    if (channel & 0x08)
+        sChannel = (sChannel == "") ? "4" : (sChannel + "/4");
+    if (channel & 0x10)
+        sChannel = (sChannel == "") ? "5" : (sChannel + "/5");
+    if (channel & 0x20)
+        sChannel = (sChannel == "") ? "6" : (sChannel + "/6");
+    if (channel & 0x40)
+        sChannel = (sChannel == "") ? "7" : (sChannel + "/7");
+    if (channel & 0x80)
+        sChannel = (sChannel == "") ? "8" : (sChannel + "/8");
+
+    return sChannel;
 }

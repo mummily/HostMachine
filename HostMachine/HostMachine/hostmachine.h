@@ -45,6 +45,15 @@ struct tagChannelProperty
     }
 };
 
+// 版本号属性
+struct tagVersionProperty
+{
+    QtProperty *pItem1, *pItem2;
+    tagVersionProperty()
+    {
+    }
+};
+
 // 界面显示：磁盘控制面板
 struct tagAreaProperties
 {
@@ -54,6 +63,7 @@ struct tagAreaProperties
     shared_ptr<tagAreaProperty> gdProperty2;    // 光电视频分区
     shared_ptr<tagAreaProperty> hhProperty;     // 混合数据分区
     shared_ptr<tagChannelProperty> channelProperty; // 参数信息
+    shared_ptr<tagVersionProperty> versionProperty; // 版本号信息
 
     tagAreaProperties()
     {
@@ -79,7 +89,6 @@ struct tagTaskInfo
 // 分区信息
 struct tagAreaInfo
 {
-    quint32 area;
     quint32 areasize;
     quint32 areaunuse;
     quint32 areafilenum;
@@ -115,8 +124,23 @@ struct tagChannelInfo
     {
         in>> state
             >> choice
-            >> bandwidth
-            >> hardversion
+            >> bandwidth;
+    }
+};
+
+// 版本号信息
+struct tagVersionInfo
+{
+    quint32 hardversion;
+    quint32 fpgaversion;
+
+    tagVersionInfo()
+    {
+    }
+
+    void read(QDataStream& in)
+    {
+        in>> hardversion
             >> fpgaversion;
     }
 };
@@ -126,6 +150,7 @@ struct tagCheckSelf
 {
     shared_ptr<tagAreaInfo> areaInfo0, areaInfo1, areaInfo2, areaInfo3, areaInfo4;
     shared_ptr<tagChannelInfo> channelInfo;
+    shared_ptr<tagVersionInfo> versionInfo;
     quint32 totalsize;
 
     tagCheckSelf()
