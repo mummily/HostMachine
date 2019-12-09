@@ -159,6 +159,16 @@ struct tagCheckSelf
     }
 };
 
+struct tagImportParam
+{
+    qint32 areano;
+    QString filePath;
+    tagImportParam(qint32 _areano, QString _filePath)
+        : areano(_areano), filePath(_filePath)
+    {
+    }
+};
+
 struct tagExportParam
 {
     qint32 rowNo;
@@ -208,6 +218,7 @@ public:
         void slotPlayBack();
         // 导入
         void slotImport();
+        void slotForeachImport();
         // 导出
         void slotExport();
         void slotForeachExport();
@@ -257,6 +268,7 @@ private:
     shared_ptr<tagAreaFileInfos>        m_spFileInfos;
     QString                             m_sAddr;
     QList<shared_ptr<tagExportParam>>   m_lstExportParam;
+    QList<shared_ptr<tagImportParam>>   m_lstImportParam;
     QList<shared_ptr<tagTaskInfo>>      m_lstTaskInfo;
 
 private:

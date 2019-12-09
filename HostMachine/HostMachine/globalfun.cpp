@@ -113,56 +113,37 @@ qint64 CGlobalFun::Dt2Int(QDateTime dt)
 ***************************************************/
 QDateTime CGlobalFun::Int2Dt(qint64 datetime)
 {
-    QString sDateTime = "";
     // year
-    {
-        qint64 year  = datetime;
-        year = year << 8*1;
-        year = year >> 8*7;
-        sDateTime = QString::number(2000 + year);
-    }
-    // month
-    {
-        qint64 month  = datetime;
-        month  = month << 8*2;
-        month  = month >> 8*7;
-        sDateTime += "-";
-        sDateTime += QString::number(month);
-    }
-    // day
-    {
-        qint64 day  = datetime;
-        day  = day << 8*3;
-        day  = day >> 8*7;
-        sDateTime += "-";
-        sDateTime += QString::number(day);
-    }
-    // hour
-    {
-        qint64 hour  = datetime;
-        hour  = hour << 8*4;
-        hour  = hour >> 8*7;
-        sDateTime += " ";
-        sDateTime += QString::number(hour);
-    }
-    // minute
-    {
-        qint64 minute  = datetime;
-        minute  = minute << 8*5;
-        minute  = minute >> 8*7;
-        sDateTime += ":";
-        sDateTime += QString::number(minute);
-    }
-    // second
-    {
-        qint64 second  = datetime;
-        second  = second << 8*6;
-        second  = second >> 8*7;
-        sDateTime += ":";
-        sDateTime += QString::number(second);
-    }
+    qint64 year  = datetime;
+    year = year << 8*1;
+    year = year >> 8*7;
 
-    return QDateTime::fromString(sDateTime, "yyyy-MM-dd hh:mm:ss");
+    // month
+    qint64 month  = datetime;
+    month  = month << 8*2;
+    month  = month >> 8*7;
+
+    // day
+    qint64 day  = datetime;
+    day  = day << 8*3;
+    day  = day >> 8*7;
+
+    // hour
+    qint64 hour  = datetime;
+    hour  = hour << 8*4;
+    hour  = hour >> 8*7;
+
+    // minute
+    qint64 minute  = datetime;
+    minute  = minute << 8*5;
+    minute  = minute >> 8*7;
+
+    // second
+    qint64 second  = datetime;
+    second  = second << 8*6;
+    second  = second >> 8*7;
+
+    return QDateTime(QDate(2000 + year, month, day), QTime(hour, minute, second));
 }
 
 /**************************************************

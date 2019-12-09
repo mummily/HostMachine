@@ -22,7 +22,7 @@ public:
 
 public:
     void initData();
-
+    void preImport(qint32 areaNo, QString fileName, qint64 fileSize);
 private slots:
     void readClient();
     void slotExport();

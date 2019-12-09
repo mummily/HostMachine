@@ -10,6 +10,7 @@
 #include "SocketManager.h"
 #include "..\HostMachine\taskcommon.h"
 #include "..\HostMachine\globalfun.h"
+#include "..\HostMachine\common.h"
 
 CmdSocket::CmdSocket(QObject *parent)
     : QTcpSocket(parent)
@@ -127,7 +128,7 @@ void CmdSocket::respondImport(quint32 areano, float filesize, QDateTime time, ch
 
     if (result == 0x00)
     {
-        CSocketManager::getInstance()->dataSocket()->initData();
+        CSocketManager::getInstance()->dataSocket()->preImport(areano, QString::fromLocal8Bit(filename), filesize * c_bSizeMax);
     }
 }
 

@@ -38,46 +38,26 @@ void CDataSocket::slotImport()
         }
     }
 
-    foreach(QString sFileName, importFileList)
+    QFileInfo fileInfo = m_file.fileName();
+    QString fileName = fileInfo.fileName();
+
+    qint64 bufferLen = 0;
+    do
     {
-        QFile file;
-        file.setFileName(sFileName);
-        if (!file.open(QIODevice::ReadOnly))
-        {
-            QString sInfo = QString(qApp->translate(c_sDataSocket, c_sOpenFileError)).arg(sFileName);
-            emit siglogRecord(sInfo);
-            continue;
-        }
+        char buffer[c_bufferSize] = {0};
+        qint64 len = m_file.read(buffer, sizeof(buffer));
+        len = write(buffer, len);
+        waitForBytesWritten();
+        bufferLen += len;
+        if (bufferLen < m_fileSize)
+            emit importUpdate(areano, fileName, bufferLen, m_fileSize);
+        else
+            break;
+    } while (true);
+    
+    m_file.close();
 
-        QFileInfo fileInfo = sFileName;
-        qint64 fileSize = fileInfo.size();
-        QString sHeader = QString("%0##%1##%2").arg(areano).arg(fileInfo.fileName()).arg(fileSize);
-        qint64 len = write(sHeader.toLocal8Bit());
-        if (len == -1)
-            return;
-        waitForReadyRead();
-
-        SCOPE_EXIT { file.close(); };
-
-        emit importStart(areano, fileInfo.fileName(), 0, fileSize);
-        qint64 bufferLen = 0;
-        do
-        {
-            char buffer[c_bufferSize] = {0};
-            qint64 len = file.read(buffer, sizeof(buffer));
-            len = write(buffer, len);
-            waitForBytesWritten();
-            bufferLen += len;
-            if (bufferLen < fileSize)
-                emit importUpdate(areano, fileInfo.fileName(), bufferLen, fileSize);
-            else
-                break;
-        } while (true);
-
-        waitForReadyRead();
-
-        emit importCompleted(areano, fileInfo.fileName(), bufferLen, fileSize);
-    }
+    emit importCompleted(areano, fileName, bufferLen, m_fileSize);
 }
 
 void CDataSocket::readyRead()
@@ -132,4 +112,25 @@ void CDataSocket::preExport(qint32 areaNo, QString filePath, qint64 fileSize)
 
     QFileInfo fileInfo = m_file.fileName();
     emit exportStart(areano, fileInfo.fileName(), 0, m_fileSize);
+}
+
+bool CDataSocket::preImport(qint32 areaNo, QString filePath)
+{
+    areano = areaNo;
+    m_bufferSize = 0;
+    
+    m_file.setFileName(filePath);
+    if (!m_file.open(QIODevice::ReadOnly))
+    {
+        QString sInfo = QString(qApp->translate(c_sDataSocket, c_sOpenFileError)).arg(filePath);
+        emit siglogRecord(sInfo);
+        return false;
+    }
+
+    QFileInfo fileInfo = filePath;
+    m_fileSize = fileInfo.size();
+
+    emit importStart(areano, fileInfo.fileName(), 0, m_fileSize);
+
+    return true;
 }

@@ -14,6 +14,7 @@ public:
 
 public:
     void preExport(qint32 areaNo, QString filePath, qint64 fileSize);
+    bool preImport(qint32 areaNo, QString filePath);
 
 signals:
     // 导入
@@ -40,7 +41,6 @@ public:
 
     // 导入参数
     qint32 areano;              // 导入文件所在的分区
-    QStringList importFileList; // 导入文件
     QString sIPAddr;            // IP
 };
 

@@ -939,10 +939,6 @@ void HostMachine::readyReadCmd()
         {
             QTimer::singleShot(10, m_pDataSocket, SLOT(slotImport()));
         }
-        else
-        {
-            m_pDataSocket->importFileList.clear();
-        }
     }
     else if (respondType == SC_Export)
     {
@@ -1352,18 +1348,30 @@ void HostMachine::slotImport()
     if (importFileList.isEmpty())
         return;
 
-    m_pDataSocket->areano = m_pTabWgt->currentIndex();
-    m_pDataSocket->importFileList = importFileList;
-
-    // 文件大小
-    float filesize = 0;
-    foreach(QString sImportFile, importFileList)
+    m_lstImportParam.clear();
+    foreach (QString filePath, importFileList)
     {
-        QFileInfo info(sImportFile);
-        filesize += info.size();
+        m_lstImportParam.push_back(make_shared<tagImportParam>(m_pTabWgt->currentIndex(), filePath));
     }
 
-    filesize = filesize / c_bSizeMax; // LBA
+    slotForeachImport();
+}
+
+void HostMachine::slotForeachImport()
+{
+    if (m_lstImportParam.isEmpty())
+        return;
+
+    shared_ptr<tagImportParam> spImportParam = m_lstImportParam.first();
+    m_lstImportParam.pop_front();
+
+    bool bOk = m_pDataSocket->preImport(spImportParam->areano, spImportParam->filePath);
+    if (!bOk)
+        return;
+
+    // 文件大小
+    QFileInfo fileInfo(spImportParam->filePath);
+    float filesize = fileInfo.size() / c_bSizeMax; // LBA
 
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
@@ -1371,9 +1379,8 @@ void HostMachine::slotImport()
         << CGlobalFun::Dt2Int(QDateTime::currentDateTime());
 
     // 文件名
-    QString sFileName = importFileList.first();
     char filename[40] = {0};
-    QByteArray ba = sFileName.toLocal8Bit();
+    QByteArray ba = fileInfo.fileName().toLocal8Bit();
     strncpy(filename, ba.data(), sizeof(filename));
     out.writeRawData(filename, sizeof(filename));
 
@@ -1485,6 +1492,7 @@ void HostMachine::slotForeachExport()
         return;
 
     shared_ptr<tagExportParam> spExportParam = m_lstExportParam.first();
+    m_lstExportParam.pop_front();
 
     CMWFileList* pFileList = (CMWFileList*)m_pTabWgt->currentWidget();
     QTableWidget *pFileListWgt = pFileList->m_pFileListWgt;
@@ -2056,6 +2064,7 @@ void HostMachine::slotImportCompleted(qint32 areano, QString fileName, float buf
     }
 
     reallyRefresh();
+    slotForeachImport();
 }
 
 /*****************************************************************************
@@ -2186,7 +2195,5 @@ void HostMachine::slotExportCompleted(qint32 areano, QString fileName, float buf
         }
     }
 
-    m_lstExportParam.pop_front();
-    if (m_lstExportParam.size() > 0)
-        slotForeachExport();
+    slotForeachExport();
 }

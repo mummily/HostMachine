@@ -2,7 +2,7 @@
 #include <QPushButton>
 #include "hostmachineserver.h"
 #include "QHostAddress"
-#include "common.h"
+#include "../HostMachine/taskcommon.h"
 
 int main(int argc, char *argv[])
 {

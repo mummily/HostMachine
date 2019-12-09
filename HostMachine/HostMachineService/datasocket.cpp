@@ -42,37 +42,13 @@ void DataSocket::readClient()
 
 void DataSocket::respondImport(QByteArray buf)
 {
-    if (m_bStart)
+    qint64 len = m_file.write(buf);
+    m_blockSize += len;
+
+    if (m_blockSize >= m_fileSize)
     {
-        m_bStart = false;
-
-        QString sBuf = QString::fromLocal8Bit(buf);
-        int areNo = sBuf.section("##", 0, 0).toInt();
-        QString fileName = sBuf.section("##", 1, 1);
-        QString filePath = QString("%0/%1/").arg(qApp->applicationDirPath()).arg(areNo);
-        QDir().mkdir(filePath);
-        filePath += fileName;
-
-        m_file.setFileName(filePath);
-        m_file.open(QIODevice::WriteOnly);
-
-        m_fileSize = sBuf.section("##", 2, 2).toInt();
-
-        write("Completed!");
-    }
-    else
-    {
-        qint64 len = m_file.write(buf);
-        m_blockSize += len;
-
-        if (m_blockSize == m_fileSize)
-        {
-            m_file.close();
-            m_bStart = true;
-            m_blockSize = 0;
-
-            write("Completed!");
-        }
+        m_file.close();
+        m_blockSize = 0;
     }
 }
 
@@ -108,4 +84,18 @@ void DataSocket::initData()
     m_blockSize = 0;
     m_fileSize = 0;
     m_bStart = true;
+}
+
+void DataSocket::preImport(qint32 areaNo, QString fileName, qint64 fileSize)
+{
+    initData();
+
+    QString filePath = QString("%0/%1/").arg(qApp->applicationDirPath()).arg(areaNo);
+    QDir().mkdir(filePath);
+    filePath += fileName;
+
+    m_file.setFileName(filePath);
+    m_file.open(QIODevice::WriteOnly);
+
+    m_fileSize = fileSize;
 }
