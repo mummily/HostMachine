@@ -15,7 +15,7 @@ enum RequestType
     CS_PlayBack = 0x31,     // 回放
     CS_Import = 0x41,       // 导入
     CS_Export = 0x51,       // 导出
-    // CS_Stop = 0x61,         // 停止
+    CS_Stop = 0x61,         // 分区停止
     CS_Delete = 0x71,       // 删除
     CS_Refresh = 0x81,      // 刷新
     CS_TaskQuery = 0x91,    // 任务查询
@@ -33,7 +33,7 @@ enum RespondType
     SC_PlayBack = 0x1031,       // 回放
     SC_Import = 0x1041,         // 导入
     SC_Export = 0x1051,         // 导出
-    // SC_Stop = 0x1061,           // 停止
+    SC_Stop = 0x1061,           // 分区停止
     SC_Delete = 0x1071,         // 删除
     SC_Refresh = 0x1081,        // 刷新
     SC_TaskQuery = 0x1091,      // 任务查询

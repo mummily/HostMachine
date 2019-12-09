@@ -68,9 +68,6 @@
     <ClCompile Include="SocketManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="TaskStoper.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\HostMachine\globalfun.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -87,13 +84,7 @@
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="common.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="SocketManager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="TaskStoper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\HostMachine\globalfun.h">

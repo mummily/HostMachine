@@ -5,7 +5,7 @@
 
 using namespace std;
 #include "common.h"
-#include "tasktype.h"
+#include "taskcommon.h"
 #include "QNetworkReply"
 
 class QtProperty;
@@ -26,6 +26,7 @@ class QTcpSocket;
 class CMWFileList;
 class QFile;
 class CDataSocket;
+class TaskStopType;
 
 // 分区属性
 struct tagAreaProperty
@@ -212,6 +213,8 @@ public:
         void slotForeachExport();
         // 停止
         void slotStop();
+        // 任务停止
+        void slotTaskStop(qint32 tasktype);
         // 删除
         void slotDelete();
         // 刷新
@@ -250,7 +253,7 @@ private:
 private:
     shared_ptr<tagAreaProperties>       m_spAreaProperties;
     shared_ptr<tagCheckSelf>            m_spcheckSelf;
-    shared_ptr<TaskType>                m_spTaskType;
+    shared_ptr<TaskStopType>            m_spTaskStopType;
     shared_ptr<tagAreaFileInfos>        m_spFileInfos;
     QString                             m_sAddr;
     QList<shared_ptr<tagExportParam>>   m_lstExportParam;

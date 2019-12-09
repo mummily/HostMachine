@@ -5,9 +5,9 @@
 #include <QApplication>
 #include "QThread"
 #include <QDir>
-#include "common.h"
 #include <QFile>
-#include "..\include\scopeguard.h"
+#include "..\HostMachine\taskcommon.h"
+#include "..\HostMachine\scopeguard.h"
 
 const QString c_sImportHead= "{2585E781-1C60-416E-9A18-CC7ACD2522AF}";
 const QString c_sExportHead= "{FFEE539A-6E91-4461-AD05-8B5F21CAF18D}";

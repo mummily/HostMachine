@@ -142,9 +142,6 @@
     <ClCompile Include="GeneratedFiles\Release\moc_mwfilelist.cpp">
       <Filter>Generated Files\Release</Filter>
     </ClCompile>
-    <ClCompile Include="tasktype.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="datasocket.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -155,6 +152,9 @@
       <Filter>Generated Files\Release</Filter>
     </ClCompile>
     <ClCompile Include="globalfun.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="taskstoptype.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -205,13 +205,16 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="tasktype.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="globalfun.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="common.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="taskstoptype.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="taskcommon.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

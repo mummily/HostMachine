@@ -6,7 +6,8 @@
 #include "scopeguard.h"
 #include "common.h"
 #include "globalfun.h"
-#include "..\HostMachineService\datasocket.h"
+#include "datasocket.h"
+#include "taskcommon.h"
 
 static const char *c_sDataSocket = "DataSocket";
 static const char *c_sTitle = QT_TRANSLATE_NOOP("DataSocket", "ÍøÂçÓ¦ÓÃÈí¼ş");

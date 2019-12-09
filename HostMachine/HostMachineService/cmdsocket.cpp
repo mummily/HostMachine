@@ -5,11 +5,10 @@
 #include <QApplication>
 #include "QThread"
 #include <QDir>
-#include "common.h"
 #include "QTimer"
 #include "datasocket.h"
 #include "SocketManager.h"
-#include "TaskStoper.h"
+#include "..\HostMachine\taskcommon.h"
 #include "..\HostMachine\globalfun.h"
 
 CmdSocket::CmdSocket(QObject *parent)
@@ -65,11 +64,17 @@ void CmdSocket::readClient()
         in >> data1 >> data2 >> data3 >> data4 >> data5 >> data6 >> data7;
         respondPlayBack(data1, data2, data3, data4, data5, data6, data7);
     }
+    else if (requestType == CS_Stop) // 任务停止
+    {
+        quint32 areano;
+        in >> areano;
+        respondStop(areano);
+    }
     else if (requestType == CS_TaskStop) // 任务停止
     {
-        quint32 areano, tasktype;
-        in >> areano >> tasktype;
-        respondTaskStop(areano, tasktype);
+        quint32 tasktype;
+        in >> tasktype;
+        respondTaskStop(tasktype);
     }
     else if (requestType == CS_Delete) // 分区文件删除
     {
@@ -195,23 +200,24 @@ void CmdSocket::respondPlayBack(quint32 data1, quint32 data2,
     write(block);
 }
 
-void CmdSocket::respondTaskStop(quint32 areano, quint32 tasktype)
+void CmdSocket::respondTaskStop(quint32 tasktype)
 {
-    CTaskStoper::getInstance()->setRequestType((RequestType)tasktype);
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out.setVersion(QDataStream::Qt_5_5);
 
-    QTimer::singleShot(10000, [&]()
-    {
-        QByteArray block;
-        QDataStream out(&block, QIODevice::WriteOnly);
-        out.setVersion(QDataStream::Qt_5_5);
+    out << quint32(SC_TaskStop) << tasktype << quint32(qrand() % 2); // 0x00 成功 0x01 失败 其它 保留
+    write(block);
+}
 
-        qint32 result = 0x00;
-        out << quint32(SC_TaskStop)
-            << CTaskStoper::getInstance()->getAreano()
-            << CTaskStoper::getInstance()->getRespondType()
-            << CTaskStoper::getInstance()->getResult(); // 0x00 成功 0x01 失败 其它 保留
-        write(block);
-    });
+void CmdSocket::respondStop(quint32 areano)
+{
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out.setVersion(QDataStream::Qt_5_5);
+
+    out << quint32(SC_Stop) << areano << quint32(qrand() % 2); // 0x00 成功 0x01 失败 其它 保留
+    write(block);
 }
 
 void CmdSocket::respondDelete(quint32 areano, quint32 fileno)

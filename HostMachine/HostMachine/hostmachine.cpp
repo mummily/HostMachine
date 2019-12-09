@@ -30,10 +30,11 @@
 #include "mwfilelist.h"
 #include "dlgarearecord.h"
 #include "dlgfileexport.h"
-#include "ScopeGuard.h"
+#include "scopeguard.h"
 #include "datasocket.h"
 #include "globalfun.h"
 #include "dlgfileplayblack.h"
+#include "taskstoptype.h"
 
 static const char *c_sHostMachine = "HostMachine";
 static const char *c_sTitle = QT_TRANSLATE_NOOP("HostMachine", "网络应用软件");
@@ -1498,13 +1499,24 @@ void HostMachine::slotForeachExport()
 }
 
 /*****************************************************************************
-* @brief   : 请求-停止
+* @brief   : 请求-任务停止
 * @author  : wb
 * @date    : 2019/10/28
 * @param:  : 
 *****************************************************************************/
-void HostMachine::slotStop()
+void HostMachine::slotTaskStop(qint32 tasktype)
 {
+    QMessageBox box(this);
+    box.setWindowTitle(qApp->translate(c_sHostMachine, c_sTitle));
+    box.setText(qApp->translate(c_sHostMachine, c_sIsStop));
+    box.setIcon(QMessageBox::Question);
+    box.addButton(qApp->translate(c_sHostMachine, c_sYes), QMessageBox::RejectRole);
+    box.addButton(qApp->translate(c_sHostMachine, c_sNo), QMessageBox::AcceptRole);
+    if (QMessageBox::AcceptRole != box.exec())
+    {
+        return;
+    }
+
     if (m_sAddr.isEmpty())
     {
         QMessageBox::information(this, qApp->translate(c_sHostMachine, c_sTitle),
@@ -1523,19 +1535,22 @@ void HostMachine::slotStop()
         }
     }
 
-    QList<QTableWidgetItem*> selectedItems = m_pTaskWgt->selectedItems();
-    QSet<quint32> rowNos;
-    foreach(QTableWidgetItem* pItem, selectedItems)
-    {
-        rowNos.insert(pItem->row());
-    }
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out << CS_TaskStop << tasktype;
 
-    if (rowNos.size() != 1)
-    {
-        QMessageBox::information(this, qApp->translate(c_sHostMachine, c_sTitle), qApp->translate(c_sHostMachine, c_sIsStopTip1));
-        return;
-    }
+    m_pCmdSocket->write(block);
+    m_pCmdSocket->waitForReadyRead();
+}
 
+/*****************************************************************************
+* @brief   : 请求-分区停止
+* @author  : wb
+* @date    : 2019/10/28
+* @param:  : 
+*****************************************************************************/
+void HostMachine::slotStop()
+{
     QMessageBox box(this);
     box.setWindowTitle(qApp->translate(c_sHostMachine, c_sTitle));
     box.setText(qApp->translate(c_sHostMachine, c_sIsStop));
@@ -1547,38 +1562,27 @@ void HostMachine::slotStop()
         return;
     }
 
-    if (m_pTaskWgt->item(*rowNos.begin(), 8)->text() != qApp->translate(c_sHostMachine, c_sTaskState0))
+    if (m_sAddr.isEmpty())
     {
-        QMessageBox::information(this, qApp->translate(c_sHostMachine, c_sTitle), qApp->translate(c_sHostMachine, c_sIsStopTip2));
+        QMessageBox::information(this, qApp->translate(c_sHostMachine, c_sTitle),
+            qApp->translate(c_sHostMachine, c_sIPSettingTip));
         return;
     }
 
-    quint32 tasktype = 0;
-    QString sTaskType = m_pTaskWgt->item(*rowNos.begin(), 1)->text();
-    if (sTaskType == qApp->translate(c_sHostMachine, c_sImport))
+    if (m_pCmdSocket->state() != QAbstractSocket::ConnectedState)
     {
-        tasktype = CS_Import;
-    }
-    else if (sTaskType == qApp->translate(c_sHostMachine, c_sExport))
-    {
-        tasktype = CS_Export;
-    }
-    else if (sTaskType == qApp->translate(c_sHostMachine, c_sRecord))
-    {
-        tasktype = CS_Record;
-    }
-    else if (sTaskType == qApp->translate(c_sHostMachine, c_sPlayBack))
-    {
-        tasktype = CS_PlayBack;
-    }
-    else
-    {
-        return;
+        m_pCmdSocket->connectToHost(QHostAddress(m_sAddr), c_uCommandPort);
+        if (!m_pCmdSocket->waitForConnected())
+        {
+            QMessageBox::information(this, qApp->translate(c_sHostMachine, c_sTitle),
+                qApp->translate(c_sHostMachine, c_sNetConnectError));
+            return;
+        }
     }
 
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
-    out << CS_TaskStop << m_pTabWgt->currentIndex() << tasktype;
+    out << CS_Stop << m_pTabWgt->currentIndex();
 
     m_pCmdSocket->write(block);
     m_pCmdSocket->waitForReadyRead();
@@ -1592,6 +1596,19 @@ void HostMachine::slotStop()
 *****************************************************************************/
 void HostMachine::slotDelete()
 {
+    // 是否删除
+    QMessageBox box(this);
+    box.setWindowTitle(qApp->translate(c_sHostMachine, c_sTitle));
+    box.setText(qApp->translate(c_sHostMachine, c_sIsDelete));
+    box.setIcon(QMessageBox::Question);
+    QPushButton *yesBtn = box.addButton(qApp->translate(c_sHostMachine, c_sYes), QMessageBox::YesRole);
+    QPushButton *noBtn = box.addButton(qApp->translate(c_sHostMachine, c_sNo), QMessageBox::NoRole);
+    box.setDefaultButton(yesBtn);
+    if (box.exec())
+    {
+        return;
+    }
+
     if (m_sAddr.isEmpty())
     {
         QMessageBox::information(this, qApp->translate(c_sHostMachine, c_sTitle),
@@ -1627,19 +1644,6 @@ void HostMachine::slotDelete()
     {
         QMessageBox::information(this, qApp->translate(c_sHostMachine, c_sTitle),
             qApp->translate(c_sHostMachine, c_sIsDeleteTip));
-        return;
-    }
-
-    // 是否删除
-    QMessageBox box(this);
-    box.setWindowTitle(qApp->translate(c_sHostMachine, c_sTitle));
-    box.setText(qApp->translate(c_sHostMachine, c_sIsDelete));
-    box.setIcon(QMessageBox::Question);
-    QPushButton *yesBtn = box.addButton(qApp->translate(c_sHostMachine, c_sYes), QMessageBox::YesRole);
-    QPushButton *noBtn = box.addButton(qApp->translate(c_sHostMachine, c_sNo), QMessageBox::NoRole);
-    box.setDefaultButton(yesBtn);
-    if (box.exec())
-    {
         return;
     }
 
@@ -1936,7 +1940,9 @@ void HostMachine::initData()
     m_spcheckSelf = make_shared<tagCheckSelf>();
     m_spFileInfos = make_shared<tagAreaFileInfos>();
     m_spAreaProperties = make_shared<tagAreaProperties>();
+    m_spTaskStopType = make_shared<TaskStopType>();
 
+    // 日志
     QString sLogFile = QString("%0/%1.log").arg(qApp->applicationDirPath()).arg(qApp->applicationName());
     QFileInfo info(sLogFile);
     if (info.size() / c_kSizeMax > 10) // 10M

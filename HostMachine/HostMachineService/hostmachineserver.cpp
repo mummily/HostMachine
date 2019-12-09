@@ -2,7 +2,7 @@
 #include "cmdsocket.h"
 #include "datasocket.h"
 #include "SocketManager.h"
-#include "common.h"
+#include "..\HostMachine\taskcommon.h"
 
 HostMachineServer::HostMachineServer(QObject *parent/* = 0*/)
     : QTcpServer(parent)

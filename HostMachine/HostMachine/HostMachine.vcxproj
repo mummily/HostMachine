@@ -163,7 +163,7 @@
     <ClCompile Include="ippartlineedit.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="mwfilelist.cpp" />
-    <ClCompile Include="tasktype.cpp" />
+    <ClCompile Include="taskstoptype.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="hostmachine.h">
@@ -208,7 +208,8 @@
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">"$(QTDIR)\bin\moc.exe"  "%(FullPath)" -o ".\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp"  -DUNICODE -DWIN32 -DWIN64 -DQT_DLL -DQT_NO_DEBUG -DNDEBUG -DQT_CORE_LIB -DQT_GUI_LIB -DQT_WIDGETS_LIB "-I.\GeneratedFiles" "-I." "-I$(QTDIR)\include" "-I.\GeneratedFiles\$(ConfigurationName)\." "-I$(QTDIR)\include\QtCore" "-I$(QTDIR)\include\QtGui" "-I$(QTDIR)\include\QtWidgets" "-I.\..\include"</Command>
     </CustomBuild>
     <ClInclude Include="globalfun.h" />
-    <ClInclude Include="tasktype.h" />
+    <ClInclude Include="taskcommon.h" />
+    <ClInclude Include="taskstoptype.h" />
     <CustomBuild Include="mwfilelist.h">
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Moc%27ing mwfilelist.h...</Message>
