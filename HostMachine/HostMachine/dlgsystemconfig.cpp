@@ -149,25 +149,56 @@ void DlgSystemConfig::initConnect()
 
 void DlgSystemConfig::slotOk()
 {
-    lstChannelChoice.clear();
-    if (m_checkBox1->isChecked())
-        lstChannelChoice.push_back(1);
-    if (m_checkBox2->isChecked())
-        lstChannelChoice.push_back(2);
-    if (m_checkBox3->isChecked())
-        lstChannelChoice.push_back(3);
-    if (m_checkBox4->isChecked())
-        lstChannelChoice.push_back(4);
-    if (m_checkBox5->isChecked())
-        lstChannelChoice.push_back(5);
-    if (m_checkBox6->isChecked())
-        lstChannelChoice.push_back(6);
-    if (m_checkBox7->isChecked())
-        lstChannelChoice.push_back(7);
-    if (m_checkBox8->isChecked())
-        lstChannelChoice.push_back(8);
-
     bandwidth = m_comboBox2->currentIndex();
+
+    switch (m_comboBox1->currentIndex())
+    {
+    case 0:
+        channelchoice = 0x00000001;
+        break;
+    case 1:
+        channelchoice = 0x00000002;
+        break;
+    case 2:
+        channelchoice = 0x00000004;
+        break;
+    case 3:
+        channelchoice = 0x00000008;
+        break;
+    case 4:
+        channelchoice = 0x00000010;
+        break;
+    case 5:
+        channelchoice = 0x00000020;
+        break;
+    case 6:
+        channelchoice = 0x00000040;
+        break;
+    case 7:
+        channelchoice = 0x00000080;
+        break;
+    case 8:
+        channelchoice = 0x00000003;
+        break;
+    case 9:
+        channelchoice = 0x0000000C;
+        break;
+    case 10:
+        channelchoice = 0x00000030;
+        break;
+    case 11:
+        channelchoice = 0x000000C0;
+        break;
+    case 12:
+        channelchoice = 0x0000000F;
+        break;
+    case 13:
+        channelchoice = 0x000000F0;
+        break;
+    case 14:
+        channelchoice = 0x000000FF;
+        break;
+    }
 
     accept();
 }

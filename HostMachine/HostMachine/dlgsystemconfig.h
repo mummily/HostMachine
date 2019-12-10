@@ -14,7 +14,7 @@ public:
     DlgSystemConfig(QWidget *parent = 0);
     ~DlgSystemConfig();
 
-    QList<quint32> ChannelChoice() const { return lstChannelChoice; }
+    quint32 Channelchoice() const { return channelchoice; }
     quint32 Bandwidth() const { return bandwidth; }
 
 private:
@@ -32,8 +32,8 @@ private:
     QCheckBox *m_checkBox1, *m_checkBox2, *m_checkBox3, *m_checkBox4,
         *m_checkBox5, *m_checkBox6, *m_checkBox7, *m_checkBox8;
 private:
-    QList<quint32> lstChannelChoice;
     quint32 bandwidth;
+    quint32 channelchoice;
 };
 
 #endif // DLGSYSTEMCONFIG_H

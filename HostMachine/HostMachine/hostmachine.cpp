@@ -1138,17 +1138,14 @@ void HostMachine::slotSystemConfig()
         return;
 
     quint32 bandwidth = dlg.Bandwidth();
-    QList<quint32> lstChannel = dlg.ChannelChoice();
+    quint32 channelchoice = dlg.Channelchoice();
 
-    foreach(quint32 channel, lstChannel)
-    {
-        QByteArray block;
-        QDataStream out(&block, QIODevice::WriteOnly);
-        out << CS_SystemConfig << channel << bandwidth;
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out << CS_SystemConfig << channelchoice << bandwidth;
 
-        m_pCmdSocket->write(block);
-        m_pCmdSocket->waitForReadyRead();
-    }
+    m_pCmdSocket->write(block);
+    m_pCmdSocket->waitForReadyRead();
 }
 
 /*****************************************************************************
