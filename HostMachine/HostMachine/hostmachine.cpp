@@ -318,6 +318,9 @@ void HostMachine::initConnect()
     connect(m_pDataSocket, SIGNAL(exportStart(qint32, QString, qint64, qint64)), this, SLOT(slotExportStart(qint32, QString, qint64, qint64)));
     connect(m_pDataSocket, SIGNAL(exportUpdate(qint32, QString, qint64, qint64)), this, SLOT(slotExportUpdate(qint32, QString, qint64, qint64)));
     connect(m_pDataSocket, SIGNAL(exportCompleted(qint32, QString, qint64, qint64)), this, SLOT(slotExportCompleted(qint32, QString, qint64, qint64)));
+
+    // 任务查询
+    connect(m_pTimer, SIGNAL(timeout()), this, SLOT(slotTaskQuery()));
 }
 
 /*****************************************************************************
@@ -818,6 +821,20 @@ void HostMachine::readyReadCmd()
             in >> endtag;
         }
 
+        if (m_lstTaskInfo.size() != 0)
+        {
+            m_nTimer = 0;
+        }
+        else
+        {
+            m_nTimer ++;
+            if (m_nTimer == 5)
+            {
+                m_pTimer->stop();
+                m_nTimer = 0;
+            }
+        }
+
         readTaskQuery();
     }
     else if (respondType == SC_Record)
@@ -833,7 +850,6 @@ void HostMachine::readyReadCmd()
         
         if (state == 0x00)
         {
-            m_pTimer->start();
             readRecord(area, state);
         }
 
@@ -849,11 +865,6 @@ void HostMachine::readyReadCmd()
         {
             quint32 endtag;
             in >> endtag;
-        }
-        
-        if (state == 0x00)
-        {
-            m_pTimer->start();
         }
 
         CMWFileList* pWMFileList = (CMWFileList*)m_pTabWgt->widget(area);
@@ -945,18 +956,10 @@ void HostMachine::readyReadCmd()
         if (state == 0x00)
         {
             QTimer::singleShot(10, m_pDataSocket, SLOT(slotImport()));
-            m_pTimer->start();
-        }
-        else
-        {
-            pWMFileList->m_pProgressBar->hide();
         }
     }
     else if (respondType == SC_Export)
     {
-        CMWFileList* pWMFileList = (CMWFileList*)m_pTabWgt->currentWidget();
-        pWMFileList->m_pProgressBar->reset();
-
         quint32 areano, state;
         in >> areano >> state;
 
@@ -964,15 +967,6 @@ void HostMachine::readyReadCmd()
         {
             quint32 endtag;
             in >> endtag;
-        }
-
-        if (state == 0x00)
-        {
-            m_pTimer->start();
-        }
-        else
-        {
-            pWMFileList->m_pProgressBar->hide();
         }
     }
 }
@@ -1186,6 +1180,7 @@ void HostMachine::slotTaskQuery()
 {
     if (m_sAddr.isEmpty())
     {
+        m_pTimer->stop();
         QMessageBox::information(this, qApp->translate(c_sHostMachine, c_sTitle),
             qApp->translate(c_sHostMachine, c_sIPSettingTip));
         return;
@@ -1196,6 +1191,7 @@ void HostMachine::slotTaskQuery()
         m_pCmdSocket->connectToHost(QHostAddress(m_sAddr), c_uCommandPort);
         if (!m_pCmdSocket->waitForConnected())
         {
+            m_pTimer->stop();
             QMessageBox::information(this, qApp->translate(c_sHostMachine, c_sTitle),
                 qApp->translate(c_sHostMachine, c_sNetConnectError));
             return;
@@ -1234,6 +1230,8 @@ void HostMachine::slotRecord()
     DlgAreaRecord dlg(m_pTabWgt->currentIndex(), this);
     if (QDialog::Accepted != dlg.exec())
         return;
+
+    m_pTimer->start();
 
     QString sFileName = dlg.Filename();
     QList<quint32> lstAreano = dlg.Areas();
@@ -1301,6 +1299,8 @@ void HostMachine::slotPlayBack()
     if (QDialog::Accepted != dlg.exec())
         return;
 
+    m_pTimer->start();
+
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
     out << CS_PlayBack << m_pTabWgt->currentIndex() << *fileNos.begin()
@@ -1358,13 +1358,19 @@ void HostMachine::slotImport()
         m_lstImportParam.push_back(make_shared<tagImportParam>(m_pTabWgt->currentIndex(), filePath));
     }
 
+    m_pTimer->start();
+
     slotForeachImport();
 }
 
 void HostMachine::slotForeachImport()
 {
+    CMWFileList* pFileList = (CMWFileList*)m_pTabWgt->currentWidget();
     if (m_lstImportParam.isEmpty())
+    {
+        pFileList->m_pProgressBar->hide();
         return;
+    }
 
     shared_ptr<tagImportParam> spImportParam = m_lstImportParam.first();
     m_lstImportParam.pop_front();
@@ -1481,6 +1487,8 @@ void HostMachine::slotExport()
         }
     }
 
+    m_pTimer->start();
+
     slotForeachExport();
 }
 
@@ -1492,8 +1500,12 @@ void HostMachine::slotExport()
 *****************************************************************************/
 void HostMachine::slotForeachExport()
 {
+    CMWFileList* pFileList = (CMWFileList*)m_pTabWgt->currentWidget();
     if (m_lstExportParam.size() < 1)
+    {
+        pFileList->m_pProgressBar->hide();
         return;
+    }
 
     shared_ptr<tagExportParam> spExportParam = m_lstExportParam.first();
     m_lstExportParam.pop_front();
@@ -1501,7 +1513,6 @@ void HostMachine::slotForeachExport()
     qint64 filesize = spExportParam->fileSize - spExportParam->startPos;
     m_pDataSocket->preExport(m_pTabWgt->currentIndex(), spExportParam->filePath, filesize * c_bSizeMax);
 
-    CMWFileList* pFileList = (CMWFileList*)m_pTabWgt->currentWidget();
     QTableWidget *pFileListWgt = pFileList->m_pFileListWgt;
 
     QByteArray block;
@@ -2013,7 +2024,8 @@ void HostMachine::initData()
 
     m_pElapsedTimer = new QElapsedTimer();
     m_pTimer = new QTimer(this);
-    m_pTimer->setInterval(5000);
+    m_pTimer->setInterval(1000);
+    m_nTimer = 0;
 
     // 日志
     QString sLogFile = QString("%0/%1.log").arg(qApp->applicationDirPath()).arg(qApp->applicationName());
@@ -2065,6 +2077,9 @@ void HostMachine::slotImportUpdate(qint32 areano, QString fileName, qint64 buffe
 *****************************************************************************/
 void HostMachine::slotImportCompleted(qint32 areano, QString fileName, qint64 buffer, qint64 total)
 {
+    CMWFileList* pWMFileList = (CMWFileList*)m_pTabWgt->widget(areano);
+    pWMFileList->updateProcess(fileName, buffer, total);
+
     reallyRefresh();
     slotForeachImport();
 }
@@ -2092,6 +2107,9 @@ void HostMachine::slotExportUpdate(qint32 areano, QString fileName, qint64 buffe
     if (m_pElapsedTimer->elapsed() / m_nInterval == 0)
         return;
     m_nInterval += c_uProgressBarUpdateInterval;
+
+    CMWFileList* pWMFileList = (CMWFileList*)m_pTabWgt->widget(areano);
+    pWMFileList->updateProcess(fileName, buffer, total);
 }
 
 /*****************************************************************************
@@ -2102,6 +2120,8 @@ void HostMachine::slotExportUpdate(qint32 areano, QString fileName, qint64 buffe
 *****************************************************************************/
 void HostMachine::slotExportCompleted(qint32 areano, QString fileName, qint64 buffer, qint64 total)
 {
+    CMWFileList* pWMFileList = (CMWFileList*)m_pTabWgt->widget(areano);
+    pWMFileList->updateProcess(fileName, buffer, total);
     slotForeachExport();
 }
 

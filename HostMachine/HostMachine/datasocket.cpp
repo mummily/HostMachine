@@ -54,7 +54,7 @@ void CDataSocket::slotImport()
         else
             break;
     } while (true);
-    
+
     m_file.close();
 
     emit importCompleted(areano, fileName, bufferLen, m_fileSize);
@@ -69,9 +69,6 @@ void CDataSocket::readyRead()
         return;
 
     QByteArray buf = readAll();
-    if (QString(buf) == "Completed!")
-        return;
-
     respondExport(buf);
 }
 
@@ -92,7 +89,6 @@ void CDataSocket::respondExport(QByteArray buf)
     else
     {
         m_file.close();
-        write("Completed!");
 
         QFileInfo fileInfo = m_file.fileName();
         emit exportCompleted(areano, fileInfo.fileName(), m_bufferSize, m_fileSize);

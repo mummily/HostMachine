@@ -7,10 +7,6 @@
 #include <QDir>
 #include <QFile>
 #include "..\HostMachine\taskcommon.h"
-#include "..\HostMachine\scopeguard.h"
-
-const QString c_sImportHead= "{2585E781-1C60-416E-9A18-CC7ACD2522AF}";
-const QString c_sExportHead= "{FFEE539A-6E91-4461-AD05-8B5F21CAF18D}";
 
 DataSocket::DataSocket(QObject *parent)
     : QTcpSocket(parent)
@@ -34,9 +30,6 @@ void DataSocket::readClient()
         return;
 
     QByteArray buf = readAll();
-    if (QString(buf) == "Completed!")
-        return;
-
     respondImport(buf);
 }
 
@@ -62,7 +55,6 @@ void DataSocket::slotExport()
     file.setFileName(fileFullPath);
     if (!file.open(QIODevice::ReadOnly))
         return;
-    SCOPE_EXIT { file.close(); };
 
     file.seek(startPos);
 
@@ -75,8 +67,8 @@ void DataSocket::slotExport()
         waitForBytesWritten();
         bufferLen += len;
     }
-
-    waitForReadyRead();
+    
+    file.close();
 }
 
 void DataSocket::initData()
