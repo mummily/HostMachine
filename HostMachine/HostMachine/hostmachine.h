@@ -289,7 +289,8 @@ private:
     CMWFileList                         *m_pHHDataWgt;          // 混合数据分区
 
     QTableWidget                        *m_pTaskWgt;            // 任务列表框
-    QElapsedTimer                       *m_pElapsedTimer;
+    QElapsedTimer                       *m_pElapsedTimer;       // 导入导出更新间隔
+    QTimer                              *m_pTimer;              // 任务查询定时器
     quint64                             m_nInterval;
 
     QtTreePropertyBrowser               *m_pPropertyWgt;        // 磁盘控制面板
