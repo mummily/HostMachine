@@ -171,7 +171,7 @@ struct tagImportParam
 
 struct tagExportParam
 {
-    qint32 rowNo;
+    qint32 fileNo;
     qint32 startPos, fileSize;
     QString filePath;
     tagExportParam()
@@ -235,12 +235,12 @@ public:
         void slotInit();
         // Tab Changed
         void slotTabChanged(int index);
-        void slotImportStart(qint32 areano, QString fileName, float buffer, float total);
-        void slotImportUpdate(qint32 areano, QString fileName, float buffer, float total);
-        void slotImportCompleted(qint32 areano, QString fileName, float buffer, float total);
-        void slotExportStart(qint32 areano, QString fileName, float buffer, float total);
-        void slotExportUpdate(qint32 areano, QString fileName, float buffer, float total);
-        void slotExportCompleted(qint32 areano, QString fileName, float buffer, float total);
+        void slotImportStart(qint32 areano, QString fileName, qint64 buffer, qint64 total);
+        void slotImportUpdate(qint32 areano, QString fileName, qint64 buffer, qint64 total);
+        void slotImportCompleted(qint32 areano, QString fileName, qint64 buffer, qint64 total);
+        void slotExportStart(qint32 areano, QString fileName, qint64 buffer, qint64 total);
+        void slotExportUpdate(qint32 areano, QString fileName, qint64 buffer, qint64 total);
+        void slotExportCompleted(qint32 areano, QString fileName, qint64 buffer, qint64 total);
 
 private:
     void initUI();

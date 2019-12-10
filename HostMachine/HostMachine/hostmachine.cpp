@@ -313,12 +313,12 @@ void HostMachine::initConnect()
     connect(m_pDataSocket, SIGNAL(disconnected()), this, SLOT(disconnectData()));
     connect(m_pDataSocket, SIGNAL(readyRead()), m_pDataSocket, SLOT(readyRead()));
     connect(m_pDataSocket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(errorData()));
-    connect(m_pDataSocket, SIGNAL(importStart(qint32, QString, float, float)), this, SLOT(slotImportStart(qint32, QString, float, float)));
-    connect(m_pDataSocket, SIGNAL(importUpdate(qint32, QString, float, float)), this, SLOT(slotImportUpdate(qint32, QString, float, float)));
-    connect(m_pDataSocket, SIGNAL(importCompleted(qint32, QString, float, float)), this, SLOT(slotImportCompleted(qint32, QString, float, float)));
-    connect(m_pDataSocket, SIGNAL(exportStart(qint32, QString, float, float)), this, SLOT(slotExportStart(qint32, QString, float, float)));
-    connect(m_pDataSocket, SIGNAL(exportUpdate(qint32, QString, float, float)), this, SLOT(slotExportUpdate(qint32, QString, float, float)));
-    connect(m_pDataSocket, SIGNAL(exportCompleted(qint32, QString, float, float)), this, SLOT(slotExportCompleted(qint32, QString, float, float)));
+    connect(m_pDataSocket, SIGNAL(importStart(qint32, QString, qint64, qint64)), this, SLOT(slotImportStart(qint32, QString, qint64, qint64)));
+    connect(m_pDataSocket, SIGNAL(importUpdate(qint32, QString, qint64, qint64)), this, SLOT(slotImportUpdate(qint32, QString, qint64, qint64)));
+    connect(m_pDataSocket, SIGNAL(importCompleted(qint32, QString, qint64, qint64)), this, SLOT(slotImportCompleted(qint32, QString, qint64, qint64)));
+    connect(m_pDataSocket, SIGNAL(exportStart(qint32, QString, qint64, qint64)), this, SLOT(slotExportStart(qint32, QString, qint64, qint64)));
+    connect(m_pDataSocket, SIGNAL(exportUpdate(qint32, QString, qint64, qint64)), this, SLOT(slotExportUpdate(qint32, QString, qint64, qint64)));
+    connect(m_pDataSocket, SIGNAL(exportCompleted(qint32, QString, qint64, qint64)), this, SLOT(slotExportCompleted(qint32, QString, qint64, qint64)));
 }
 
 /*****************************************************************************
@@ -940,6 +940,10 @@ void HostMachine::readyReadCmd()
         {
             QTimer::singleShot(10, m_pDataSocket, SLOT(slotImport()));
         }
+        else
+        {
+            pWMFileList->m_pProgressBar->hide();
+        }
     }
     else if (respondType == SC_Export)
     {
@@ -957,16 +961,7 @@ void HostMachine::readyReadCmd()
 
         if (state != 0x00)
         {
-            m_lstExportParam.clear();
-            pWMFileList->statusBar()->hide();
-            QMessageBox::information(this, windowTitle(), tr("导出失败！"));
-        }
-        else
-        {
-            shared_ptr<tagExportParam> spExportParam = m_lstExportParam.first();
-            qint64 filesize = spExportParam->fileSize - spExportParam->startPos;
-            filesize *= c_bSizeMax;
-            m_pDataSocket->preExport(m_pTabWgt->currentIndex(), spExportParam->filePath, filesize);
+            pWMFileList->m_pProgressBar->hide();
         }
     }
 }
@@ -1441,6 +1436,7 @@ void HostMachine::slotExport()
         rowNos.insert(pItem->row());
     }
 
+    m_lstExportParam.clear();
     if (rowNos.count() == 1)
     {
         float filesize = pFileListWgt->item(*rowNos.begin(), 5)->text().toFloat(); // 来自所在行的文件大小列
@@ -1449,7 +1445,7 @@ void HostMachine::slotExport()
             return;
 
         shared_ptr<tagExportParam> spExportParam = make_shared<tagExportParam>();
-        spExportParam->rowNo = *rowNos.begin();
+        spExportParam->fileNo = pFileListWgt->item(*rowNos.begin(), 0)->text().toInt();
         spExportParam->startPos = dlg.Startpos();
         spExportParam->fileSize = dlg.Exportsize();
         spExportParam->filePath = QString("%0/%1.%2").arg(dlg.ExportPath())
@@ -1467,12 +1463,11 @@ void HostMachine::slotExport()
         foreach (quint32 rowNo, rowNos)
         {
             shared_ptr<tagExportParam> spExportParam = make_shared<tagExportParam>();
-            spExportParam->rowNo = rowNo;
+            spExportParam->fileNo = pFileListWgt->item(rowNo, 0)->text().toInt();
             spExportParam->startPos = 0;
             spExportParam->fileSize = pFileListWgt->item(rowNo, 5)->text().toFloat();
             spExportParam->filePath = QString("%0/%1.%2").arg(sExportPath)
-                .arg(pFileListWgt->item(*rowNos.begin(), 1)->text())
-                .arg(pFileListWgt->item(*rowNos.begin(), 4)->text());
+                .arg(pFileListWgt->item(rowNo, 1)->text()).arg(pFileListWgt->item(rowNo, 4)->text());
 
             m_lstExportParam.push_back(spExportParam);
         }
@@ -1495,14 +1490,16 @@ void HostMachine::slotForeachExport()
     shared_ptr<tagExportParam> spExportParam = m_lstExportParam.first();
     m_lstExportParam.pop_front();
 
+    qint64 filesize = spExportParam->fileSize - spExportParam->startPos;
+    m_pDataSocket->preExport(m_pTabWgt->currentIndex(), spExportParam->filePath, filesize * c_bSizeMax);
+
     CMWFileList* pFileList = (CMWFileList*)m_pTabWgt->currentWidget();
     QTableWidget *pFileListWgt = pFileList->m_pFileListWgt;
 
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
     out << CS_Export << (quint32)m_pTabWgt->currentIndex()
-        << (quint32)pFileListWgt->item(spExportParam->rowNo, 0)->text().toInt()
-        << spExportParam->startPos << spExportParam->fileSize;
+        << spExportParam->fileNo << spExportParam->startPos << spExportParam->fileSize;
 
     m_pCmdSocket->write(block);
 }
@@ -1971,7 +1968,7 @@ void HostMachine::initData()
 * @date    : 2019/12/02
 * @param:  : 
 *****************************************************************************/
-void HostMachine::slotImportStart(qint32 areano, QString fileName, float buffer, float total)
+void HostMachine::slotImportStart(qint32 areano, QString fileName, qint64 buffer, qint64 total)
 {
     // 若有重复行，删除
     for (int nRow=0; nRow<m_pTaskWgt->rowCount(); ++nRow)
@@ -2014,7 +2011,7 @@ void HostMachine::slotImportStart(qint32 areano, QString fileName, float buffer,
 * @date    : 2019/12/02
 * @param:  : 
 *****************************************************************************/
-void HostMachine::slotImportUpdate(qint32 areano, QString fileName, float buffer, float total)
+void HostMachine::slotImportUpdate(qint32 areano, QString fileName, qint64 buffer, qint64 total)
 {
     if (m_pElapsedTimer->elapsed() / m_nInterval == 0)
         return;
@@ -2048,7 +2045,7 @@ void HostMachine::slotImportUpdate(qint32 areano, QString fileName, float buffer
 * @date    : 2019/12/02
 * @param:  : 
 *****************************************************************************/
-void HostMachine::slotImportCompleted(qint32 areano, QString fileName, float buffer, float total)
+void HostMachine::slotImportCompleted(qint32 areano, QString fileName, qint64 buffer, qint64 total)
 {
     CMWFileList* pWMFileList = (CMWFileList*)m_pTabWgt->widget(areano);
     pWMFileList->updateProcess(fileName, buffer, total);
@@ -2109,7 +2106,7 @@ void HostMachine::closeLog()
 * @date    : 2019/12/02
 * @param:  : 
 *****************************************************************************/
-void HostMachine::slotExportStart(qint32 areano, QString fileName, float buffer, float total)
+void HostMachine::slotExportStart(qint32 areano, QString fileName, qint64 buffer, qint64 total)
 {
     // 若有重复行，删除
     for (int nRow=0; nRow<m_pTaskWgt->rowCount(); ++nRow)
@@ -2151,7 +2148,7 @@ void HostMachine::slotExportStart(qint32 areano, QString fileName, float buffer,
 * @date    : 2019/12/02
 * @param:  : 
 *****************************************************************************/
-void HostMachine::slotExportUpdate(qint32 areano, QString fileName, float buffer, float total)
+void HostMachine::slotExportUpdate(qint32 areano, QString fileName, qint64 buffer, qint64 total)
 {
     if (m_pElapsedTimer->elapsed() / m_nInterval == 0)
         return;
@@ -2185,7 +2182,7 @@ void HostMachine::slotExportUpdate(qint32 areano, QString fileName, float buffer
 * @date    : 2019/12/02
 * @param:  : 
 *****************************************************************************/
-void HostMachine::slotExportCompleted(qint32 areano, QString fileName, float buffer, float total)
+void HostMachine::slotExportCompleted(qint32 areano, QString fileName, qint64 buffer, qint64 total)
 {
     CMWFileList* pWMFileList = (CMWFileList*)m_pTabWgt->widget(areano);
     pWMFileList->updateProcess(fileName, buffer, total);

@@ -18,13 +18,13 @@ public:
 
 signals:
     // 导入
-    void importStart(qint32, QString, float, float);
-    void importUpdate(qint32, QString, float, float);
-    void importCompleted(qint32, QString, float, float);
+    void importStart(qint32, QString, qint64, qint64);
+    void importUpdate(qint32, QString, qint64, qint64);
+    void importCompleted(qint32, QString, qint64, qint64);
     // 导出
-    void exportStart(qint32, QString, float, float);
-    void exportUpdate(qint32, QString, float, float);
-    void exportCompleted(qint32, QString, float, float);
+    void exportStart(qint32, QString, qint64, qint64);
+    void exportUpdate(qint32, QString, qint64, qint64);
+    void exportCompleted(qint32, QString, qint64, qint64);
     // 日志
     void siglogRecord(QString);
 
