@@ -1537,9 +1537,7 @@ void HostMachine::slotTaskStop(qint32 tasktype)
     box.addButton(qApp->translate(c_sHostMachine, c_sYes), QMessageBox::RejectRole);
     box.addButton(qApp->translate(c_sHostMachine, c_sNo), QMessageBox::AcceptRole);
     if (QMessageBox::AcceptRole != box.exec())
-    {
         return;
-    }
 
     if (m_sAddr.isEmpty())
     {
@@ -1575,15 +1573,6 @@ void HostMachine::slotTaskStop(qint32 tasktype)
 *****************************************************************************/
 void HostMachine::slotStop()
 {
-    QMessageBox box(this);
-    box.setWindowTitle(qApp->translate(c_sHostMachine, c_sTitle));
-    box.setText(qApp->translate(c_sHostMachine, c_sIsStop));
-    box.setIcon(QMessageBox::Question);
-    box.addButton(qApp->translate(c_sHostMachine, c_sYes), QMessageBox::RejectRole);
-    box.addButton(qApp->translate(c_sHostMachine, c_sNo), QMessageBox::AcceptRole);
-    if (QMessageBox::AcceptRole != box.exec())
-        return;
-
     if (m_sAddr.isEmpty())
     {
         QMessageBox::information(this, qApp->translate(c_sHostMachine, c_sTitle),
@@ -1601,6 +1590,15 @@ void HostMachine::slotStop()
             return;
         }
     }
+
+    QMessageBox box(this);
+    box.setWindowTitle(qApp->translate(c_sHostMachine, c_sTitle));
+    box.setText(qApp->translate(c_sHostMachine, c_sIsStop));
+    box.setIcon(QMessageBox::Question);
+    box.addButton(qApp->translate(c_sHostMachine, c_sYes), QMessageBox::RejectRole);
+    box.addButton(qApp->translate(c_sHostMachine, c_sNo), QMessageBox::AcceptRole);
+    if (QMessageBox::AcceptRole != box.exec())
+        return;
 
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
@@ -1918,16 +1916,6 @@ void HostMachine::readTaskQuery()
         QPushButton *pushButton = new QPushButton(qApp->translate(c_sHostMachine, c_sStop), this);
         connect(pushButton, &QPushButton::clicked, [&](){
             quint32 tasktype = m_pTaskWgt->item(m_pTaskWgt->currentRow(), 1)->text().toInt();
-
-            QMessageBox box(this);
-            box.setWindowTitle(qApp->translate(c_sHostMachine, c_sTitle));
-            box.setText(qApp->translate(c_sHostMachine, c_sIsStop));
-            box.setIcon(QMessageBox::Question);
-            box.addButton(qApp->translate(c_sHostMachine, c_sYes), QMessageBox::RejectRole);
-            box.addButton(qApp->translate(c_sHostMachine, c_sNo), QMessageBox::AcceptRole);
-            if (QMessageBox::AcceptRole != box.exec())
-                return;
-
             slotTaskStop(tasktype);
         });
         m_pTaskWgt->setCellWidget(m_pTaskWgt->rowCount() - 1, 10, pushButton);
