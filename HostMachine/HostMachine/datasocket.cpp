@@ -3,7 +3,6 @@
 #include <QFileInfo>
 #include <QApplication>
 #include <QMessageBox>
-#include "scopeguard.h"
 #include "common.h"
 #include "globalfun.h"
 #include "datasocket.h"

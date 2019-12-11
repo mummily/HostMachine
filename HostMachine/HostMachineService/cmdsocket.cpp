@@ -243,7 +243,6 @@ void CmdSocket::respondRefresh(quint32 areano, quint32 fileno, quint32 filenum)
     QDataStream out(&block, QIODevice::WriteOnly);
     out.setVersion(QDataStream::Qt_5_5);
     out << quint32(SC_Refresh) << areano << fileInfos.count(); // 0x00 成功 0x01 失败 其它 保留
-    int nIndex = 1;
     foreach(QFileInfo fileInfo, fileInfos)
     {
         char filename[40] = {0};
@@ -252,7 +251,9 @@ void CmdSocket::respondRefresh(quint32 areano, quint32 fileno, quint32 filenum)
         strncpy(filename, ba.data(), sizeof(filename));
 
         out.writeRawData(filename, sizeof(filename));
-        out << CGlobalFun::Dt2Int(fileInfo.created()) << quint32(nIndex++) << quint32(fileInfo.size());
+
+        qint32 fileno = sFileName.left(sFileName.indexOf('.')).toInt();
+        out << CGlobalFun::Dt2Int(fileInfo.created()) << fileno << quint32(fileInfo.size());
     }
     write(block);
 }

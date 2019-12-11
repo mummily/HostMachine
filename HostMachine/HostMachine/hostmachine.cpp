@@ -30,7 +30,6 @@
 #include "mwfilelist.h"
 #include "dlgarearecord.h"
 #include "dlgfileexport.h"
-#include "scopeguard.h"
 #include "datasocket.h"
 #include "globalfun.h"
 #include "dlgfileplayblack.h"
