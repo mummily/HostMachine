@@ -126,8 +126,10 @@ void CMWFileList::initUI()
     setCentralWidget(m_pFileListWgt);
 
     m_pProgressBar = new QProgressBar(this);
+    m_pProgressBar->hide();
     m_pProgressBar->setStyleSheet("QProgressBar { border: none;background-color: rgb(240, 240, 240) }");
     m_pProgressBar->setFixedHeight(20);
+    m_pProgressBar->setMinimum(0);
 
     statusBar()->addWidget(m_pProgressBar, 1);
     statusBar()->setSizeGripEnabled(false);
@@ -241,9 +243,8 @@ void CMWFileList::readRefresh(tagAreaFileInfos* pFileInfos)
 void CMWFileList::updateProcess(QString fileName, float buffer, float total)
 {
     m_pProgressBar->show();
-    m_pProgressBar->setMinimum(0);
-    m_pProgressBar->setMaximum(total > c_bSizeMax ? total / c_bSizeMax : total);
-    m_pProgressBar->setValue(buffer > c_bSizeMax ? buffer / c_bSizeMax : buffer);
+    m_pProgressBar->setMaximum(total / c_bSizeMax);
+    m_pProgressBar->setValue(buffer / c_bSizeMax);
 
     QString sFormat = QString("%0 -> %1/%2  %p%").arg(fileName).arg(CGlobalFun::formatSize(buffer)).arg(CGlobalFun::formatSize(total));
     m_pProgressBar->setFormat(sFormat);

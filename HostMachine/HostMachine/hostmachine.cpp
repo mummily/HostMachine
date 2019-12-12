@@ -9,8 +9,7 @@
 #include <QTabWidget>
 #include <QSplitter>
 #include <QHeaderView>
-#include "qttreepropertybrowser.h"
-#include "QDateTime"
+#include <QDateTime>
 #include <QPushButton>
 #include <QTimer>
 #include <QMessageBox>
@@ -22,9 +21,11 @@
 #include <QTcpSocket>
 #include <QTcpServer>
 
-#include "dlgipsetting.h"
+#include "qttreepropertybrowser.h"
 #include "qtpropertymanager.h"
 #include "decorateddoublepropertymanager.h"
+
+#include "dlgipsetting.h"
 #include "dlgareaformat.h"
 #include "dlgsystemconfig.h"
 #include "mwfilelist.h"
@@ -34,6 +35,7 @@
 #include "globalfun.h"
 #include "dlgfileplayblack.h"
 #include "taskstoptype.h"
+#include "config.h"
 
 static const char *c_sHostMachine = "HostMachine";
 static const char *c_sTitle = QT_TRANSLATE_NOOP("HostMachine", "网络应用软件");
@@ -145,7 +147,7 @@ static const char *c_sTaskState2 = QT_TRANSLATE_NOOP("HostMachine", "完成");
 static const char *c_sTaskState3 = QT_TRANSLATE_NOOP("HostMachine", "其它");
 
 HostMachine::HostMachine(QWidget *parent)
-    : QMainWindow(parent), m_sAddr(""), m_nInterval(0)
+    : QMainWindow(parent), m_sAddr(""), m_nInterval(0), m_bShowTaskStop(false)
 {
     initData();
     initUI();
@@ -348,6 +350,7 @@ void HostMachine::initTaskWgt()
     m_pTaskWgt->setHorizontalHeaderLabels(headerList);
     m_pTaskWgt->setSelectionBehavior(QAbstractItemView::SelectRows);
     m_pTaskWgt->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    m_pTaskWgt->setColumnHidden(10, !m_bShowTaskStop);
 
     QHeaderView* headerView = m_pTaskWgt->horizontalHeader();
     headerView->setDefaultAlignment(Qt::AlignLeft);
@@ -2013,6 +2016,14 @@ void HostMachine::initData()
     m_pTimer = new QTimer(this);
     m_pTimer->setInterval(1000);
     m_nTimer = 0;
+
+    // 是否显示任务停止列
+    QString sConfigFile = QString("%0/%1.json").arg(qApp->applicationDirPath()).arg(qApp->applicationName());
+    if (QFile::exists(sConfigFile))
+    {
+        Config config(sConfigFile);
+        m_bShowTaskStop = config.readBool("tasklist.showstop");
+    }
 
     // 日志
     QString sLogFile = QString("%0/%1.log").arg(qApp->applicationDirPath()).arg(qApp->applicationName());

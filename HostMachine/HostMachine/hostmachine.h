@@ -293,6 +293,7 @@ private:
     QTimer                              *m_pTimer;              // 任务查询定时器
     int                                 m_nTimer;               // 任务查询无任务的次数
     quint64                             m_nInterval;
+    bool                                m_bShowTaskStop;        // 是否显示任务停止列
 
     QtTreePropertyBrowser               *m_pPropertyWgt;        // 磁盘控制面板
 
