@@ -41,17 +41,21 @@ void CDataSocket::slotImport()
     QString fileName = fileInfo.fileName();
 
     qint64 bufferLen = 0;
+    int nIndex = 0;
     do
     {
         char buffer[c_bufferSize] = {0};
         qint64 len = m_file.read(buffer, sizeof(buffer));
         len = write(buffer, len);
-        waitForBytesWritten();
+        if (nIndex % 10 == 0)
+            waitForBytesWritten();
         bufferLen += len;
         if (bufferLen < m_fileSize)
             emit importUpdate(areano, fileName, bufferLen, m_fileSize);
         else
             break;
+
+        nIndex ++;
     } while (true);
 
     m_file.close();

@@ -769,11 +769,7 @@ void HostMachine::readyReadCmd()
             m_spcheckSelf->versionInfo = make_shared<tagVersionInfo>();
         m_spcheckSelf->versionInfo->read(in);
 
-        while(!in.atEnd())
-        {
-            quint32 endtag;
-            in >> endtag;
-        }
+        in.device()->readAll();
 
         readCheckSelf();
     }
@@ -782,11 +778,7 @@ void HostMachine::readyReadCmd()
         quint32 state;
         in >> state;
 
-        while(!in.atEnd())
-        {
-            quint32 endtag;
-            in >> endtag;
-        }
+        in.device()->readAll();
 
         readFormat(state);
     }
@@ -795,11 +787,7 @@ void HostMachine::readyReadCmd()
         quint32 choice, state;
         in >> choice >> state;
 
-        while(!in.atEnd())
-        {
-            quint32 endtag;
-            in >> endtag;
-        }
+        in.device()->readAll();
 
         readSystemConfig(choice, state);
     }
@@ -817,11 +805,7 @@ void HostMachine::readyReadCmd()
             m_lstTaskInfo.push_back(spTaskInfo);
         }
 
-        while(!in.atEnd())
-        {
-            quint32 endtag;
-            in >> endtag;
-        }
+        in.device()->readAll();
 
         if (m_lstTaskInfo.size() != 0)
         {
@@ -844,11 +828,7 @@ void HostMachine::readyReadCmd()
         quint32 area, state;
         in >> area >> state;
 
-        while(!in.atEnd())
-        {
-            quint32 endtag;
-            in >> endtag;
-        }
+        in.device()->readAll();
         
         if (state == 0x00)
         {
@@ -863,11 +843,7 @@ void HostMachine::readyReadCmd()
         quint32 area, state;
         in >> area >> state;
 
-        while(!in.atEnd())
-        {
-            quint32 endtag;
-            in >> endtag;
-        }
+        in.device()->readAll();
 
         CMWFileList* pWMFileList = (CMWFileList*)m_pTabWgt->widget(area);
         pWMFileList->readPlayBack(area, state);
@@ -877,11 +853,7 @@ void HostMachine::readyReadCmd()
         quint32 area, tasktype, state;
         in >> area >> tasktype >> state;
 
-        while(!in.atEnd())
-        {
-            quint32 endtag;
-            in >> endtag;
-        }
+        in.device()->readAll();
 
         CMWFileList* pWMFileList = (CMWFileList*)m_pTabWgt->widget(area);
         pWMFileList->readTaskStop(area, tasktype, state);
@@ -891,11 +863,7 @@ void HostMachine::readyReadCmd()
         quint32 area, state;
         in >> area >> state;
 
-        while(!in.atEnd())
-        {
-            quint32 endtag;
-            in >> endtag;
-        }
+        in.device()->readAll();
 
         CMWFileList* pWMFileList = (CMWFileList*)m_pTabWgt->widget(area);
         pWMFileList->readDelete(area, state);
@@ -925,11 +893,7 @@ void HostMachine::readyReadCmd()
             m_spFileInfos->lstFileInfo.push_back(spFileInfo);
         }
 
-        while(!in.atEnd())
-        {
-            quint32 endtag;
-            in >> endtag;
-        }
+        in.device()->readAll();
 
         if (m_spFileInfos->filenum != c_uRefreshFileNum)
         {
@@ -947,11 +911,7 @@ void HostMachine::readyReadCmd()
 
         in >> state;
 
-        while(!in.atEnd())
-        {
-            quint32 endtag;
-            in >> endtag;
-        }
+        in.device()->readAll();
 
         CMWFileList* pWMFileList = (CMWFileList*)m_pTabWgt->widget(areano);
         pWMFileList->readImport(state);
@@ -965,11 +925,7 @@ void HostMachine::readyReadCmd()
         quint32 areano, state;
         in >> areano >> state;
 
-        while(!in.atEnd())
-        {
-            quint32 endtag;
-            in >> endtag;
-        }
+        in.device()->readAll();
     }
 }
 
