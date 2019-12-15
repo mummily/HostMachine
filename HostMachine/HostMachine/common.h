@@ -8,6 +8,7 @@ using namespace std;
 
 const int c_uRefreshFileNum = 8;
 const int c_uProgressBarUpdateInterval = 100;
+const int c_uRequestEndTag = 0x5a5a5a5a;
 
 const int c_bSizeMax = 1024;
 const int c_kSizeMax = c_bSizeMax * 1024;

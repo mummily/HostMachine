@@ -970,7 +970,7 @@ void HostMachine::reallyCheckSelf()
 {
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
-    out << CS_CheckSelf;
+    out << CS_CheckSelf << c_uRequestEndTag;
 
     m_pCmdSocket->write(block);
     m_pCmdSocket->waitForReadyRead();
@@ -1055,7 +1055,8 @@ void HostMachine::slotFormat()
         << quint32(dlg.Size2())
         << quint32(dlg.Size3())
         << quint32(dlg.Size4())
-        << quint32(dlg.Size5());
+        << quint32(dlg.Size5())
+        << c_uRequestEndTag;
 
     m_pCmdSocket->write(block);
     m_pCmdSocket->waitForReadyRead();
@@ -1105,7 +1106,7 @@ void HostMachine::slotSystemConfig()
 
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
-    out << CS_SystemConfig << channelchoice << bandwidth;
+    out << CS_SystemConfig << channelchoice << bandwidth << c_uRequestEndTag;
 
     m_pCmdSocket->write(block);
     m_pCmdSocket->waitForReadyRead();
@@ -1121,7 +1122,7 @@ void HostMachine::reallyTaskQuery()
 {
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
-    out << CS_TaskQuery;
+    out << CS_TaskQuery << c_uRequestEndTag;
 
     m_pCmdSocket->write(block);
     m_pCmdSocket->waitForReadyRead();
@@ -1206,6 +1207,7 @@ void HostMachine::slotRecord()
         strncpy(filename, ba.data(), sizeof(filename));
 
         out.writeRawData(filename, sizeof(filename));
+        out << c_uRequestEndTag;
 
         m_pCmdSocket->write(block);
         m_pCmdSocket->waitForReadyRead();
@@ -1261,8 +1263,14 @@ void HostMachine::slotPlayBack()
 
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
-    out << CS_PlayBack << m_pTabWgt->currentIndex() << *fileNos.begin()
-        << dlg.Type() << dlg.Prftime() << dlg.Datanum() << dlg.Prf() << dlg.Cpi();
+    out << CS_PlayBack << m_pTabWgt->currentIndex()
+        << *fileNos.begin()
+        << dlg.Type()
+        << dlg.Prftime()
+        << dlg.Datanum()
+        << dlg.Prf()
+        << dlg.Cpi()
+        << c_uRequestEndTag;
 
     m_pCmdSocket->write(block);
     m_pCmdSocket->waitForReadyRead();
@@ -1351,6 +1359,7 @@ void HostMachine::slotForeachImport()
     QByteArray ba = fileInfo.fileName().toLocal8Bit();
     strncpy(filename, ba.data(), sizeof(filename));
     out.writeRawData(filename, sizeof(filename));
+    out << c_uRequestEndTag;
 
     m_pCmdSocket->write(block);
     m_pCmdSocket->waitForReadyRead();
@@ -1476,7 +1485,10 @@ void HostMachine::slotForeachExport()
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
     out << CS_Export << (quint32)m_pTabWgt->currentIndex()
-        << spExportParam->fileNo << spExportParam->startPos << spExportParam->fileSize;
+        << spExportParam->fileNo
+        << spExportParam->startPos
+        << spExportParam->fileSize
+        << c_uRequestEndTag;
 
     m_pCmdSocket->write(block);
 }
@@ -1518,7 +1530,7 @@ void HostMachine::slotTaskStop(qint32 tasktype)
 
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
-    out << CS_TaskStop << tasktype;
+    out << CS_TaskStop << tasktype << c_uRequestEndTag;
 
     m_pCmdSocket->write(block);
     m_pCmdSocket->waitForReadyRead();
@@ -1561,7 +1573,7 @@ void HostMachine::slotStop()
 
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
-    out << CS_Stop << m_pTabWgt->currentIndex();
+    out << CS_Stop << m_pTabWgt->currentIndex() << c_uRequestEndTag;
 
     m_pCmdSocket->write(block);
     m_pCmdSocket->waitForReadyRead();
@@ -1636,7 +1648,9 @@ void HostMachine::slotDelete()
     {
         QByteArray block;
         QDataStream out(&block, QIODevice::WriteOnly);
-        out << CS_Delete << (quint32)m_pTabWgt->currentIndex() << (quint32)pFileListWgt->item(rowNo, 0)->text().toInt();
+        out << CS_Delete << (quint32)m_pTabWgt->currentIndex()
+            << (quint32)pFileListWgt->item(rowNo, 0)->text().toInt()
+            << c_uRequestEndTag;
 
         m_pCmdSocket->write(block);
         m_pCmdSocket->waitForReadyRead();
@@ -1665,7 +1679,10 @@ void HostMachine::reallyRefresh()
 
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
-    out << CS_Refresh << qint32(m_pTabWgt->currentIndex()) << fileno << filenum;;
+    out << CS_Refresh << qint32(m_pTabWgt->currentIndex())
+        << fileno
+        << filenum
+        << c_uRequestEndTag;
 
     m_pCmdSocket->write(block);
     m_pCmdSocket->waitForReadyRead();
