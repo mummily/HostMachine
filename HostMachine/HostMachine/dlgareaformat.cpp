@@ -18,8 +18,8 @@ static const char *c_sArea4 = QT_TRANSLATE_NOOP("DlgAreaFormat", "混合数据分区")
 static const char *c_sConfirm = QT_TRANSLATE_NOOP("DlgAreaFormat", "确定");
 static const char *c_sCancel = QT_TRANSLATE_NOOP("DlgAreaFormat", "取消");
 
-DlgAreaFormat::DlgAreaFormat(int nSize1, int nSize2, int nSize3, int nSize4, int nSize5, QWidget *parent)
-    : QDialog(parent), m_nSize1(nSize1), m_nSize2(nSize2), m_nSize3(nSize3), m_nSize4(nSize4), m_nSize5(nSize5)
+DlgAreaFormat::DlgAreaFormat(int nTotalSize, int nSize1, int nSize2, int nSize3, int nSize4, int nSize5, QWidget *parent)
+    : QDialog(parent), m_nTotalSize(nTotalSize), m_nSize1(nSize1), m_nSize2(nSize2), m_nSize3(nSize3), m_nSize4(nSize4), m_nSize5(nSize5)
 {
     initUI();
     initConnect();
@@ -36,40 +36,40 @@ void DlgAreaFormat::initUI()
     setWindowTitle(qApp->translate(c_sDlgAreaFormat, c_sTitle));
     setFixedSize(376, 200);
 
-    QLabel* lable1 = new QLabel(qApp->translate(c_sDlgAreaFormat, c_sArea0) + "(1~200)", this);
-    QLabel* lable2 = new QLabel(qApp->translate(c_sDlgAreaFormat, c_sArea1) + "(1~200)", this);
-    QLabel* lable3 = new QLabel(qApp->translate(c_sDlgAreaFormat, c_sArea2) + "(1~200)", this);
-    QLabel* lable4 = new QLabel(qApp->translate(c_sDlgAreaFormat, c_sArea3) + "(1~200)", this);
-    QLabel* lable5 = new QLabel(qApp->translate(c_sDlgAreaFormat, c_sArea4) + "(1~200)", this);
+    QLabel* lable1 = new QLabel(qApp->translate(c_sDlgAreaFormat, c_sArea0), this);
+    QLabel* lable2 = new QLabel(qApp->translate(c_sDlgAreaFormat, c_sArea1), this);
+    QLabel* lable3 = new QLabel(qApp->translate(c_sDlgAreaFormat, c_sArea2), this);
+    QLabel* lable4 = new QLabel(qApp->translate(c_sDlgAreaFormat, c_sArea3), this);
+    QLabel* lable5 = new QLabel(qApp->translate(c_sDlgAreaFormat, c_sArea4), this);
 
     m_spinbox1 = new QSpinBox(this);
-    m_spinbox1->setSuffix(" LBA");
+    m_spinbox1->setSuffix("LBA");
     m_spinbox1->setMinimum(1);
-    m_spinbox1->setMaximum(200);
+    m_spinbox1->setMaximum(m_nTotalSize);
     m_spinbox1->setSingleStep(1);
 
     m_spinbox2 = new QSpinBox(this);
-    m_spinbox2->setSuffix(" LBA");
+    m_spinbox2->setSuffix("LBA");
     m_spinbox2->setMinimum(1);
-    m_spinbox2->setMaximum(200);
+    m_spinbox2->setMaximum(m_nTotalSize);
     m_spinbox2->setSingleStep(1);
 
     m_spinbox3 = new QSpinBox(this);
-    m_spinbox3->setSuffix(" LBA");
+    m_spinbox3->setSuffix("LBA");
     m_spinbox3->setMinimum(1);
-    m_spinbox3->setMaximum(200);
+    m_spinbox3->setMaximum(m_nTotalSize);
     m_spinbox3->setSingleStep(1);
 
     m_spinbox4 = new QSpinBox(this);
-    m_spinbox4->setSuffix(" LBA");
+    m_spinbox4->setSuffix("LBA");
     m_spinbox4->setMinimum(1);
-    m_spinbox4->setMaximum(200);
+    m_spinbox4->setMaximum(m_nTotalSize);
     m_spinbox4->setSingleStep(1);
 
     m_spinbox5 = new QSpinBox(this);
-    m_spinbox5->setSuffix(" LBA");
+    m_spinbox5->setSuffix("LBA");
     m_spinbox5->setMinimum(1);
-    m_spinbox5->setMaximum(200);
+    m_spinbox5->setMaximum(m_nTotalSize);
     m_spinbox5->setSingleStep(1);
 
     m_slider1 = new QSlider(this);

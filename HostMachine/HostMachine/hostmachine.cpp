@@ -777,7 +777,6 @@ void HostMachine::readyReadCmd()
     {
         quint32 state;
         in >> state;
-
         in.device()->readAll();
 
         readFormat(state);
@@ -827,7 +826,6 @@ void HostMachine::readyReadCmd()
     {
         quint32 area, state;
         in >> area >> state;
-
         in.device()->readAll();
         
         if (state == 0x00)
@@ -842,7 +840,6 @@ void HostMachine::readyReadCmd()
     {
         quint32 area, state;
         in >> area >> state;
-
         in.device()->readAll();
 
         CMWFileList* pWMFileList = (CMWFileList*)m_pTabWgt->widget(area);
@@ -852,17 +849,21 @@ void HostMachine::readyReadCmd()
     {
         quint32 area, tasktype, state;
         in >> area >> tasktype >> state;
-
         in.device()->readAll();
 
         CMWFileList* pWMFileList = (CMWFileList*)m_pTabWgt->widget(area);
         pWMFileList->readTaskStop(area, tasktype, state);
     }
+    else if (respondType == SC_Stop)
+    {
+        quint32 area, state;
+        in >> area >> state;
+        in.device()->readAll();
+    }
     else if (respondType == SC_Delete)
     {
         quint32 area, state;
         in >> area >> state;
-
         in.device()->readAll();
 
         CMWFileList* pWMFileList = (CMWFileList*)m_pTabWgt->widget(area);
@@ -904,13 +905,7 @@ void HostMachine::readyReadCmd()
     else if (respondType == SC_Import)
     {
         quint32 areano, state;
-        in >> areano;
-
-        char filename[40] = {0};
-        in.readRawData(filename, sizeof(filename));
-
-        in >> state;
-
+        in >> areano >> state;
         in.device()->readAll();
 
         CMWFileList* pWMFileList = (CMWFileList*)m_pTabWgt->widget(areano);
@@ -924,7 +919,6 @@ void HostMachine::readyReadCmd()
     {
         quint32 areano, state;
         in >> areano >> state;
-
         in.device()->readAll();
     }
 }
@@ -1043,9 +1037,9 @@ void HostMachine::slotFormat()
     // вт╪Л
     reallyCheckSelf();
 
-    DlgAreaFormat dlg(m_spcheckSelf->areaInfo0->areasize, m_spcheckSelf->areaInfo1->areasize,
-        m_spcheckSelf->areaInfo2->areasize, m_spcheckSelf->areaInfo3->areasize,
-        m_spcheckSelf->areaInfo4->areasize, this);
+    DlgAreaFormat dlg(m_spcheckSelf->totalsize / c_bSizeMax, m_spcheckSelf->areaInfo0->areasize / c_bSizeMax, m_spcheckSelf->areaInfo1->areasize / c_bSizeMax,
+        m_spcheckSelf->areaInfo2->areasize / c_bSizeMax, m_spcheckSelf->areaInfo3->areasize / c_bSizeMax,
+        m_spcheckSelf->areaInfo4->areasize / c_bSizeMax, this);
     if (QDialog::Accepted != dlg.exec())
         return;
 
@@ -1264,7 +1258,7 @@ void HostMachine::slotPlayBack()
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
     out << CS_PlayBack << m_pTabWgt->currentIndex()
-        << *fileNos.begin()
+        << pFileListWgt->item(*fileNos.begin(), 0)->text().toInt()
         << dlg.Type()
         << dlg.Prftime()
         << dlg.Datanum()
@@ -1477,8 +1471,7 @@ void HostMachine::slotForeachExport()
     shared_ptr<tagExportParam> spExportParam = m_lstExportParam.first();
     m_lstExportParam.pop_front();
 
-    qint64 filesize = spExportParam->fileSize - spExportParam->startPos;
-    m_pDataSocket->preExport(m_pTabWgt->currentIndex(), spExportParam->filePath, filesize * c_bSizeMax);
+    m_pDataSocket->preExport(m_pTabWgt->currentIndex(), spExportParam->filePath, spExportParam->fileSize * c_bSizeMax);
 
     QTableWidget *pFileListWgt = pFileList->m_pFileListWgt;
 
@@ -1738,7 +1731,7 @@ void HostMachine::readCheckSelf()
         m_doubleManager->setValue(areaProperty->pItem2, (double)newSize);
         m_doubleManager->setSuffix(areaProperty->pItem2, sUnit);
 
-        m_doubleManager->setValue(areaProperty->pItem3, areaInfo->areaunuse *100 / areaInfo->areasize);
+        m_doubleManager->setValue(areaProperty->pItem3, areaInfo->areaunuse / areaInfo->areasize *100);
         m_intManager->setValue(areaProperty->pItem4, areaInfo->areafilenum);
         m_enumManager->setValue(areaProperty->pItem5, areaInfo->areastate + 1);
     };
@@ -2104,11 +2097,6 @@ void HostMachine::slotExportCompleted(qint32 areano, QString fileName, qint64 bu
 *****************************************************************************/
 void HostMachine::readRecord(quint32 area, quint32 state)
 {
-    m_pTaskWgt->setRowCount(m_pTaskWgt->rowCount() + 1);
-
-    m_pTaskWgt->setItem(m_pTaskWgt->rowCount() - 1, 0, new QTableWidgetItem(m_pTabWgt->tabBar()->tabText(area)));
-    m_pTaskWgt->setItem(m_pTaskWgt->rowCount() - 1, 1, new QTableWidgetItem(qApp->translate(c_sHostMachine, c_sRecord)));
-    m_pTaskWgt->setItem(m_pTaskWgt->rowCount() - 1, 2, new QTableWidgetItem(QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss")));
 }
 
 /*****************************************************************************
