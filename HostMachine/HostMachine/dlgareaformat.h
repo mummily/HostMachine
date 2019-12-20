@@ -4,8 +4,9 @@
 #include <QDialog>
 
 class QPushButton;
-class QSpinBox;
-class QSlider;
+class QLineEdit;
+class QSplitter;
+class QLabel;
 class DlgAreaFormat : public QDialog
 {
     Q_OBJECT
@@ -27,13 +28,16 @@ private:
     void initData();
 
 private slots:
-    void slotOk();
+    void slotSplitterMoved(int pos, int index);
 
 private:
-    QSpinBox        *m_spinbox1, *m_spinbox2, *m_spinbox3, *m_spinbox4, *m_spinbox5;
-    QSlider         *m_slider1, *m_slider2, *m_slider3, *m_slider4, *m_slider5;
-    QPushButton     *m_btnOk, *m_btnCancel;
     int             m_nTotalSize, m_nSize1, m_nSize2, m_nSize3, m_nSize4, m_nSize5;
+
+private:
+    QLineEdit       *m_pLineEdit1, *m_pLineEdit2, *m_pLineEdit3, *m_pLineEdit4, *m_pLineEdit5;
+    QLabel          *m_pLabel1, *m_pLabel2, *m_pLabel3, *m_pLabel4, *m_pLabel5;
+    QPushButton     *m_btnOk, *m_btnCancel;
+    QSplitter       *m_pSplitter;
 };
 
 #endif // DLGAREAFORMAT_H

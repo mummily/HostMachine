@@ -1037,9 +1037,9 @@ void HostMachine::slotFormat()
     // вт╪Л
     reallyCheckSelf();
 
-    DlgAreaFormat dlg(m_spcheckSelf->totalsize / c_bSizeMax, m_spcheckSelf->areaInfo0->areasize / c_bSizeMax, m_spcheckSelf->areaInfo1->areasize / c_bSizeMax,
-        m_spcheckSelf->areaInfo2->areasize / c_bSizeMax, m_spcheckSelf->areaInfo3->areasize / c_bSizeMax,
-        m_spcheckSelf->areaInfo4->areasize / c_bSizeMax, this);
+    DlgAreaFormat dlg(m_spcheckSelf->totalsize, m_spcheckSelf->areaInfo0->areasize, m_spcheckSelf->areaInfo1->areasize,
+        m_spcheckSelf->areaInfo2->areasize, m_spcheckSelf->areaInfo3->areasize,
+        m_spcheckSelf->areaInfo4->areasize, this);
     if (QDialog::Accepted != dlg.exec())
         return;
 
@@ -1723,11 +1723,11 @@ void HostMachine::readCheckSelf()
     {
         qint64 newSize = 0;
         QString sUnit = "";
-        CGlobalFun::formatSize(areaInfo->areasize, newSize, sUnit);
+        CGlobalFun::formatSize((qint64)areaInfo->areasize * c_bSizeMax, newSize, sUnit);
         m_doubleManager->setValue(areaProperty->pItem1, (double)newSize);
         m_doubleManager->setSuffix(areaProperty->pItem1, sUnit);
 
-        CGlobalFun::formatSize(areaInfo->areasize - areaInfo->areaunuse, newSize, sUnit);
+        CGlobalFun::formatSize((qint64)(areaInfo->areasize - areaInfo->areaunuse) * c_bSizeMax, newSize, sUnit);
         m_doubleManager->setValue(areaProperty->pItem2, (double)newSize);
         m_doubleManager->setSuffix(areaProperty->pItem2, sUnit);
 
