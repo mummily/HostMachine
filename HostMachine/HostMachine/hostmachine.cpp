@@ -313,9 +313,11 @@ void HostMachine::initConnect()
     connect(m_pDataSocket, SIGNAL(disconnected()), this, SLOT(disconnectData()));
     connect(m_pDataSocket, SIGNAL(readyRead()), m_pDataSocket, SLOT(readyRead()));
     connect(m_pDataSocket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(errorData()));
+
     connect(m_pDataSocket, SIGNAL(importStart(qint32, QString, qint64, qint64)), this, SLOT(slotImportStart(qint32, QString, qint64, qint64)));
     connect(m_pDataSocket, SIGNAL(importUpdate(qint32, QString, qint64, qint64)), this, SLOT(slotImportUpdate(qint32, QString, qint64, qint64)));
     connect(m_pDataSocket, SIGNAL(importCompleted(qint32, QString, qint64, qint64)), this, SLOT(slotImportCompleted(qint32, QString, qint64, qint64)));
+
     connect(m_pDataSocket, SIGNAL(exportStart(qint32, QString, qint64, qint64)), this, SLOT(slotExportStart(qint32, QString, qint64, qint64)));
     connect(m_pDataSocket, SIGNAL(exportUpdate(qint32, QString, qint64, qint64)), this, SLOT(slotExportUpdate(qint32, QString, qint64, qint64)));
     connect(m_pDataSocket, SIGNAL(exportCompleted(qint32, QString, qint64, qint64)), this, SLOT(slotExportCompleted(qint32, QString, qint64, qint64)));
@@ -378,9 +380,6 @@ void HostMachine::initPropertyWgt()
         << qApp->translate(c_sHostMachine, c_sAreaState2)
         << qApp->translate(c_sHostMachine, c_sAreaState3);
 
-    QStringList enumChannelWidth;
-    enumChannelWidth << "" << "1.25G" << "2G" << "2.5G" << "3.125G" << "5G" << "6.25G";
-
     // 参数信息
     {
         shared_ptr<tagChannelProperty> channelProperty = make_shared<tagChannelProperty>();
@@ -401,6 +400,10 @@ void HostMachine::initPropertyWgt()
 
         item = m_enumManager->addProperty(qApp->translate(c_sHostMachine, c_sProperty1_8));
         channelProperty->pItem3 = item;
+
+        QStringList enumChannelWidth;
+        enumChannelWidth << "" << "1.25G" << "2G" << "2.5G" << "3.125G" << "5G" << "6.25G";
+
         m_enumManager->setEnumNames(item, enumChannelWidth);
         m_enumManager->setValue(item, 0);
         topItem->addSubProperty(item);
@@ -1341,7 +1344,7 @@ void HostMachine::slotForeachImport()
 
     // 文件大小
     QFileInfo fileInfo(spImportParam->filePath);
-    float filesize = fileInfo.size() / c_bSizeMax; // LBA
+    qint32 filesize = fileInfo.size() / c_bSizeMax; // LBA
 
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
@@ -1414,7 +1417,7 @@ void HostMachine::slotExport()
     m_lstExportParam.clear();
     if (rowNos.count() == 1)
     {
-        float filesize = pFileListWgt->item(*rowNos.begin(), 5)->text().toFloat(); // 来自所在行的文件大小列
+        qint32 filesize = pFileListWgt->item(*rowNos.begin(), 5)->text().toInt(); // 来自所在行的文件大小列
         DlgFileExport dlg(filesize, this);
         if (QDialog::Accepted != dlg.exec())
             return;
@@ -1440,7 +1443,7 @@ void HostMachine::slotExport()
             shared_ptr<tagExportParam> spExportParam = make_shared<tagExportParam>();
             spExportParam->fileNo = pFileListWgt->item(rowNo, 0)->text().toInt();
             spExportParam->startPos = 0;
-            spExportParam->fileSize = pFileListWgt->item(rowNo, 5)->text().toFloat();
+            spExportParam->fileSize = pFileListWgt->item(rowNo, 5)->text().toInt();
             spExportParam->filePath = QString("%0/%1.%2").arg(sExportPath)
                 .arg(pFileListWgt->item(rowNo, 1)->text()).arg(pFileListWgt->item(rowNo, 4)->text());
 
@@ -1709,6 +1712,17 @@ void HostMachine::slotRefresh()
     }
 
     reallyRefresh();
+}
+
+/*****************************************************************************
+* @brief   : 请求-刷新
+* @author  : wb
+* @date    : 2019/10/28
+* @param:  : 
+*****************************************************************************/
+void HostMachine::slotTaskQueryStart()
+{
+    m_pTimer->start();
 }
 
 /*****************************************************************************

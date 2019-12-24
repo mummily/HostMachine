@@ -19,7 +19,7 @@ static const char *c_sPathTitle = QT_TRANSLATE_NOOP("DlgFileExport", "选择导出文
 static const char *c_sConfirm = QT_TRANSLATE_NOOP("DlgFileExport", "确定");
 static const char *c_sCancel = QT_TRANSLATE_NOOP("DlgFileExport", "取消");
 
-DlgFileExport::DlgFileExport(float filesize, QWidget *parent)
+DlgFileExport::DlgFileExport(qint32 filesize, QWidget *parent)
     : QDialog(parent), m_filesize(filesize)
 {
     initUI();

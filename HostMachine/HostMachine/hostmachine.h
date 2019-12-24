@@ -230,6 +230,8 @@ public:
         void slotDelete();
         // 刷新
         void slotRefresh();
+        // 触发任务查询
+        void slotTaskQueryStart();
 
         // Init
         void slotInit();

@@ -29,7 +29,7 @@ public:
     void readRefresh(tagAreaFileInfos* pFileInfos);
     void readImport(quint32 state);
 
-    void updateProcess(QString fileName, float buffer, float total);
+    void updateProcess(QString fileName, qint32 buffer, qint32 total);
 
 signals:
     void siglogRecord(QString);
@@ -51,6 +51,7 @@ private:
     QAction                 *m_pActRefresh;     // 刷新
     QAction                 *m_pActPlayBack;    // 回放
     QAction                 *m_pActStop;        // 停止
+    QAction                 *m_pActTaskQueryStart;   // 任务查询
 };
 
 #endif // MWFILELIST_H

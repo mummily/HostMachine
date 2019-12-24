@@ -121,6 +121,9 @@ void CMWFileList::initUI()
     m_pActStop = toolBar->addAction(QIcon(sIcon), qApp->translate(c_sMWFileList, c_sStop));
     m_pActStop->setStatusTip(m_pActStop->text());
 
+    m_pActTaskQueryStart = toolBar->addAction("Task Query Trigger");
+    m_pActTaskQueryStart->setStatusTip(m_pActTaskQueryStart->text());
+
     m_pFileListWgt = new QTableWidget(this);
     // m_pFileListWgt->setStyleSheet("QTableWidget { border: none;}");
     setCentralWidget(m_pFileListWgt);
@@ -165,6 +168,7 @@ void CMWFileList::initConnect()
 
     connect(m_pActRefresh, SIGNAL(triggered(bool)), parentWidget(), SLOT(slotLogRecordAct()));
     connect(m_pActRefresh, SIGNAL(triggered(bool)), parentWidget(), SLOT(slotRefresh()));
+    connect(m_pActTaskQueryStart, SIGNAL(triggered(bool)), parentWidget(), SLOT(slotTaskQueryStart()));
 
     // ÆäËü
     connect(this, SIGNAL(siglogRecord(QString)), parentWidget(), SLOT(slotLogRecord(QString)));
@@ -240,7 +244,7 @@ void CMWFileList::readRefresh(tagAreaFileInfos* pFileInfos)
     emit siglogRecord(sInfo);
 }
 
-void CMWFileList::updateProcess(QString fileName, float buffer, float total)
+void CMWFileList::updateProcess(QString fileName, qint32 buffer, qint32 total)
 {
     m_pProgressBar->show();
     m_pProgressBar->setMaximum(total / c_bSizeMax);
