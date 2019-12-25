@@ -234,30 +234,35 @@ void DlgAreaFormat::slotRadioToggled(bool checked)
     if (sender() == m_pRadio1)
     {
         m_slider1->setMaximum(m_nTotalSize - m_nSize2 - m_nSize3 - m_nSize4 - m_nSize5);
+        m_spinbox1->setMaximum(m_slider1->maximum());
         m_slider1->setValue(m_nSize1);
         m_spinbox1->setReadOnly(!checked);
     }
     else if (sender() == m_pRadio2)
     {
         m_slider2->setMaximum(m_nTotalSize - m_nSize1 - m_nSize3 - m_nSize4 - m_nSize5);
+        m_spinbox2->setMaximum(m_slider2->maximum());
         m_slider2->setValue(m_nSize2);
         m_spinbox2->setReadOnly(!checked);
     }
     else if (sender() == m_pRadio3)
     {
         m_slider3->setMaximum(m_nTotalSize - m_nSize1 - m_nSize2 - m_nSize4 - m_nSize5);
+        m_spinbox3->setMaximum(m_slider3->maximum());
         m_slider3->setValue(m_nSize3);
         m_spinbox3->setReadOnly(!checked);
     }
     else if (sender() == m_pRadio4)
     {
         m_slider4->setMaximum(m_nTotalSize - m_nSize1 - m_nSize2 - m_nSize3 - m_nSize5);
+        m_spinbox4->setMaximum(m_slider4->maximum());
         m_slider4->setValue(m_nSize4);
         m_spinbox4->setReadOnly(!checked);
     }
     else
     {
         m_slider5->setMaximum(m_nTotalSize - m_nSize1 - m_nSize2 - m_nSize3 - m_nSize4);
+        m_spinbox5->setMaximum(m_slider5->maximum());
         m_slider5->setValue(m_nSize5);
         m_spinbox5->setReadOnly(!checked);
     }
