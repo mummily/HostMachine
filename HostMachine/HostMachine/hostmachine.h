@@ -27,7 +27,6 @@ class CMWFileList;
 class QFile;
 class CDataSocket;
 class TaskStopType;
-class QPushButton;
 
 // 分区属性
 struct tagAreaProperty
@@ -226,7 +225,7 @@ public:
         // 停止
         void slotStop();
         // 任务停止
-        void slotTaskStop(qint32 tasktype);
+        void slotTaskStop();
         // 删除
         void slotDelete();
         // 刷新
@@ -258,11 +257,12 @@ private:
     void reallyCheckSelf();
     void reallyRefresh();
     void reallyTaskQuery();
+    void reallyTaskStop(qint32 tasktype);
+
     void readCheckSelf();
     void readFormat(quint32 state);
     void readSystemConfig(quint32 choice, quint32 state);
     void readTaskQuery();
-    void readRecord(quint32 area, quint32 state);
 
     bool reConnectCmd();
     bool reConnectData();
@@ -316,8 +316,6 @@ private:
     DecoratedDoublePropertyManager      *m_doubleManager;
     QtIntPropertyManager                *m_intManager;
     QtEnumPropertyManager               *m_enumManager;
-
-    QPushButton                         *m_btnTaskStop1;
 };
 
 #endif // HOSTMACHINE_H

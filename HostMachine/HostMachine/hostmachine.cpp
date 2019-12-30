@@ -325,12 +325,6 @@ void HostMachine::initConnect()
 
     // 任务查询
     connect(m_pTimer, SIGNAL(timeout()), this, SLOT(slotTaskQuery()));
-
-    // 任务停止
-    connect(m_btnTaskStop1, &QPushButton::clicked, [&](){
-        quint32 tasktype = m_pTaskWgt->item(m_pTaskWgt->currentRow(), 1)->text().toInt();
-        slotTaskStop(tasktype);
-    });
 }
 
 /*****************************************************************************
@@ -342,7 +336,9 @@ void HostMachine::initConnect()
 void HostMachine::initTaskWgt()
 {
     QStringList headerList;
-    headerList << qApp->translate(c_sHostMachine, c_sTaskHeader2)
+    headerList << "" // TaskType
+        << qApp->translate(c_sHostMachine, c_sTaskHeader1)
+        << qApp->translate(c_sHostMachine, c_sTaskHeader2)
         << qApp->translate(c_sHostMachine, c_sTaskHeader3)
         << qApp->translate(c_sHostMachine, c_sTaskHeader4)
         << qApp->translate(c_sHostMachine, c_sTaskHeader5)
@@ -358,14 +354,35 @@ void HostMachine::initTaskWgt()
     m_pTaskWgt->setHorizontalHeaderLabels(headerList);
     m_pTaskWgt->setSelectionBehavior(QAbstractItemView::SelectRows);
     m_pTaskWgt->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    m_pTaskWgt->setColumnHidden(10, !m_bShowTaskStop);
+    m_pTaskWgt->setColumnHidden(0, true);
+    m_pTaskWgt->setColumnHidden(11, !m_bShowTaskStop);
 
-    m_btnTaskStop1 = new QPushButton(qApp->translate(c_sHostMachine, c_sStop), m_pTaskWgt);
-    m_btnTaskStop1->hide();
+    for(int nIndex = 0; nIndex < c_uTaskQueryNum; ++ nIndex)
+    {
+        m_pTaskWgt->insertRow(m_pTaskWgt->rowCount());
+        m_pTaskWgt->setRowHidden(m_pTaskWgt->rowCount() - 1, true);
+        m_pTaskWgt->setItem(m_pTaskWgt->rowCount() - 1, 0, new QTableWidgetItem(QString::number(nIndex))); // 任务类型
+        m_pTaskWgt->setItem(m_pTaskWgt->rowCount() - 1, 1, new QTableWidgetItem("")); // 序号
+        m_pTaskWgt->setItem(m_pTaskWgt->rowCount() - 1, 2, new QTableWidgetItem("")); // 所属分区
+        m_pTaskWgt->setItem(m_pTaskWgt->rowCount() - 1, 3, new QTableWidgetItem("")); // 任务类型
+        m_pTaskWgt->setItem(m_pTaskWgt->rowCount() - 1, 4, new QTableWidgetItem("")); // 任务开始时间
+        m_pTaskWgt->setItem(m_pTaskWgt->rowCount() - 1, 5, new QTableWidgetItem("")); // 总大小
+        m_pTaskWgt->setItem(m_pTaskWgt->rowCount() - 1, 6, new QTableWidgetItem("")); // 已完成大小
+        m_pTaskWgt->setItem(m_pTaskWgt->rowCount() - 1, 7, new QTableWidgetItem("")); // 百分比
+        m_pTaskWgt->setItem(m_pTaskWgt->rowCount() - 1, 8, new QTableWidgetItem("")); // 速率
+        m_pTaskWgt->setItem(m_pTaskWgt->rowCount() - 1, 9, new QTableWidgetItem("")); // 任务状态
+        m_pTaskWgt->setItem(m_pTaskWgt->rowCount() - 1, 10, new QTableWidgetItem("")); // 耗时
+
+        QPushButton *btnTaskStop = new QPushButton(qApp->translate(c_sHostMachine, c_sStop), this);
+        m_pTaskWgt->setCellWidget(m_pTaskWgt->rowCount() - 1, 11, btnTaskStop);
+        connect(btnTaskStop, SIGNAL(clicked(bool)), this, SLOT(slotTaskStop()));
+    }
 
     QHeaderView* headerView = m_pTaskWgt->horizontalHeader();
     headerView->setDefaultAlignment(Qt::AlignLeft);
     headerView->setStretchLastSection(true);
+
+    m_pTaskWgt->verticalHeader()->hide();
 }
 
 /*****************************************************************************
@@ -804,11 +821,8 @@ void HostMachine::readyReadCmd()
     }
     else if (respondType == SC_TaskQuery)
     {
-        qint32 tasknum = 14;
-        // in >> tasknum;
-
         m_lstTaskInfo.clear();
-        for (int index = 0; index < tasknum; ++index)
+        for (int index = 0; index < c_uTaskQueryNum; ++index)
         {
             shared_ptr<tagTaskInfo> spTaskInfo = make_shared<tagTaskInfo>();
             spTaskInfo->state = 1;
@@ -840,14 +854,14 @@ void HostMachine::readyReadCmd()
         quint32 area, state;
         in >> area >> state;
         in.device()->readAll();
-        
-        if (state == 0x00)
-        {
-            readRecord(area, state);
-        }
 
         CMWFileList* pWMFileList = (CMWFileList*)m_pTabWgt->widget(area);
         pWMFileList->readRecord(area, state);
+
+        if (state == 0x00)
+        {
+            m_pTimer->start();
+        }
     }
     else if (respondType == SC_PlayBack)
     {
@@ -857,6 +871,11 @@ void HostMachine::readyReadCmd()
 
         CMWFileList* pWMFileList = (CMWFileList*)m_pTabWgt->widget(area);
         pWMFileList->readPlayBack(area, state);
+
+        if (state == 0x00)
+        {
+            m_pTimer->start();
+        }
     }
     else if (respondType == SC_TaskStop)
     {
@@ -1146,8 +1165,6 @@ void HostMachine::slotRecord()
 
     reConnectCmd();
 
-    // m_pTimer->start();
-
     QString sFileName = dlg.Filename();
     QList<quint32> lstAreano = dlg.Areas();
     foreach(quint32 areano, lstAreano)
@@ -1201,8 +1218,6 @@ void HostMachine::slotPlayBack()
         return;
 
     reConnectCmd();
-
-    // m_pTimer->start();
 
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
@@ -1355,8 +1370,6 @@ void HostMachine::slotExport()
     reConnectCmd();
     reConnectData();
 
-    // m_pTimer->start();
-
     slotForeachExport();
 }
 
@@ -1399,22 +1412,8 @@ void HostMachine::slotForeachExport()
 * @date    : 2019/10/28
 * @param:  : 
 *****************************************************************************/
-void HostMachine::slotTaskStop(qint32 tasktype)
+void HostMachine::reallyTaskStop(qint32 tasktype)
 {
-    if (!reConnectCmd())
-        return;
-
-    QMessageBox box(this);
-    box.setWindowTitle(qApp->translate(c_sHostMachine, c_sTitle));
-    box.setText(qApp->translate(c_sHostMachine, c_sIsStop));
-    box.setIcon(QMessageBox::Question);
-    box.addButton(qApp->translate(c_sHostMachine, c_sYes), QMessageBox::YesRole);
-    box.addButton(qApp->translate(c_sHostMachine, c_sNo), QMessageBox::NoRole);
-    if (QMessageBox::AcceptRole != box.exec())
-        return;
-
-    reConnectCmd();
-
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
     out << CS_TaskStop << tasktype << c_uRequestEndTag;
@@ -1720,64 +1719,48 @@ void HostMachine::readSystemConfig(quint32 choice, quint32 state)
 *****************************************************************************/
 void HostMachine::readTaskQuery()
 {
-    while (m_pTaskWgt->rowCount() > 0)
-    {
-        m_pTaskWgt->removeRow(m_pTaskWgt->rowCount() - 1);
-        m_btnTaskStop1->hide();
-    }
-
     if (m_lstTaskInfo.empty())
         return;
 
-    foreach(shared_ptr<tagTaskInfo> spTaskInfo, m_lstTaskInfo)
+    int nSerialNum = 1;
+    for (int nRow = 0; nRow < m_pTaskWgt->rowCount(); ++ nRow)
     {
-        if (spTaskInfo->flag != 1)
+        int nTaskType = m_pTaskWgt->item(nRow, 0)->text().toInt();
+        auto itFind = std::find_if(m_lstTaskInfo.begin(), m_lstTaskInfo.end(), [&](shared_ptr<tagTaskInfo> spTaskInfo)->bool
+        {
+            return (spTaskInfo->type == nTaskType);
+        });
+
+        if (itFind == m_lstTaskInfo.end())
             continue;
 
-        m_pTaskWgt->insertRow(m_pTaskWgt->rowCount());
-        m_pTaskWgt->setItem(m_pTaskWgt->rowCount() - 1, 0, new QTableWidgetItem(m_pTabWgt->tabBar()->tabText(spTaskInfo->area))); // 所属分区
-        m_pTaskWgt->setItem(m_pTaskWgt->rowCount() - 1, 1, new QTableWidgetItem(QString::number(spTaskInfo->type))); // 任务类型
+        shared_ptr<tagTaskInfo> spTaskInfo = *itFind;
+        m_pTaskWgt->setRowHidden(nRow, !spTaskInfo->flag);
+        if (!spTaskInfo->flag)
+            continue;
+
+        m_pTaskWgt->item(nRow, 1)->setText(QString::number(nSerialNum++)); // 序号
+        m_pTaskWgt->item(nRow, 2)->setText(m_pTabWgt->tabBar()->tabText(spTaskInfo->area)); // 所属分区
+        m_pTaskWgt->item(nRow, 3)->setText(QString::number(spTaskInfo->type)); // 任务类型
 
         int nSpendTime = 0;
         if (spTaskInfo->speed > 0)
             nSpendTime = spTaskInfo->finishedsize / spTaskInfo->speed;
         QDateTime startTime = QDateTime::currentDateTime().addSecs(-1 * nSpendTime);
-
-        m_pTaskWgt->setItem(m_pTaskWgt->rowCount() - 1, 2, new QTableWidgetItem(startTime.toString("yyyy-MM-dd hh:mm:ss"))); // 任务开始时间
+        m_pTaskWgt->item(nRow, 4)->setText(startTime.toString("yyyy-MM-dd hh:mm:ss")); // 任务开始时间
 
         qint64 totalsize = 0;
         if (spTaskInfo->percent > 0)
             totalsize = spTaskInfo->finishedsize * 100 / spTaskInfo->percent;
-        m_pTaskWgt->setItem(m_pTaskWgt->rowCount() - 1, 3, new QTableWidgetItem(CGlobalFun::formatSize(totalsize * c_bSizeMax))); // 总大小
-        m_pTaskWgt->setItem(m_pTaskWgt->rowCount() - 1, 4, new QTableWidgetItem(CGlobalFun::formatSize(spTaskInfo->finishedsize * c_bSizeMax))); // 已完成大小
-        m_pTaskWgt->setItem(m_pTaskWgt->rowCount() - 1, 5, new QTableWidgetItem(QString::number(spTaskInfo->percent) + "%")); // 百分比
-        m_pTaskWgt->setItem(m_pTaskWgt->rowCount() - 1, 6, new QTableWidgetItem(CGlobalFun::formatSize(spTaskInfo->speed * c_bSizeMax) + "/s")); // 速率
-
-        QString sTaskState = "";
-        switch (spTaskInfo->state)
-        {
-        case 0:
-            sTaskState = qApp->translate(c_sHostMachine, c_sTaskState0);
-            break;
-        case 1:
-            sTaskState = qApp->translate(c_sHostMachine, c_sTaskState1);
-            break;
-        case 2:
-            sTaskState = qApp->translate(c_sHostMachine, c_sTaskState2);
-            break;
-        default:
-            sTaskState = qApp->translate(c_sHostMachine, c_sTaskState3);
-            break;
-        }
-
-        m_pTaskWgt->setItem(m_pTaskWgt->rowCount() - 1, 7, new QTableWidgetItem(sTaskState)); // 任务状态
-        m_pTaskWgt->setItem(m_pTaskWgt->rowCount() - 1, 8, new QTableWidgetItem(QString::number(nSpendTime) + "s")); // 耗时
-        m_btnTaskStop1->show();
-
-        m_pTaskWgt->viewport()->update();
-
-        // slotTaskStop(13);
+        m_pTaskWgt->item(nRow, 5)->setText(CGlobalFun::formatSize(totalsize * c_bSizeMax)); // 总大小
+        m_pTaskWgt->item(nRow, 6)->setText(CGlobalFun::formatSize(spTaskInfo->finishedsize * c_bSizeMax)); // 已完成大小
+        m_pTaskWgt->item(nRow, 7)->setText(QString::number(spTaskInfo->percent) + "%"); // 百分比
+        m_pTaskWgt->item(nRow, 8)->setText(CGlobalFun::formatSize(spTaskInfo->speed * c_bSizeMax) + "/s"); // 速率
+        m_pTaskWgt->item(nRow, 9)->setText(qApp->translate(c_sHostMachine, c_sTaskState1)); // 任务状态
+        m_pTaskWgt->item(nRow, 10)->setText(QString::number(nSpendTime) + "s"); // 耗时
     }
+
+    m_pTaskWgt->viewport()->update();
 }
 
 /*****************************************************************************
@@ -1936,10 +1919,10 @@ void HostMachine::slotImportCompleted(qint32 areano, QString fileName, qint64 bu
     CMWFileList* pWMFileList = (CMWFileList*)m_pTabWgt->widget(areano);
     pWMFileList->updateProcess(fileName, buffer, total);
 
-    reallyTaskQuery();
-
     reallyRefresh();
     slotForeachImport();
+
+    reallyTaskQuery();
 }
 
 /*****************************************************************************
@@ -1952,6 +1935,8 @@ void HostMachine::slotExportStart(qint32 areano, QString fileName, qint64 buffer
 {
     m_pElapsedTimer->restart();
     m_nInterval = c_uProgressBarUpdateInterval;
+
+    reallyTaskQuery();
 }
 
 /*****************************************************************************
@@ -1968,6 +1953,8 @@ void HostMachine::slotExportUpdate(qint32 areano, QString fileName, qint64 buffe
 
     CMWFileList* pWMFileList = (CMWFileList*)m_pTabWgt->widget(areano);
     pWMFileList->updateProcess(fileName, buffer, total);
+
+    reallyTaskQuery();
 }
 
 /*****************************************************************************
@@ -1981,16 +1968,8 @@ void HostMachine::slotExportCompleted(qint32 areano, QString fileName, qint64 bu
     CMWFileList* pWMFileList = (CMWFileList*)m_pTabWgt->widget(areano);
     pWMFileList->updateProcess(fileName, buffer, total);
     slotForeachExport();
-}
 
-/*****************************************************************************
-* @brief   : 记录
-* @author  : wb
-* @date    : 2019/12/02
-* @param:  : 
-*****************************************************************************/
-void HostMachine::readRecord(quint32 area, quint32 state)
-{
+    reallyTaskQuery();
 }
 
 /*****************************************************************************
@@ -2064,6 +2043,12 @@ bool HostMachine::reConnectData()
     return true;
 }
 
+/*****************************************************************************
+* @brief   : 查询的任务是否都是无效的
+* @author  : wb
+* @date    : 2019/12/30
+* @param:  : 
+*****************************************************************************/
 bool HostMachine::queryTaskInvalid()
 {
     bool bAll = std::all_of(m_lstTaskInfo.begin(), m_lstTaskInfo.end(), [&](shared_ptr<tagTaskInfo> spTaskInfo)->bool
@@ -2072,4 +2057,37 @@ bool HostMachine::queryTaskInvalid()
     });
 
     return bAll;
+}
+
+/*****************************************************************************
+* @brief   : 任务停止
+* @author  : wb
+* @date    : 2019/12/30
+* @param:  : 
+*****************************************************************************/
+void HostMachine::slotTaskStop()
+{
+    int nRow = 0;
+    for (; nRow < m_pTaskWgt->rowCount(); ++nRow)
+    {
+        if (m_pTaskWgt->cellWidget(nRow, 11) == sender())
+        {
+            break;
+        }
+    }
+
+    quint32 tasktype = m_pTaskWgt->item(nRow, 0)->text().toInt();
+
+    QMessageBox box(this);
+    box.setWindowTitle(qApp->translate(c_sHostMachine, c_sTitle));
+    box.setText(qApp->translate(c_sHostMachine, c_sIsStop));
+    box.setIcon(QMessageBox::Question);
+    box.addButton(qApp->translate(c_sHostMachine, c_sYes), QMessageBox::YesRole);
+    box.addButton(qApp->translate(c_sHostMachine, c_sNo), QMessageBox::NoRole);
+    if (QMessageBox::AcceptRole != box.exec())
+        return;
+
+    reConnectCmd();
+
+    reallyTaskStop(tasktype);
 }
