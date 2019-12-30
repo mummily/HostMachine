@@ -27,6 +27,7 @@ class CMWFileList;
 class QFile;
 class CDataSocket;
 class TaskStopType;
+class QPushButton;
 
 // ∑÷«¯ Ù–‘
 struct tagAreaProperty
@@ -263,6 +264,10 @@ private:
     void readTaskQuery();
     void readRecord(quint32 area, quint32 state);
 
+    bool reConnectCmd();
+    bool reConnectData();
+    bool queryTaskInvalid();
+
 private:
     shared_ptr<tagAreaProperties>       m_spAreaProperties;
     shared_ptr<tagCheckSelf>            m_spcheckSelf;
@@ -311,6 +316,8 @@ private:
     DecoratedDoublePropertyManager      *m_doubleManager;
     QtIntPropertyManager                *m_intManager;
     QtEnumPropertyManager               *m_enumManager;
+
+    QPushButton                         *m_btnTaskStop1;
 };
 
 #endif // HOSTMACHINE_H

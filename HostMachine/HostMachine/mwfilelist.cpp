@@ -200,10 +200,10 @@ void CMWFileList::initFileListWgt()
     QHeaderView* headerView = m_pFileListWgt->horizontalHeader();
     headerView->setDefaultAlignment(Qt::AlignLeft);
     headerView->setStretchLastSection(true);
-    for (int nColumn = 0; nColumn < m_pFileListWgt->columnCount(); ++nColumn)
-    {
-        headerView->setSectionResizeMode(nColumn, QHeaderView::ResizeToContents);
-    }
+//     for (int nColumn = 0; nColumn < m_pFileListWgt->columnCount(); ++nColumn)
+//     {
+//         headerView->setSectionResizeMode(nColumn, QHeaderView::ResizeToContents);
+//     }
 }
 
 /*****************************************************************************
@@ -231,10 +231,10 @@ void CMWFileList::readRefresh(tagAreaFileInfos* pFileInfos)
         QString sFileNo = QString("%0").arg(spFileInfo->fileno);
         m_pFileListWgt->setItem(m_pFileListWgt->rowCount() - 1, 0, new QTableWidgetItem(sFileNo));
         m_pFileListWgt->setItem(m_pFileListWgt->rowCount() - 1, 1, new QTableWidgetItem(sFileName));
-        m_pFileListWgt->setItem(m_pFileListWgt->rowCount() - 1, 2, new QTableWidgetItem(CGlobalFun::formatSize(spFileInfo->filesize)));
+        m_pFileListWgt->setItem(m_pFileListWgt->rowCount() - 1, 2, new QTableWidgetItem(CGlobalFun::formatSize(c_bSizeMax * spFileInfo->filesize)));
         m_pFileListWgt->setItem(m_pFileListWgt->rowCount() - 1, 3, new QTableWidgetItem(spFileInfo->datetime.toString("yyyy-MM-dd hh:mm:ss")));
         m_pFileListWgt->setItem(m_pFileListWgt->rowCount() - 1, 4, new QTableWidgetItem(sExt));
-        QString sFileLBA = QString("%0").arg(spFileInfo->filesize / c_bSizeMax);
+        QString sFileLBA = QString("%0").arg(spFileInfo->filesize);
         m_pFileListWgt->setItem(m_pFileListWgt->rowCount() - 1, 5, new QTableWidgetItem(sFileLBA));
     }
 
@@ -317,7 +317,7 @@ void CMWFileList::readDelete(quint32 area, quint32 state)
 * @date    : 2019/10/28
 * @param:  :
 *****************************************************************************/
-void CMWFileList::readTaskStop(quint32 area, quint32 tasktype, quint32 state)
+void CMWFileList::readTaskStop(quint32 tasktype, quint32 state)
 {
     QString sInfo = "";
     if (state == 0x00)
@@ -331,8 +331,7 @@ void CMWFileList::readTaskStop(quint32 area, quint32 tasktype, quint32 state)
 
     statusBar()->showMessage(sInfo);
 
-    QString sLog = QString("%0 %1").arg(area).arg(sInfo);
-    emit siglogRecord(sLog);
+    emit siglogRecord(sInfo);
 }
 
 /*****************************************************************************

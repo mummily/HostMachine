@@ -25,7 +25,7 @@ public:
     void readRecord(quint32 area, quint32 state);
     void readPlayBack(quint32 area, quint32 state);
     void readExport(quint32 area, quint32 state);
-    void readTaskStop(quint32 area, quint32 tasktype, quint32 state);
+    void readTaskStop(quint32 tasktype, quint32 state);
     void readRefresh(tagAreaFileInfos* pFileInfos);
     void readImport(quint32 state);
 

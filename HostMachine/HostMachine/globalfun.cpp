@@ -17,7 +17,7 @@ CGlobalFun::~CGlobalFun(void)
 *创建日期   :   2019.12.09
 *描述       :   
 ***************************************************/
-void CGlobalFun::formatSize(qint64 oldBytes, qint64& newBytes, QString& sUnit)
+void CGlobalFun::formatSize(qint64 oldBytes, float& newBytes, QString& sUnit)
 {
     newBytes= oldBytes;
     sUnit = "B";
@@ -47,7 +47,7 @@ void CGlobalFun::formatSize(qint64 oldBytes, qint64& newBytes, QString& sUnit)
 ***************************************************/
 QString CGlobalFun::formatSize(qint64 oldBytes)
 {
-    qint64 newBytes = 0;
+    float newBytes = 0.0;
     QString sUnit = "";
     formatSize(oldBytes, newBytes, sUnit);
     return QString("%0 %1").arg(newBytes).arg(sUnit);
