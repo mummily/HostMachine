@@ -4,7 +4,7 @@
 #include <QDialog>
 
 class QPushButton;
-class QSpinBox;
+class QDoubleSpinBox;
 class QSlider;
 class QRadioButton;
 class QLabel;
@@ -29,12 +29,13 @@ private:
     void initData();
 
 private slots:
-    void slotValueChanged(int value);
+    void slotSpinBoxValueChanged(double value);
     void slotRadioToggled(bool checked);
+    void slotSliderValueChange(int value);
 
 private:
     QRadioButton    *m_pRadio1, *m_pRadio2, *m_pRadio3, *m_pRadio4, *m_pRadio5;
-    QSpinBox        *m_spinbox1, *m_spinbox2, *m_spinbox3, *m_spinbox4, *m_spinbox5;
+    QDoubleSpinBox  *m_spinbox1, *m_spinbox2, *m_spinbox3, *m_spinbox4, *m_spinbox5;
     QSlider         *m_slider1, *m_slider2, *m_slider3, *m_slider4, *m_slider5;
     QPushButton     *m_btnOk, *m_btnCancel;
     QLabel          *m_pLabel;

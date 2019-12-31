@@ -1,7 +1,7 @@
 #include "dlgareaformat.h"
 #include <QLabel>
 #include <QApplication>
-#include <QSpinBox>
+#include <QDoubleSpinBox>
 #include <QSlider>
 #include <QGridLayout>
 #include <QHBoxLayout>
@@ -48,69 +48,79 @@ void DlgAreaFormat::initUI()
     m_pRadio4 = new QRadioButton(qApp->translate(c_sDlgAreaFormat, c_sArea3), this);
     m_pRadio5 = new QRadioButton(qApp->translate(c_sDlgAreaFormat, c_sArea4), this);
 
-    m_spinbox1 = new QSpinBox(this);
+    m_spinbox1 = new QDoubleSpinBox(this);
     m_spinbox1->setSuffix("LBA");
     m_spinbox1->setMinimum(1);
     m_spinbox1->setMaximum(m_nTotalSize);
     m_spinbox1->setSingleStep(1);
+    m_spinbox1->setDecimals(0);
     m_spinbox1->setReadOnly(true);
 
-    m_spinbox2 = new QSpinBox(this);
+    m_spinbox2 = new QDoubleSpinBox(this);
     m_spinbox2->setSuffix("LBA");
     m_spinbox2->setMinimum(1);
     m_spinbox2->setMaximum(m_nTotalSize);
     m_spinbox2->setSingleStep(1);
+    m_spinbox2->setDecimals(0);
     m_spinbox2->setReadOnly(true);
 
-    m_spinbox3 = new QSpinBox(this);
+    m_spinbox3 = new QDoubleSpinBox(this);
     m_spinbox3->setSuffix("LBA");
     m_spinbox3->setMinimum(1);
     m_spinbox3->setMaximum(m_nTotalSize);
     m_spinbox3->setSingleStep(1);
+    m_spinbox3->setDecimals(0);
     m_spinbox3->setReadOnly(true);
 
-    m_spinbox4 = new QSpinBox(this);
+    m_spinbox4 = new QDoubleSpinBox(this);
     m_spinbox4->setSuffix("LBA");
     m_spinbox4->setMinimum(1);
     m_spinbox4->setMaximum(m_nTotalSize);
     m_spinbox4->setSingleStep(1);
+    m_spinbox4->setDecimals(0);
     m_spinbox4->setReadOnly(true);
 
-    m_spinbox5 = new QSpinBox(this);
+    m_spinbox5 = new QDoubleSpinBox(this);
     m_spinbox5->setSuffix("LBA");
     m_spinbox5->setMinimum(1);
     m_spinbox5->setMaximum(m_nTotalSize);
     m_spinbox5->setSingleStep(1);
+    m_spinbox5->setDecimals(0);
     m_spinbox5->setReadOnly(true);
 
     m_slider1 = new QSlider(this);
     m_slider1->setOrientation(Qt::Horizontal);
-    m_slider1->setMinimum(m_spinbox1->minimum());
-    m_slider1->setMaximum(m_spinbox1->maximum());
+    m_slider1->setMinimum(0);
+    m_slider1->setMaximum(100);
+    m_slider1->setSingleStep(1);
     m_slider1->hide();
 
     m_slider2 = new QSlider(this);
     m_slider2->setOrientation(Qt::Horizontal);
-    m_slider2->setMinimum(m_spinbox2->minimum());
-    m_slider2->setMaximum(m_spinbox2->maximum());
+    m_slider2->setMinimum(0);
+    m_slider2->setMaximum(100);
+    m_slider2->setSingleStep(1);
     m_slider2->hide();
 
     m_slider3 = new QSlider(this);
     m_slider3->setOrientation(Qt::Horizontal);
-    m_slider3->setMinimum(m_spinbox3->minimum());
-    m_slider3->setMaximum(m_spinbox3->maximum());
+    m_slider3->setMinimum(0);
+    m_slider3->setMaximum(100);
+    m_slider3->setSingleStep(1);
     m_slider3->hide();
 
     m_slider4 = new QSlider(this);
     m_slider4->setOrientation(Qt::Horizontal);
-    m_slider4->setMinimum(m_spinbox4->minimum());
-    m_slider4->setMaximum(m_spinbox4->maximum());
+    m_slider4->setMinimum(0);
+    m_slider4->setMaximum(100);
+    m_slider4->setSingleStep(1);
     m_slider4->hide();
 
     m_slider5 = new QSlider(this);
     m_slider5->setOrientation(Qt::Horizontal);
-    m_slider5->setMinimum(m_spinbox5->minimum());
-    m_slider5->setMaximum(m_spinbox5->maximum());
+    m_slider5->setMinimum(0);
+    m_slider5->setMaximum(100);
+    m_slider5->setSingleStep(1);
     m_slider5->hide();
 
     QGridLayout* gridLayout = new QGridLayout();
@@ -157,30 +167,20 @@ void DlgAreaFormat::initUI()
 
 void DlgAreaFormat::initConnect()
 {
-    connect(m_spinbox1, SIGNAL(valueChanged(int)), m_slider1, SLOT(setValue(int)));
-    connect(m_slider1, SIGNAL(valueChanged(int)), m_spinbox1, SLOT(setValue(int)));
-    connect(m_spinbox1, SIGNAL(valueChanged(int)), this, SLOT(slotValueChanged(int)));
-    connect(m_slider1, SIGNAL(valueChanged(int)), this, SLOT(slotValueChanged(int)));
+    connect(m_spinbox1, SIGNAL(valueChanged(double)), this, SLOT(slotSpinBoxValueChanged(double)));
+    connect(m_slider1, SIGNAL(valueChanged(int)), this, SLOT(slotSliderValueChange(int)));
 
-    connect(m_spinbox2, SIGNAL(valueChanged(int)), m_slider2, SLOT(setValue(int)));
-    connect(m_slider2, SIGNAL(valueChanged(int)), m_spinbox2, SLOT(setValue(int)));
-    connect(m_spinbox2, SIGNAL(valueChanged(int)), this, SLOT(slotValueChanged(int)));
-    connect(m_slider2, SIGNAL(valueChanged(int)), this, SLOT(slotValueChanged(int)));
+    connect(m_spinbox2, SIGNAL(valueChanged(double)), this, SLOT(slotSpinBoxValueChanged(double)));
+    connect(m_slider2, SIGNAL(valueChanged(int)), this, SLOT(slotSliderValueChange(int)));
 
-    connect(m_spinbox3, SIGNAL(valueChanged(int)), m_slider3, SLOT(setValue(int)));
-    connect(m_slider3, SIGNAL(valueChanged(int)), m_spinbox3, SLOT(setValue(int)));
-    connect(m_spinbox3, SIGNAL(valueChanged(int)), this, SLOT(slotValueChanged(int)));
-    connect(m_slider3, SIGNAL(valueChanged(int)), this, SLOT(slotValueChanged(int)));
+    connect(m_spinbox3, SIGNAL(valueChanged(double)), this, SLOT(slotSpinBoxValueChanged(double)));
+    connect(m_slider3, SIGNAL(valueChanged(int)), this, SLOT(slotSliderValueChange(int)));
 
-    connect(m_spinbox4, SIGNAL(valueChanged(int)), m_slider4, SLOT(setValue(int)));
-    connect(m_slider4, SIGNAL(valueChanged(int)), m_spinbox4, SLOT(setValue(int)));
-    connect(m_spinbox4, SIGNAL(valueChanged(int)), this, SLOT(slotValueChanged(int)));
-    connect(m_slider4, SIGNAL(valueChanged(int)), this, SLOT(slotValueChanged(int)));
+    connect(m_spinbox4, SIGNAL(valueChanged(double)), this, SLOT(slotSpinBoxValueChanged(double)));
+    connect(m_slider4, SIGNAL(valueChanged(int)), this, SLOT(slotSliderValueChange(int)));
 
-    connect(m_spinbox5, SIGNAL(valueChanged(int)), m_slider5, SLOT(setValue(int)));
-    connect(m_slider5, SIGNAL(valueChanged(int)), m_spinbox5, SLOT(setValue(int)));
-    connect(m_spinbox5, SIGNAL(valueChanged(int)), this, SLOT(slotValueChanged(int)));
-    connect(m_slider5, SIGNAL(valueChanged(int)), this, SLOT(slotValueChanged(int)));
+    connect(m_spinbox5, SIGNAL(valueChanged(double)), this, SLOT(slotSpinBoxValueChanged(double)));
+    connect(m_slider5, SIGNAL(valueChanged(int)), this, SLOT(slotSliderValueChange(int)));
 
     connect(m_pRadio1, SIGNAL(toggled(bool)), this, SLOT(slotRadioToggled(bool)));
     connect(m_pRadio2, SIGNAL(toggled(bool)), this, SLOT(slotRadioToggled(bool)));
@@ -207,19 +207,49 @@ void DlgAreaFormat::initData()
     m_spinbox5->setValue(m_nSize5);
 }
 
-void DlgAreaFormat::slotValueChanged(int value)
+void DlgAreaFormat::slotSpinBoxValueChanged(double value)
 {
-    if (sender() == m_spinbox1 || sender() == m_slider1)
+    if (sender() == m_spinbox1)
+    {
         m_nSize1 = m_spinbox1->value();
-    else if (sender() == m_spinbox2 || sender() == m_slider2)
+
+        m_slider1->blockSignals(true);
+        m_slider1->setValue(m_spinbox1->value() * 100 / m_spinbox1->maximum());
+        m_slider1->blockSignals(false);
+    }
+    else if (sender() == m_spinbox2)
+    {
         m_nSize2 = m_spinbox2->value();
-    else if (sender() == m_spinbox3 || sender() == m_slider3)
+
+        m_slider2->blockSignals(true);
+        m_slider2->setValue(m_spinbox2->value() * 100 / m_spinbox2->maximum());
+        m_slider2->blockSignals(false);
+    }
+    else if (sender() == m_spinbox3)
+    {
         m_nSize3 = m_spinbox3->value();
-    else if (sender() == m_spinbox4 || sender() == m_slider4)
+
+        m_slider3->blockSignals(true);
+        m_slider3->setValue(m_spinbox3->value() * 100 / m_spinbox3->maximum());
+        m_slider3->blockSignals(false);
+    }
+    else if (sender() == m_spinbox4)
+    {
         m_nSize4 = m_spinbox4->value();
+
+        m_slider4->blockSignals(true);
+        m_slider4->setValue(m_spinbox4->value() * 100 / m_spinbox4->maximum());
+        m_slider4->blockSignals(false);
+    }
     else
+    {
         m_nSize5 = m_spinbox5->value();
-    
+
+        m_slider5->blockSignals(true);
+        m_slider5->setValue(m_spinbox5->value() * 100 / m_spinbox5->maximum());
+        m_slider5->blockSignals(false);
+    }
+
     if (m_nSize1 + m_nSize2 + m_nSize3 + m_nSize4 + m_nSize5 == m_nTotalSize)
         m_btnOk->setEnabled(true);
     else
@@ -233,37 +263,77 @@ void DlgAreaFormat::slotRadioToggled(bool checked)
 {
     if (sender() == m_pRadio1)
     {
-        m_slider1->setMaximum(m_nTotalSize - m_nSize2 - m_nSize3 - m_nSize4 - m_nSize5);
-        m_spinbox1->setMaximum(m_slider1->maximum());
-        m_slider1->setValue(m_nSize1);
+        qint64 maxSize = m_nTotalSize - m_nSize2 - m_nSize3 - m_nSize4 - m_nSize5;
+        m_spinbox1->setMaximum(maxSize);
         m_spinbox1->setReadOnly(!checked);
+
+        emit m_spinbox1->valueChanged((double)m_nSize1);
     }
     else if (sender() == m_pRadio2)
     {
-        m_slider2->setMaximum(m_nTotalSize - m_nSize1 - m_nSize3 - m_nSize4 - m_nSize5);
-        m_spinbox2->setMaximum(m_slider2->maximum());
+        qint64 maxSize = m_nTotalSize - m_nSize1 - m_nSize3 - m_nSize4 - m_nSize5;
+        m_spinbox2->setMaximum(maxSize);
         m_slider2->setValue(m_nSize2);
         m_spinbox2->setReadOnly(!checked);
+
+        emit m_spinbox2->valueChanged((double)m_nSize2);
     }
     else if (sender() == m_pRadio3)
     {
-        m_slider3->setMaximum(m_nTotalSize - m_nSize1 - m_nSize2 - m_nSize4 - m_nSize5);
-        m_spinbox3->setMaximum(m_slider3->maximum());
-        m_slider3->setValue(m_nSize3);
+        qint64 maxSize = m_nTotalSize - m_nSize1 - m_nSize2 - m_nSize4 - m_nSize5;
+        m_spinbox3->setMaximum(maxSize);
         m_spinbox3->setReadOnly(!checked);
+
+        emit m_spinbox3->valueChanged((double)m_nSize3);
     }
     else if (sender() == m_pRadio4)
     {
-        m_slider4->setMaximum(m_nTotalSize - m_nSize1 - m_nSize2 - m_nSize3 - m_nSize5);
-        m_spinbox4->setMaximum(m_slider4->maximum());
-        m_slider4->setValue(m_nSize4);
+        qint64 maxSize = m_nTotalSize - m_nSize1 - m_nSize2 - m_nSize3 - m_nSize5;
+        m_spinbox4->setMaximum(maxSize);
         m_spinbox4->setReadOnly(!checked);
+
+        emit m_spinbox4->valueChanged((double)m_nSize4);
     }
     else
     {
-        m_slider5->setMaximum(m_nTotalSize - m_nSize1 - m_nSize2 - m_nSize3 - m_nSize4);
-        m_spinbox5->setMaximum(m_slider5->maximum());
-        m_slider5->setValue(m_nSize5);
+        qint64 maxSize = m_nTotalSize - m_nSize1 - m_nSize2 - m_nSize3 - m_nSize4;
+        m_spinbox5->setMaximum(maxSize);
         m_spinbox5->setReadOnly(!checked);
+
+        emit m_spinbox5->valueChanged((double)m_nSize5);
+    }
+}
+
+void DlgAreaFormat::slotSliderValueChange(int value)
+{
+    if (sender() == m_slider1)
+    {
+        m_spinbox1->blockSignals(true);
+        m_spinbox1->setValue(m_spinbox1->maximum() * m_slider1->value() / 100);
+        m_spinbox1->blockSignals(false);
+    }
+    else if (sender() == m_slider2)
+    {
+        m_spinbox2->blockSignals(true);
+        m_spinbox2->setValue(m_spinbox2->maximum() * m_slider2->value() / 100);
+        m_spinbox2->blockSignals(false);
+    }
+    else if (sender() == m_slider3)
+    {
+        m_spinbox3->blockSignals(true);
+        m_spinbox3->setValue(m_spinbox3->maximum() * m_slider3->value() / 100);
+        m_spinbox3->blockSignals(false);
+    }
+    else if (sender() == m_slider4)
+    {
+        m_spinbox4->blockSignals(true);
+        m_spinbox4->setValue(m_spinbox4->maximum() * m_slider4->value() / 100);
+        m_spinbox4->blockSignals(false);
+    }
+    else
+    {
+        m_spinbox5->blockSignals(true);
+        m_spinbox5->setValue(m_spinbox5->maximum() * m_slider5->value() / 100);
+        m_spinbox5->blockSignals(false);
     }
 }
