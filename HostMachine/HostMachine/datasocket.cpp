@@ -29,7 +29,7 @@ void CDataSocket::slotImport()
     if (state() != QAbstractSocket::ConnectedState)
     {
         connectToHost(QHostAddress(sIPAddr), c_uDataPort);
-        if (!waitForConnected())
+        if (!waitForConnected(c_uWaitForMsecs))
         {
             QMessageBox::information(nullptr, qApp->translate(c_sDataSocket, c_sTitle),
                 qApp->translate(c_sDataSocket, c_sNetConnectError));
@@ -49,7 +49,7 @@ void CDataSocket::slotImport()
         qint64 len = m_file.read(buffer, sizeof(buffer));
         len = write(buffer, sizeof(buffer));
     //    if (nIndex % 10 == 0)
-            waitForBytesWritten();
+            waitForBytesWritten(c_uWaitForMsecs);
         bufferLen += len;
         if (bufferLen < m_fileSize)
             emit importUpdate(areano, fileName, bufferLen, m_fileSize);

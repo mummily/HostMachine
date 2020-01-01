@@ -40,7 +40,7 @@ DlgAreaFormat::~DlgAreaFormat()
 void DlgAreaFormat::initUI()
 {
     setWindowTitle(qApp->translate(c_sDlgAreaFormat, c_sTitle));
-    setFixedSize(376, 200);
+    setFixedSize(400, 200);
 
     m_pRadio1 = new QRadioButton(qApp->translate(c_sDlgAreaFormat, c_sArea0), this);
     m_pRadio2 = new QRadioButton(qApp->translate(c_sDlgAreaFormat, c_sArea1), this);
@@ -273,7 +273,6 @@ void DlgAreaFormat::slotRadioToggled(bool checked)
     {
         qint64 maxSize = m_nTotalSize - m_nSize1 - m_nSize3 - m_nSize4 - m_nSize5;
         m_spinbox2->setMaximum(maxSize);
-        m_slider2->setValue(m_nSize2);
         m_spinbox2->setReadOnly(!checked);
 
         emit m_spinbox2->valueChanged((double)m_nSize2);
@@ -308,32 +307,50 @@ void DlgAreaFormat::slotSliderValueChange(int value)
 {
     if (sender() == m_slider1)
     {
+        m_nSize1 = m_spinbox1->maximum() * m_slider1->value() / 100;
+
         m_spinbox1->blockSignals(true);
-        m_spinbox1->setValue(m_spinbox1->maximum() * m_slider1->value() / 100);
+        m_spinbox1->setValue(m_nSize1);
         m_spinbox1->blockSignals(false);
     }
     else if (sender() == m_slider2)
     {
+        m_nSize2 = m_spinbox2->maximum() * m_slider2->value() / 100;
+
         m_spinbox2->blockSignals(true);
-        m_spinbox2->setValue(m_spinbox2->maximum() * m_slider2->value() / 100);
+        m_spinbox2->setValue(m_nSize2);
         m_spinbox2->blockSignals(false);
     }
     else if (sender() == m_slider3)
     {
+        m_nSize3 = m_spinbox3->maximum() * m_slider3->value() / 100;
+
         m_spinbox3->blockSignals(true);
-        m_spinbox3->setValue(m_spinbox3->maximum() * m_slider3->value() / 100);
+        m_spinbox3->setValue(m_nSize3);
         m_spinbox3->blockSignals(false);
     }
     else if (sender() == m_slider4)
     {
+        m_nSize4 = m_spinbox4->maximum() * m_slider4->value() / 100;
+
         m_spinbox4->blockSignals(true);
-        m_spinbox4->setValue(m_spinbox4->maximum() * m_slider4->value() / 100);
+        m_spinbox4->setValue(m_nSize4);
         m_spinbox4->blockSignals(false);
     }
     else
     {
+        m_nSize5 = m_spinbox5->maximum() * m_slider5->value() / 100;
+
         m_spinbox5->blockSignals(true);
-        m_spinbox5->setValue(m_spinbox5->maximum() * m_slider5->value() / 100);
+        m_spinbox5->setValue(m_nSize5);
         m_spinbox5->blockSignals(false);
     }
+
+    if (m_nSize1 + m_nSize2 + m_nSize3 + m_nSize4 + m_nSize5 == m_nTotalSize)
+        m_btnOk->setEnabled(true);
+    else
+        m_btnOk->setEnabled(false);
+
+    QString sInfo = QString("%1%2/%3").arg(qApp->translate(c_sDlgAreaFormat, c_sUseInfo)).arg(m_nSize1+m_nSize2+m_nSize3+m_nSize4+m_nSize5).arg(m_nTotalSize);
+    m_pLabel->setText(sInfo);
 }

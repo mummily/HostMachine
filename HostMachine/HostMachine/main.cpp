@@ -13,11 +13,6 @@ int main(int argc, char *argv[])
     translator.load(sTrans);
     a.installTranslator(&translator);
 
-    qint64 nTotal = 2199023255552+97655193*4;
-    DlgAreaFormat dlg(nTotal,2199023255552, 97655193, 97655193, 97655193, 97655193);
-    dlg.exec();
-    return 0;
-
     HostMachine w;
     w.show();
     return a.exec();

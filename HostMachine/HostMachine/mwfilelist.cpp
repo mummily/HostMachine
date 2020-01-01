@@ -214,11 +214,6 @@ void CMWFileList::initFileListWgt()
 *****************************************************************************/
 void CMWFileList::readRefresh(tagAreaFileInfos* pFileInfos)
 {
-    while (m_pFileListWgt->rowCount() > 0)
-    {
-        m_pFileListWgt->removeRow(m_pFileListWgt->rowCount() - 1);
-    }
-
     foreach(shared_ptr<tagAreaFileInfo> spFileInfo, pFileInfos->lstFileInfo)
     {
         m_pFileListWgt->setRowCount(m_pFileListWgt->rowCount() + 1);

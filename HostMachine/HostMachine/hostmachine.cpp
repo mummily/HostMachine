@@ -905,9 +905,10 @@ void HostMachine::readyReadCmd()
     }
     else if (respondType == SC_Refresh)
     {
-        in >> m_spFileInfos->areano >> m_spFileInfos->filenum;
+        auto spFileInfos = make_shared<tagAreaFileInfos>();
+        in >> spFileInfos->areano >> spFileInfos->filenum;
 
-        for (int nIndex=0; nIndex < m_spFileInfos->filenum; ++nIndex)
+        for (int nIndex=0; nIndex < spFileInfos->filenum; ++nIndex)
         {
             char filename[40] = {0};
             in.readRawData(filename, sizeof(filename));
@@ -925,16 +926,13 @@ void HostMachine::readyReadCmd()
             spFileInfo->fileno = fileno;
             spFileInfo->filesize = filesize;
 
-            m_spFileInfos->lstFileInfo.push_back(spFileInfo);
+            spFileInfos->lstFileInfo.push_back(spFileInfo);
         }
 
         in.device()->readAll();
 
-        if (m_spFileInfos->filenum != c_uRefreshFileNum)
-        {
-            CMWFileList* pWMFileList = (CMWFileList*)m_pTabWgt->widget(m_spFileInfos->areano);
-            pWMFileList->readRefresh(m_spFileInfos.get());
-        }
+        CMWFileList* pWMFileList = (CMWFileList*)m_pTabWgt->widget(spFileInfos->areano);
+        pWMFileList->readRefresh(spFileInfos.get());
     }
     else if (respondType == SC_Import)
     {
@@ -985,8 +983,12 @@ void HostMachine::slotIPSetting()
     m_sAddr = dlg.getIPAddr();
     m_pIPLabel->setText(m_sAddr);
     m_pDataSocket->sIPAddr = m_sAddr;
+
     m_pCmdSocket->connectToHost(QHostAddress(m_sAddr), c_uCommandPort);
+    m_pCmdSocket->waitForConnected(c_uWaitForMsecs);
+
     m_pDataSocket->connectToHost(QHostAddress(m_sAddr), c_uDataPort);
+    m_pDataSocket->waitForConnected(c_uWaitForMsecs);
 }
 
 /*****************************************************************************
@@ -1002,7 +1004,7 @@ void HostMachine::reallyCheckSelf()
     out << CS_CheckSelf << c_uRequestEndTag;
 
     m_pCmdSocket->write(block);
-    m_pCmdSocket->waitForReadyRead();
+    m_pCmdSocket->waitForReadyRead(c_uWaitForMsecs);
 }
 
 /*****************************************************************************
@@ -1060,7 +1062,7 @@ void HostMachine::slotFormat()
         << c_uRequestEndTag;
 
     m_pCmdSocket->write(block);
-    m_pCmdSocket->waitForReadyRead();
+    m_pCmdSocket->waitForReadyRead(c_uWaitForMsecs);
 }
 
 /*****************************************************************************
@@ -1097,7 +1099,7 @@ void HostMachine::slotSystemConfig()
     out << CS_SystemConfig << channelchoice << bandwidth << c_uRequestEndTag;
 
     m_pCmdSocket->write(block);
-    m_pCmdSocket->waitForReadyRead();
+    m_pCmdSocket->waitForReadyRead(c_uWaitForMsecs);
 }
 
 /*****************************************************************************
@@ -1113,7 +1115,7 @@ void HostMachine::reallyTaskQuery()
     out << CS_TaskQuery << c_uRequestEndTag;
 
     m_pCmdSocket->write(block);
-    m_pCmdSocket->waitForReadyRead();
+    m_pCmdSocket->waitForReadyRead(c_uWaitForMsecs);
 }
 
 
@@ -1136,7 +1138,7 @@ void HostMachine::slotTaskQuery()
     if (m_pCmdSocket->state() != QAbstractSocket::ConnectedState)
     {
         m_pCmdSocket->connectToHost(QHostAddress(m_sAddr), c_uCommandPort);
-        if (!m_pCmdSocket->waitForConnected())
+        if (!m_pCmdSocket->waitForConnected(c_uWaitForMsecs))
         {
             m_pTimer->stop();
             QMessageBox::information(this, qApp->translate(c_sHostMachine, c_sTitle),
@@ -1183,7 +1185,7 @@ void HostMachine::slotRecord()
         out << c_uRequestEndTag;
 
         m_pCmdSocket->write(block);
-        m_pCmdSocket->waitForReadyRead();
+        m_pCmdSocket->waitForReadyRead(c_uWaitForMsecs);
     }
 }
 
@@ -1231,7 +1233,7 @@ void HostMachine::slotPlayBack()
         << c_uRequestEndTag;
 
     m_pCmdSocket->write(block);
-    m_pCmdSocket->waitForReadyRead();
+    m_pCmdSocket->waitForReadyRead(c_uWaitForMsecs);
 }
 
 /*****************************************************************************
@@ -1298,7 +1300,7 @@ void HostMachine::slotForeachImport()
     out << c_uRequestEndTag;
 
     m_pCmdSocket->write(block);
-    m_pCmdSocket->waitForReadyRead();
+    m_pCmdSocket->waitForReadyRead(c_uWaitForMsecs);
 }
 
 /*****************************************************************************
@@ -1419,7 +1421,7 @@ void HostMachine::reallyTaskStop(qint32 tasktype)
     out << CS_TaskStop << tasktype << c_uRequestEndTag;
 
     m_pCmdSocket->write(block);
-    m_pCmdSocket->waitForReadyRead();
+    m_pCmdSocket->waitForReadyRead(c_uWaitForMsecs);
 }
 
 /*****************************************************************************
@@ -1449,7 +1451,7 @@ void HostMachine::slotStop()
     out << CS_Stop << m_pTabWgt->currentIndex() << c_uRequestEndTag;
 
     m_pCmdSocket->write(block);
-    m_pCmdSocket->waitForReadyRead();
+    m_pCmdSocket->waitForReadyRead(c_uWaitForMsecs);
 }
 
 /*****************************************************************************
@@ -1482,7 +1484,7 @@ void HostMachine::slotDelete()
     {
         QMessageBox::information(this, qApp->translate(c_sHostMachine, c_sTitle),
             qApp->translate(c_sHostMachine, c_sRequestCancel));
-        // return;
+        return;
     }
 
     // 判断选择项
@@ -1511,7 +1513,7 @@ void HostMachine::slotDelete()
             << c_uRequestEndTag;
 
         m_pCmdSocket->write(block);
-        m_pCmdSocket->waitForReadyRead();
+        m_pCmdSocket->waitForReadyRead(c_uWaitForMsecs);
     }
 
     reallyRefresh();
@@ -1525,10 +1527,15 @@ void HostMachine::slotDelete()
 *****************************************************************************/
 void HostMachine::reallyRefresh()
 {
+    // 清空当前分区文件列表区所有文件
+    QTableWidget* pFileListWgt = ((CMWFileList*)m_pTabWgt->currentWidget())->m_pFileListWgt;
+    while (pFileListWgt->rowCount() > 0)
+    {
+        pFileListWgt->removeRow(pFileListWgt->rowCount() - 1);
+    }
+
     // 刷新前先自检
     reallyCheckSelf();
-
-    m_spFileInfos->lstFileInfo.clear();
 
     shared_ptr<tagAreaInfo> areaInfo = nullptr;
     switch (m_pTabWgt->currentIndex())
@@ -1560,9 +1567,9 @@ void HostMachine::reallyRefresh()
             << c_uRequestEndTag;
 
         m_pCmdSocket->write(block);
-        m_pCmdSocket->waitForReadyRead();
+        m_pCmdSocket->waitForReadyRead(c_uWaitForMsecs);
      
-        nIndex += 8;
+        nIndex += c_uRefreshFileNum;
     }
 }
 
@@ -1670,15 +1677,15 @@ void HostMachine::readFormat(quint32 state)
     QString sInfo = "";
     if (state == 0x00)
     {
-        qApp->translate(c_sHostMachine, c_sFormatResult0);
+        sInfo = qApp->translate(c_sHostMachine, c_sFormatResult0);
     }
     else if (state == 0x01)
     {
-        qApp->translate(c_sHostMachine, c_sFormatResult1);
+        sInfo = qApp->translate(c_sHostMachine, c_sFormatResult1);
     }
     else
     {
-        qApp->translate(c_sHostMachine, c_sFormatResult2);
+        sInfo = qApp->translate(c_sHostMachine, c_sFormatResult2);
     }
 
     statusBar()->showMessage(sInfo);
@@ -1696,15 +1703,15 @@ void HostMachine::readSystemConfig(quint32 choice, quint32 state)
     QString sInfo = "";
     if (state == 0x00)
     {
-        qApp->translate(c_sHostMachine, c_sSystemConfigResult0);
+        sInfo = qApp->translate(c_sHostMachine, c_sSystemConfigResult0);
     }
     else if (state == 0x01)
     {
-        qApp->translate(c_sHostMachine, c_sSystemConfigResult1);
+        sInfo = qApp->translate(c_sHostMachine, c_sSystemConfigResult1);
     }
     else
     {
-        qApp->translate(c_sHostMachine, c_sSystemConfigResult2);
+        sInfo = qApp->translate(c_sHostMachine, c_sSystemConfigResult2);
     }
     
     statusBar()->showMessage(sInfo);
@@ -1845,7 +1852,6 @@ void HostMachine::initData()
     m_pCmdSocket = new QTcpSocket(this);
     m_pDataSocket = new CDataSocket(this);
     m_spcheckSelf = make_shared<tagCheckSelf>();
-    m_spFileInfos = make_shared<tagAreaFileInfos>();
     m_spAreaProperties = make_shared<tagAreaProperties>();
     m_spTaskStopType = make_shared<TaskStopType>();
 
@@ -2003,7 +2009,7 @@ bool HostMachine::reConnectCmd()
     if (m_pCmdSocket->state() != QAbstractSocket::ConnectedState)
     {
         m_pCmdSocket->connectToHost(QHostAddress(m_sAddr), c_uCommandPort);
-        if (!m_pCmdSocket->waitForConnected())
+        if (!m_pCmdSocket->waitForConnected(c_uWaitForMsecs))
         {
             QMessageBox::information(this, qApp->translate(c_sHostMachine, c_sTitle),
                 qApp->translate(c_sHostMachine, c_sNetConnectError));
@@ -2032,7 +2038,7 @@ bool HostMachine::reConnectData()
     if (m_pDataSocket->state() != QAbstractSocket::ConnectedState)
     {
         m_pDataSocket->connectToHost(QHostAddress(m_sAddr), c_uDataPort);
-        if (!m_pDataSocket->waitForConnected())
+        if (!m_pDataSocket->waitForConnected(c_uWaitForMsecs))
         {
             QMessageBox::information(this, qApp->translate(c_sHostMachine, c_sTitle),
                 qApp->translate(c_sHostMachine, c_sNetConnectError));

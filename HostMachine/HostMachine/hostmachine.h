@@ -272,7 +272,6 @@ private:
     shared_ptr<tagAreaProperties>       m_spAreaProperties;
     shared_ptr<tagCheckSelf>            m_spcheckSelf;
     shared_ptr<TaskStopType>            m_spTaskStopType;
-    shared_ptr<tagAreaFileInfos>        m_spFileInfos;
     QString                             m_sAddr;
     QList<shared_ptr<tagExportParam>>   m_lstExportParam;
     QList<shared_ptr<tagImportParam>>   m_lstImportParam;
