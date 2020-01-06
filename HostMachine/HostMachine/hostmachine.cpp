@@ -148,7 +148,7 @@ static const char *c_sTaskState2 = QT_TRANSLATE_NOOP("HostMachine", "完成");
 static const char *c_sTaskState3 = QT_TRANSLATE_NOOP("HostMachine", "其它");
 
 HostMachine::HostMachine(QWidget *parent)
-    : QMainWindow(parent), m_sAddr(""), m_nInterval(0), m_bShowTaskStop(false)
+    : QMainWindow(parent), m_sAddr(""), m_nProcessBarInterval(1), m_nTaskQueryInterval(1), m_bShowTaskStop(false)
 {
     initData();
     initUI();
@@ -1273,6 +1273,7 @@ void HostMachine::slotForeachImport()
     if (m_lstImportParam.isEmpty())
     {
         pFileList->m_pProgressBar->hide();
+        m_pTimer->start();
         return;
     }
 
@@ -1387,6 +1388,7 @@ void HostMachine::slotForeachExport()
     if (m_lstExportParam.size() < 1)
     {
         pFileList->m_pProgressBar->hide();
+        m_pTimer->start();
         return;
     }
 
@@ -1891,9 +1893,8 @@ void HostMachine::initData()
 void HostMachine::slotImportStart(qint32 areano, QString fileName, qint64 buffer, qint64 total)
 {
     m_pElapsedTimer->restart();
-    m_nInterval = c_uProgressBarUpdateInterval;
-
-    reallyTaskQuery();
+    m_nProcessBarInterval = c_uProgressBarUpdateInterval;
+    m_nTaskQueryInterval = c_uTaskQueryUpdateInterval;
 }
 
 /*****************************************************************************
@@ -1904,14 +1905,19 @@ void HostMachine::slotImportStart(qint32 areano, QString fileName, qint64 buffer
 *****************************************************************************/
 void HostMachine::slotImportUpdate(qint32 areano, QString fileName, qint64 buffer, qint64 total)
 {
-    if (m_pElapsedTimer->elapsed() / m_nInterval == 0)
-        return;
-    m_nInterval += c_uProgressBarUpdateInterval;
+    if (m_pElapsedTimer->elapsed() / m_nProcessBarInterval == 0)
+    {
+        m_nProcessBarInterval += c_uProgressBarUpdateInterval;
 
-    CMWFileList* pWMFileList = (CMWFileList*)m_pTabWgt->widget(areano);
-    pWMFileList->updateProcess(fileName, buffer, total);
+        CMWFileList* pWMFileList = (CMWFileList*)m_pTabWgt->widget(areano);
+        pWMFileList->updateProcess(fileName, buffer, total);
+    }
 
-    reallyTaskQuery();
+    if (m_pElapsedTimer->elapsed() / m_nTaskQueryInterval == 0)
+    {
+        m_nTaskQueryInterval += c_uTaskQueryUpdateInterval;
+        reallyTaskQuery();
+    }
 }
 
 /*****************************************************************************
@@ -1927,8 +1933,6 @@ void HostMachine::slotImportCompleted(qint32 areano, QString fileName, qint64 bu
 
     reallyRefresh();
     slotForeachImport();
-
-    reallyTaskQuery();
 }
 
 /*****************************************************************************
@@ -1940,9 +1944,8 @@ void HostMachine::slotImportCompleted(qint32 areano, QString fileName, qint64 bu
 void HostMachine::slotExportStart(qint32 areano, QString fileName, qint64 buffer, qint64 total)
 {
     m_pElapsedTimer->restart();
-    m_nInterval = c_uProgressBarUpdateInterval;
-
-    reallyTaskQuery();
+    m_nProcessBarInterval = c_uProgressBarUpdateInterval;
+    m_nTaskQueryInterval = c_uTaskQueryUpdateInterval;
 }
 
 /*****************************************************************************
@@ -1953,14 +1956,19 @@ void HostMachine::slotExportStart(qint32 areano, QString fileName, qint64 buffer
 *****************************************************************************/
 void HostMachine::slotExportUpdate(qint32 areano, QString fileName, qint64 buffer, qint64 total)
 {
-    if (m_pElapsedTimer->elapsed() / m_nInterval == 0)
-        return;
-    m_nInterval += c_uProgressBarUpdateInterval;
+    if (m_pElapsedTimer->elapsed() / m_nProcessBarInterval == 0)
+    {
+        m_nProcessBarInterval += c_uProgressBarUpdateInterval;
 
-    CMWFileList* pWMFileList = (CMWFileList*)m_pTabWgt->widget(areano);
-    pWMFileList->updateProcess(fileName, buffer, total);
+        CMWFileList* pWMFileList = (CMWFileList*)m_pTabWgt->widget(areano);
+        pWMFileList->updateProcess(fileName, buffer, total);
+    }
 
-    reallyTaskQuery();
+    if (m_pElapsedTimer->elapsed() / m_nTaskQueryInterval == 0)
+    {
+        m_nTaskQueryInterval += c_uTaskQueryUpdateInterval;
+        reallyTaskQuery();
+    }
 }
 
 /*****************************************************************************
@@ -1974,8 +1982,6 @@ void HostMachine::slotExportCompleted(qint32 areano, QString fileName, qint64 bu
     CMWFileList* pWMFileList = (CMWFileList*)m_pTabWgt->widget(areano);
     pWMFileList->updateProcess(fileName, buffer, total);
     slotForeachExport();
-
-    reallyTaskQuery();
 }
 
 /*****************************************************************************

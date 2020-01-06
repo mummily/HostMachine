@@ -298,7 +298,8 @@ private:
     QElapsedTimer                       *m_pElapsedTimer;       // 导入导出更新间隔
     QTimer                              *m_pTimer;              // 任务查询定时器
     int                                 m_nTimer;               // 任务查询无任务的次数
-    quint64                             m_nInterval;
+    quint64                             m_nProcessBarInterval;
+    quint64                             m_nTaskQueryInterval;
     bool                                m_bShowTaskStop;        // 是否显示任务停止列
 
     QtTreePropertyBrowser               *m_pPropertyWgt;        // 磁盘控制面板
