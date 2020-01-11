@@ -29,7 +29,7 @@ public:
     void readRefresh(tagAreaFileInfos* pFileInfos);
     void readImport(quint32 state);
 
-    void updateProcess(QString fileName, qint32 buffer, qint32 total);
+    void updateProcess(QString fileName, qint64 buffer, qint64 total);
 
 signals:
     void siglogRecord(QString);

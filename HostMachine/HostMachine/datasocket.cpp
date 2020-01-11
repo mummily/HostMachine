@@ -26,17 +26,6 @@ CDataSocket::~CDataSocket()
 
 void CDataSocket::slotImport()
 {
-    if (state() != QAbstractSocket::ConnectedState)
-    {
-        connectToHost(QHostAddress(sIPAddr), c_uDataPort);
-        if (!waitForConnected(c_uWaitForMsecs))
-        {
-            QMessageBox::information(nullptr, qApp->translate(c_sDataSocket, c_sTitle),
-                qApp->translate(c_sDataSocket, c_sNetConnectError));
-            return;
-        }
-    }
-
     QFileInfo fileInfo = m_file.fileName();
     QString fileName = fileInfo.fileName();
 
@@ -44,12 +33,23 @@ void CDataSocket::slotImport()
     int nIndex = 0;
     do
     {
+        if (state() != QAbstractSocket::ConnectedState)
+        {
+            connectToHost(QHostAddress(sIPAddr), c_uDataPort);
+            if (!waitForConnected(c_uWaitForMsecs))
+            {
+                QMessageBox::information(nullptr, qApp->translate(c_sDataSocket, c_sTitle),
+                    qApp->translate(c_sDataSocket, c_sNetConnectError));
+                return;
+            }
+        }
+
         char buffer[c_bufferSize] = {0};
         memset(buffer,0,sizeof(buffer));
         qint64 len = m_file.read(buffer, sizeof(buffer));
-        len = write(buffer, sizeof(buffer));
-    //    if (nIndex % 10 == 0)
-            waitForBytesWritten(c_uWaitForMsecs);
+        /*len = */write(buffer, c_bufferSize);
+        //    if (nIndex % 10 == 0)
+        waitForBytesWritten(c_uWaitForMsecs);
         bufferLen += len;
         if (bufferLen < m_fileSize)
             emit importUpdate(areano, fileName, bufferLen, m_fileSize);
@@ -118,7 +118,7 @@ bool CDataSocket::preImport(qint32 areaNo, QString filePath)
 {
     areano = areaNo;
     m_bufferSize = 0;
-    
+
     m_file.setFileName(filePath);
     if (!m_file.open(QIODevice::ReadOnly))
     {

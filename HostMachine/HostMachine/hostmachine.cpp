@@ -148,7 +148,7 @@ static const char *c_sTaskState2 = QT_TRANSLATE_NOOP("HostMachine", "完成");
 static const char *c_sTaskState3 = QT_TRANSLATE_NOOP("HostMachine", "其它");
 
 HostMachine::HostMachine(QWidget *parent)
-    : QMainWindow(parent), m_sAddr(""), m_nInterval(0), m_bShowTaskStop(false)
+    : QMainWindow(parent), m_sAddr(""), m_nProgressBarUpdateInterval(c_uProgressBarUpdateInterval), m_bShowTaskStop(false)
 {
     initData();
     initUI();
@@ -162,7 +162,7 @@ HostMachine::~HostMachine()
 {
     slotLogRecord(qApp->translate(c_sHostMachine, c_sCloseSoftware));
     closeLog();
-    
+
     m_pCmdSocket->disconnect(this, SLOT(disconnectCmd()));
     m_pCmdSocket->close();
     m_pDataSocket->disconnect(this, SLOT(disconnectData()));
@@ -1255,9 +1255,6 @@ void HostMachine::slotImport()
     if (importFileList.isEmpty())
         return;
 
-    reConnectCmd();
-    reConnectData();
-
     m_lstImportParam.clear();
     foreach (QString filePath, importFileList)
     {
@@ -1273,6 +1270,7 @@ void HostMachine::slotForeachImport()
     if (m_lstImportParam.isEmpty())
     {
         pFileList->m_pProgressBar->hide();
+        reallyTaskQuery();
         return;
     }
 
@@ -1283,9 +1281,14 @@ void HostMachine::slotForeachImport()
     if (!bOk)
         return;
 
+    reConnectCmd();
+    reConnectData();
+
     // 文件大小
     QFileInfo fileInfo(spImportParam->filePath);
     qint32 filesize = fileInfo.size() / c_bSizeMax; // LBA
+    if (filesize % 4 != 0)
+        filesize += (4 - filesize % 4);
 
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
@@ -1393,7 +1396,7 @@ void HostMachine::slotForeachExport()
     shared_ptr<tagExportParam> spExportParam = m_lstExportParam.first();
     m_lstExportParam.pop_front();
 
-    m_pDataSocket->preExport(m_pTabWgt->currentIndex(), spExportParam->filePath, spExportParam->fileSize * c_bSizeMax);
+    m_pDataSocket->preExport(m_pTabWgt->currentIndex(), spExportParam->filePath, (qint64)spExportParam->fileSize * c_bSizeMax);
 
     QTableWidget *pFileListWgt = pFileList->m_pFileListWgt;
 
@@ -1556,7 +1559,7 @@ void HostMachine::reallyRefresh()
         areaInfo = m_spcheckSelf->areaInfo4;
         break;
     }
-    
+
     for (int nIndex = 0; nIndex <= areaInfo->areafilenum; )
     {
         QByteArray block;
@@ -1568,7 +1571,7 @@ void HostMachine::reallyRefresh()
 
         m_pCmdSocket->write(block);
         m_pCmdSocket->waitForReadyRead(c_uWaitForMsecs);
-     
+
         nIndex += c_uRefreshFileNum;
     }
 }
@@ -1713,7 +1716,7 @@ void HostMachine::readSystemConfig(quint32 choice, quint32 state)
     {
         sInfo = qApp->translate(c_sHostMachine, c_sSystemConfigResult2);
     }
-    
+
     statusBar()->showMessage(sInfo);
     slotLogRecord(sInfo);
 }
@@ -1752,7 +1755,7 @@ void HostMachine::readTaskQuery()
 
         int nSpendTime = 0;
         if (spTaskInfo->speed > 0)
-            nSpendTime = spTaskInfo->finishedsize / spTaskInfo->speed;
+            nSpendTime = spTaskInfo->finishedsize / spTaskInfo->speed / c_bSizeMax ;
         QDateTime startTime = QDateTime::currentDateTime().addSecs(-1 * nSpendTime);
         m_pTaskWgt->item(nRow, 4)->setText(startTime.toString("yyyy-MM-dd hh:mm:ss")); // 任务开始时间
 
@@ -1760,9 +1763,9 @@ void HostMachine::readTaskQuery()
         if (spTaskInfo->percent > 0)
             totalsize = spTaskInfo->finishedsize * 100 / spTaskInfo->percent;
         m_pTaskWgt->item(nRow, 5)->setText(CGlobalFun::formatSize(totalsize * c_bSizeMax)); // 总大小
-        m_pTaskWgt->item(nRow, 6)->setText(CGlobalFun::formatSize(spTaskInfo->finishedsize * c_bSizeMax)); // 已完成大小
+        m_pTaskWgt->item(nRow, 6)->setText(CGlobalFun::formatSize((qint64)spTaskInfo->finishedsize * c_bSizeMax)); // 已完成大小
         m_pTaskWgt->item(nRow, 7)->setText(QString::number(spTaskInfo->percent) + "%"); // 百分比
-        m_pTaskWgt->item(nRow, 8)->setText(CGlobalFun::formatSize(spTaskInfo->speed * c_bSizeMax) + "/s"); // 速率
+        m_pTaskWgt->item(nRow, 8)->setText(CGlobalFun::formatSize(spTaskInfo->speed * c_kSizeMax) + "/s"); // 速率
         m_pTaskWgt->item(nRow, 9)->setText(qApp->translate(c_sHostMachine, c_sTaskState1)); // 任务状态
         m_pTaskWgt->item(nRow, 10)->setText(QString::number(nSpendTime) + "s"); // 耗时
     }
@@ -1891,7 +1894,7 @@ void HostMachine::initData()
 void HostMachine::slotImportStart(qint32 areano, QString fileName, qint64 buffer, qint64 total)
 {
     m_pElapsedTimer->restart();
-    m_nInterval = c_uProgressBarUpdateInterval;
+    m_nProgressBarUpdateInterval = c_uProgressBarUpdateInterval;
 
     reallyTaskQuery();
 }
@@ -1904,9 +1907,10 @@ void HostMachine::slotImportStart(qint32 areano, QString fileName, qint64 buffer
 *****************************************************************************/
 void HostMachine::slotImportUpdate(qint32 areano, QString fileName, qint64 buffer, qint64 total)
 {
-    if (m_pElapsedTimer->elapsed() / m_nInterval == 0)
+    if (m_pElapsedTimer->elapsed() / m_nProgressBarUpdateInterval == 0)
         return;
-    m_nInterval += c_uProgressBarUpdateInterval;
+
+    m_nProgressBarUpdateInterval += c_uProgressBarUpdateInterval;
 
     CMWFileList* pWMFileList = (CMWFileList*)m_pTabWgt->widget(areano);
     pWMFileList->updateProcess(fileName, buffer, total);
@@ -1940,7 +1944,7 @@ void HostMachine::slotImportCompleted(qint32 areano, QString fileName, qint64 bu
 void HostMachine::slotExportStart(qint32 areano, QString fileName, qint64 buffer, qint64 total)
 {
     m_pElapsedTimer->restart();
-    m_nInterval = c_uProgressBarUpdateInterval;
+    m_nProgressBarUpdateInterval = c_uProgressBarUpdateInterval;
 
     reallyTaskQuery();
 }
@@ -1953,11 +1957,15 @@ void HostMachine::slotExportStart(qint32 areano, QString fileName, qint64 buffer
 *****************************************************************************/
 void HostMachine::slotExportUpdate(qint32 areano, QString fileName, qint64 buffer, qint64 total)
 {
-    if (m_pElapsedTimer->elapsed() / m_nInterval == 0)
+    if (m_pElapsedTimer->elapsed() / m_nProgressBarUpdateInterval == 0)
         return;
-    m_nInterval += c_uProgressBarUpdateInterval;
+
+    m_nProgressBarUpdateInterval += c_uProgressBarUpdateInterval;
 
     CMWFileList* pWMFileList = (CMWFileList*)m_pTabWgt->widget(areano);
+    if (nullptr == pWMFileList)
+        return;
+
     pWMFileList->updateProcess(fileName, buffer, total);
 
     reallyTaskQuery();

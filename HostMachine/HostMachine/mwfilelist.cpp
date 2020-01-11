@@ -226,7 +226,7 @@ void CMWFileList::readRefresh(tagAreaFileInfos* pFileInfos)
         QString sFileNo = QString("%0").arg(spFileInfo->fileno);
         m_pFileListWgt->setItem(m_pFileListWgt->rowCount() - 1, 0, new QTableWidgetItem(sFileNo));
         m_pFileListWgt->setItem(m_pFileListWgt->rowCount() - 1, 1, new QTableWidgetItem(sFileName));
-        m_pFileListWgt->setItem(m_pFileListWgt->rowCount() - 1, 2, new QTableWidgetItem(CGlobalFun::formatSize(c_bSizeMax * spFileInfo->filesize)));
+        m_pFileListWgt->setItem(m_pFileListWgt->rowCount() - 1, 2, new QTableWidgetItem(CGlobalFun::formatSize(c_bSizeMax * (qint64)spFileInfo->filesize)));
         m_pFileListWgt->setItem(m_pFileListWgt->rowCount() - 1, 3, new QTableWidgetItem(spFileInfo->datetime.toString("yyyy-MM-dd hh:mm:ss")));
         m_pFileListWgt->setItem(m_pFileListWgt->rowCount() - 1, 4, new QTableWidgetItem(sExt));
         QString sFileLBA = QString("%0").arg(spFileInfo->filesize);
@@ -239,7 +239,7 @@ void CMWFileList::readRefresh(tagAreaFileInfos* pFileInfos)
     emit siglogRecord(sInfo);
 }
 
-void CMWFileList::updateProcess(QString fileName, qint32 buffer, qint32 total)
+void CMWFileList::updateProcess(QString fileName, qint64 buffer, qint64 total)
 {
     m_pProgressBar->show();
     m_pProgressBar->setMaximum(total / c_bSizeMax);
