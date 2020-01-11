@@ -860,6 +860,12 @@ void HostMachine::readyReadCmd()
 
         if (state == 0x00)
         {
+            auto itFind = std::find_if(m_lstTaskQueryParam.begin(), m_lstTaskQueryParam.end(), [&](shared_ptr<tagTaskQueryParam> spTaskQueryParam)->bool
+            {
+                return spTaskQueryParam->type == 0 && spTaskQueryParam->areano == area;
+            });
+
+            (*itFind)->dtStart = QDateTime::currentDateTime();
             m_pTimer->start();
         }
     }
@@ -1748,38 +1754,39 @@ void HostMachine::readTaskQuery()
     for (int nRow = 0; nRow < m_pTaskWgt->rowCount(); ++ nRow)
     {
         int nTaskType = m_pTaskWgt->item(nRow, 0)->text().toInt();
-        auto itFind = std::find_if(m_lstTaskInfo.begin(), m_lstTaskInfo.end(), [&](shared_ptr<tagTaskInfo> spTaskInfo)->bool
+        auto itTaskInfo = std::find_if(m_lstTaskInfo.begin(), m_lstTaskInfo.end(), [&](shared_ptr<tagTaskInfo> spTaskInfo)->bool
         {
             return (spTaskInfo->type == nTaskType);
         });
 
-        if (itFind == m_lstTaskInfo.end())
+        if (itTaskInfo == m_lstTaskInfo.end())
             continue;
 
-        shared_ptr<tagTaskInfo> spTaskInfo = *itFind;
+        shared_ptr<tagTaskInfo> spTaskInfo = *itTaskInfo;
         m_pTaskWgt->setRowHidden(nRow, !spTaskInfo->flag);
         if (!spTaskInfo->flag)
             continue;
 
+        auto itTaskQueryParam = std::find_if(m_lstTaskQueryParam.begin(), m_lstTaskQueryParam.end(), [&](shared_ptr<tagTaskQueryParam> spTaskQueryParam)->bool
+        {
+            if (spTaskInfo->type == 13) // 导入导出
+                return spTaskQueryParam->type == 1;
+            else // 记录
+                return spTaskQueryParam->areano == spTaskInfo->area;
+        });
+
+        shared_ptr<tagTaskQueryParam> spTaskQueryParam = *itTaskQueryParam;
+
         m_pTaskWgt->item(nRow, 1)->setText(QString::number(nSerialNum++)); // 序号
         m_pTaskWgt->item(nRow, 2)->setText(m_pTabWgt->tabBar()->tabText(spTaskInfo->area)); // 所属分区
         m_pTaskWgt->item(nRow, 3)->setText(QString::number(spTaskInfo->type)); // 任务类型
-
-        int nSpendTime = 0;
-        if (spTaskInfo->speed > 0)
-            nSpendTime = spTaskInfo->finishedsize / spTaskInfo->speed / c_bSizeMax ;
-        QDateTime startTime = QDateTime::currentDateTime().addSecs(-1 * nSpendTime);
-        m_pTaskWgt->item(nRow, 4)->setText(startTime.toString("yyyy-MM-dd hh:mm:ss")); // 任务开始时间
-
-        qint64 totalsize = 0;
-        if (spTaskInfo->percent > 0)
-            totalsize = spTaskInfo->finishedsize * 100 / spTaskInfo->percent;
-        m_pTaskWgt->item(nRow, 5)->setText(CGlobalFun::formatSize(totalsize * c_bSizeMax)); // 总大小
+        m_pTaskWgt->item(nRow, 4)->setText(spTaskQueryParam->dtStart.toString("yyyy-MM-dd hh:mm:ss")); // 任务开始时间
+        m_pTaskWgt->item(nRow, 5)->setText(CGlobalFun::formatSize(spTaskQueryParam->filesize)); // 总大小
         m_pTaskWgt->item(nRow, 6)->setText(CGlobalFun::formatSize((qint64)spTaskInfo->finishedsize * c_bSizeMax)); // 已完成大小
         m_pTaskWgt->item(nRow, 7)->setText(QString::number(spTaskInfo->percent) + "%"); // 百分比
         m_pTaskWgt->item(nRow, 8)->setText(CGlobalFun::formatSize(spTaskInfo->speed * c_kSizeMax) + "/s"); // 速率
         m_pTaskWgt->item(nRow, 9)->setText(qApp->translate(c_sHostMachine, c_sTaskState1)); // 任务状态
-        m_pTaskWgt->item(nRow, 10)->setText(QString::number(nSpendTime) + "s"); // 耗时
+        m_pTaskWgt->item(nRow, 10)->setText(QString::number(spTaskQueryParam->dtStart.secsTo(QDateTime::currentDateTime())) + "s"); // 耗时
     }
 
     m_pTaskWgt->viewport()->update();
@@ -1875,6 +1882,14 @@ void HostMachine::initData()
     m_pTimer->setInterval(1000);
     m_nTimer = 0;
 
+    m_lstTaskQueryParam.clear();
+    m_lstTaskQueryParam.push_back(make_shared<tagTaskQueryParam>(0, 0, 0, QDateTime::currentDateTime()));
+    m_lstTaskQueryParam.push_back(make_shared<tagTaskQueryParam>(0, 1, 0, QDateTime::currentDateTime()));
+    m_lstTaskQueryParam.push_back(make_shared<tagTaskQueryParam>(0, 2, 0, QDateTime::currentDateTime()));
+    m_lstTaskQueryParam.push_back(make_shared<tagTaskQueryParam>(0, 3, 0, QDateTime::currentDateTime()));
+    m_lstTaskQueryParam.push_back(make_shared<tagTaskQueryParam>(0, 4, 0, QDateTime::currentDateTime()));
+    m_lstTaskQueryParam.push_back(make_shared<tagTaskQueryParam>(1, 0, 0, QDateTime::currentDateTime()));
+
     // 是否显示任务停止列
     QString sConfigFile = QString("%0/%1.json").arg(qApp->applicationDirPath()).arg(qApp->applicationName());
     if (QFile::exists(sConfigFile))
@@ -1907,6 +1922,14 @@ void HostMachine::slotImportStart(qint32 areano, QString fileName, qint64 buffer
 {
     m_pElapsedTimer->restart();
     m_nProgressBarUpdateInterval = c_uProgressBarUpdateInterval;
+
+    auto itFind = std::find_if(m_lstTaskQueryParam.begin(), m_lstTaskQueryParam.end(), [&](shared_ptr<tagTaskQueryParam> spTaskQueryParam)->bool
+    {
+        return spTaskQueryParam->type == 1;
+    });
+
+    (*itFind)->filesize = total;
+    (*itFind)->dtStart = QDateTime::currentDateTime();
 
     reallyTaskQuery();
 }
@@ -1957,6 +1980,14 @@ void HostMachine::slotExportStart(qint32 areano, QString fileName, qint64 buffer
 {
     m_pElapsedTimer->restart();
     m_nProgressBarUpdateInterval = c_uProgressBarUpdateInterval;
+
+    auto itFind = std::find_if(m_lstTaskQueryParam.begin(), m_lstTaskQueryParam.end(), [&](shared_ptr<tagTaskQueryParam> spTaskQueryParam)->bool
+    {
+        return spTaskQueryParam->type == 1;
+    });
+
+    (*itFind)->filesize = total;
+    (*itFind)->dtStart = QDateTime::currentDateTime();
 
     reallyTaskQuery();
 }

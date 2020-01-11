@@ -169,6 +169,18 @@ struct tagImportParam
     }
 };
 
+struct tagTaskQueryParam
+{
+    qint32 type; // 0-记录 1-导入导出
+    qint32 areano; // 分区
+    qint64 filesize; // 文件总大小
+    QDateTime dtStart; // 任务开始时间
+    tagTaskQueryParam(qint32 _type, qint32 _areano, qint64 _filesize, QDateTime _dtStart)
+        : type(_type), areano(_areano), filesize(_filesize), dtStart(_dtStart)
+    {
+    }
+};
+
 struct tagExportParam
 {
     qint32 fileNo;
@@ -276,6 +288,7 @@ private:
     QList<shared_ptr<tagExportParam>>   m_lstExportParam;
     QList<shared_ptr<tagImportParam>>   m_lstImportParam;
     QList<shared_ptr<tagTaskInfo>>      m_lstTaskInfo;
+    QList<shared_ptr<tagTaskQueryParam>>m_lstTaskQueryParam;
 
 private:
     QAction                             *m_pActCheckSelf;       // 自检
