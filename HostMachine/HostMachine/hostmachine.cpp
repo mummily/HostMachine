@@ -884,15 +884,24 @@ void HostMachine::readyReadCmd()
         in.device()->readAll();
 
         CMWFileList* pWMFileList = (CMWFileList*)m_pTabWgt->currentWidget();
+        pWMFileList->m_pProgressBar->hide();
         pWMFileList->readTaskStop(tasktype, state);
 
-        m_pTimer->stop();
+        if (0x00 == state)
+        {
+            m_pDataSocket->m_file.close();
+        }
+
+        m_pTimer->start();
     }
     else if (respondType == SC_Stop)
     {
         quint32 area, state;
         in >> area >> state;
         in.device()->readAll();
+
+        CMWFileList* pWMFileList = (CMWFileList*)m_pTabWgt->currentWidget();
+        pWMFileList->m_pProgressBar->hide();
     }
     else if (respondType == SC_Delete)
     {
@@ -1130,6 +1139,7 @@ void HostMachine::slotTaskQuery()
     if (m_sAddr.isEmpty())
     {
         m_pTimer->stop();
+        m_nTimer = 0;
         QMessageBox::information(this, qApp->translate(c_sHostMachine, c_sTitle),
             qApp->translate(c_sHostMachine, c_sIPSettingTip));
         return;
@@ -1141,6 +1151,7 @@ void HostMachine::slotTaskQuery()
         if (!m_pCmdSocket->waitForConnected(c_uWaitForMsecs))
         {
             m_pTimer->stop();
+            m_nTimer = 0;
             QMessageBox::information(this, qApp->translate(c_sHostMachine, c_sTitle),
                 qApp->translate(c_sHostMachine, c_sNetConnectError));
             return;
@@ -1348,7 +1359,7 @@ void HostMachine::slotExport()
         spExportParam->startPos = dlg.Startpos();
         spExportParam->fileSize = dlg.Exportsize();
         spExportParam->filePath = QString("%0/%1.%2").arg(dlg.ExportPath())
-            .arg(pFileListWgt->item(*rowNos.begin(), 1)->text())
+            .arg(pFileListWgt->item(*rowNos.begin(), 1)->text() + QDateTime::currentDateTime().toString("hh_mm_ss"))
             .arg(pFileListWgt->item(*rowNos.begin(), 4)->text());
 
         m_lstExportParam.push_back(spExportParam);
@@ -1390,6 +1401,7 @@ void HostMachine::slotForeachExport()
     if (m_lstExportParam.size() < 1)
     {
         pFileList->m_pProgressBar->hide();
+        reallyTaskQuery();
         return;
     }
 
