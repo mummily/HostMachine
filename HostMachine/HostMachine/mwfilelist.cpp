@@ -126,7 +126,8 @@ void CMWFileList::initUI()
     m_pActStop = toolBar->addAction(QIcon(sIcon), qApp->translate(c_sMWFileList, c_sStop));
     m_pActStop->setStatusTip(m_pActStop->text());
 
-    m_pActTaskQueryStart = toolBar->addAction(qApp->translate(c_sMWFileList, c_sTaskQuery));
+    sIcon = QString("%1/Image/query.png").arg(qApp->applicationDirPath());
+    m_pActTaskQueryStart = toolBar->addAction(QIcon(sIcon), qApp->translate(c_sMWFileList, c_sTaskQuery));
     m_pActTaskQueryStart->setStatusTip(m_pActTaskQueryStart->text());
 
     m_pFileListWgt = new QTableWidget(this);
