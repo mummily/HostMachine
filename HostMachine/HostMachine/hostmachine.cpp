@@ -148,7 +148,8 @@ static const char *c_sTaskState2 = QT_TRANSLATE_NOOP("HostMachine", "完成");
 static const char *c_sTaskState3 = QT_TRANSLATE_NOOP("HostMachine", "其它");
 
 HostMachine::HostMachine(QWidget *parent)
-    : QMainWindow(parent), m_sAddr(""), m_nProgressBarUpdateInterval(c_uProgressBarUpdateInterval), m_bShowTaskStop(false)
+    : QMainWindow(parent), m_sAddr(""), m_nProgressBarUpdateInterval(c_uProgressBarUpdateInterval), 
+    m_bShowTaskStop(false), m_sImportPath(""), m_sExportPath("")
 {
     initData();
     initUI();
@@ -167,6 +168,13 @@ HostMachine::~HostMachine()
     m_pCmdSocket->close();
     m_pDataSocket->disconnect(this, SLOT(disconnectData()));
     m_pDataSocket->close();
+
+    QString sConfigFile = QString("%0/%1.json").arg(qApp->applicationDirPath()).arg(qApp->applicationName());
+    if (QFile::exists(sConfigFile))
+    {
+        Config config(sConfigFile);
+        // TODO 写入
+    }
 }
 
 /*****************************************************************************
@@ -1272,9 +1280,13 @@ void HostMachine::slotImport()
         return;
 
     QStringList importFileList = QFileDialog::getOpenFileNames(this, qApp->translate(c_sHostMachine, c_sImportFileTip),
-        "/", qApp->translate(c_sHostMachine, c_sImportFileExt));
+        m_sImportPath, qApp->translate(c_sHostMachine, c_sImportFileExt));
     if (importFileList.isEmpty())
         return;
+    
+    QDir dir = importFileList.first();
+    if (dir.cdUp())
+        m_sImportPath = dir.path();
 
     m_lstImportParam.clear();
     foreach (QString filePath, importFileList)
@@ -1360,15 +1372,17 @@ void HostMachine::slotExport()
     if (rowNos.count() == 1)
     {
         qint32 filesize = pFileListWgt->item(*rowNos.begin(), 5)->text().toInt(); // 来自所在行的文件大小列
-        DlgFileExport dlg(filesize, this);
+        DlgFileExport dlg(filesize, m_sExportPath, this);
         if (QDialog::Accepted != dlg.exec())
             return;
+
+        m_sExportPath = dlg.ExportPath();
 
         shared_ptr<tagExportParam> spExportParam = make_shared<tagExportParam>();
         spExportParam->fileNo = pFileListWgt->item(*rowNos.begin(), 0)->text().toInt();
         spExportParam->startPos = dlg.Startpos();
         spExportParam->fileSize = dlg.Exportsize();
-        spExportParam->filePath = QString("%0/%1.%2").arg(dlg.ExportPath())
+        spExportParam->filePath = QString("%0/%1.%2").arg(m_sExportPath)
             .arg(pFileListWgt->item(*rowNos.begin(), 1)->text() + QDateTime::currentDateTime().toString("hh_mm_ss"))
             .arg(pFileListWgt->item(*rowNos.begin(), 4)->text());
 
@@ -1909,6 +1923,8 @@ void HostMachine::initData()
     {
         Config config(sConfigFile);
         m_bShowTaskStop = config.readBool("tasklist.showstop");
+        m_sImportPath = config.readString("import.path");
+        m_sExportPath = config.readString("export.path");
     }
 
     // 日志

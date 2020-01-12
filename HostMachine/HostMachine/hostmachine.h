@@ -313,6 +313,7 @@ private:
     int                                 m_nTimer;               // 任务查询无任务的次数
     quint64                             m_nProgressBarUpdateInterval;
     bool                                m_bShowTaskStop;        // 是否显示任务停止列
+    QString                             m_sImportPath, m_sExportPath; // 导入导出路径
 
     QtTreePropertyBrowser               *m_pPropertyWgt;        // 磁盘控制面板
 

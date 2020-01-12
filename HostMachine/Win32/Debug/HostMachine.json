@@ -1,3 +1,5 @@
 {
-    "tasklist.showstop": "true"
+    "tasklist.showstop": "true",
+    "import.path": "/",
+    "export.path": "/"
 }

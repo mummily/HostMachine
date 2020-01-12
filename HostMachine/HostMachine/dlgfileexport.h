@@ -10,7 +10,7 @@ class DlgFileExport : public QDialog
     Q_OBJECT
 
 public:
-    DlgFileExport(qint32 filesize, QWidget *parent = 0);
+    DlgFileExport(qint32 filesize, QString sPath, QWidget *parent = 0);
     ~DlgFileExport();
 
     qint32 Exportsize() const { return exportsize; }
@@ -31,7 +31,7 @@ private:
     QPushButton *m_btnOk, *m_btnCancel, *m_btnBrowser;
     QDoubleSpinBox *m_spinBox1, *m_spinBox2;
     qint32 m_filesize, startpos, exportsize;
-    QString m_sExportPath;
+    QString m_sDefExportPath, m_sExportPath;
 };
 
 #endif // DLGFILEEXPORT_H

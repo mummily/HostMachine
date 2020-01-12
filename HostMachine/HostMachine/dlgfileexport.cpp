@@ -19,8 +19,8 @@ static const char *c_sPathTitle = QT_TRANSLATE_NOOP("DlgFileExport", "选择导出文
 static const char *c_sConfirm = QT_TRANSLATE_NOOP("DlgFileExport", "确定");
 static const char *c_sCancel = QT_TRANSLATE_NOOP("DlgFileExport", "取消");
 
-DlgFileExport::DlgFileExport(qint32 filesize, QWidget *parent)
-    : QDialog(parent), m_filesize(filesize)
+DlgFileExport::DlgFileExport(qint32 filesize, QString sPath, QWidget *parent)
+    : QDialog(parent), m_filesize(filesize), m_sDefExportPath(sPath)
 {
     initUI();
     initConnect();
@@ -127,7 +127,7 @@ void DlgFileExport::slotSpinBoxValueChanged(double value)
 
 void DlgFileExport::slotBrowser()
 {
-    QString sPath = QFileDialog::getExistingDirectory(this, qApp->translate(c_sDlgFileExport, c_sPathTitle), "./");
+    QString sPath = QFileDialog::getExistingDirectory(this, qApp->translate(c_sDlgFileExport, c_sPathTitle), m_sDefExportPath);
     if(sPath.isEmpty())
         return;
 
