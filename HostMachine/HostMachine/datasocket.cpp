@@ -48,8 +48,11 @@ void CDataSocket::slotImport()
         memset(buffer,0,sizeof(buffer));
         qint64 len = m_file.read(buffer, sizeof(buffer));
         /*len = */write(buffer, c_bufferSize);
-        //    if (nIndex % 10 == 0)
-        waitForBytesWritten(c_uWaitForMsecs);
+        if (nIndex % 1 == 0)
+        {
+            if (!waitForBytesWritten(c_uWaitForMsecs))
+                break;
+        }
         bufferLen += len;
         if (bufferLen < m_fileSize)
             emit importUpdate(areano, fileName, bufferLen, m_fileSize);

@@ -359,22 +359,23 @@ void HostMachine::initTaskWgt()
 
     for(int nIndex = 0; nIndex < c_uTaskQueryNum; ++ nIndex)
     {
-        m_pTaskWgt->insertRow(m_pTaskWgt->rowCount());
-        m_pTaskWgt->setRowHidden(m_pTaskWgt->rowCount() - 1, true);
-        m_pTaskWgt->setItem(m_pTaskWgt->rowCount() - 1, 0, new QTableWidgetItem(QString::number(nIndex))); // 任务类型
-        m_pTaskWgt->setItem(m_pTaskWgt->rowCount() - 1, 1, new QTableWidgetItem("")); // 序号
-        m_pTaskWgt->setItem(m_pTaskWgt->rowCount() - 1, 2, new QTableWidgetItem("")); // 所属分区
-        m_pTaskWgt->setItem(m_pTaskWgt->rowCount() - 1, 3, new QTableWidgetItem("")); // 任务类型
-        m_pTaskWgt->setItem(m_pTaskWgt->rowCount() - 1, 4, new QTableWidgetItem("")); // 任务开始时间
-        m_pTaskWgt->setItem(m_pTaskWgt->rowCount() - 1, 5, new QTableWidgetItem("")); // 总大小
-        m_pTaskWgt->setItem(m_pTaskWgt->rowCount() - 1, 6, new QTableWidgetItem("")); // 已完成大小
-        m_pTaskWgt->setItem(m_pTaskWgt->rowCount() - 1, 7, new QTableWidgetItem("")); // 百分比
-        m_pTaskWgt->setItem(m_pTaskWgt->rowCount() - 1, 8, new QTableWidgetItem("")); // 速率
-        m_pTaskWgt->setItem(m_pTaskWgt->rowCount() - 1, 9, new QTableWidgetItem("")); // 任务状态
-        m_pTaskWgt->setItem(m_pTaskWgt->rowCount() - 1, 10, new QTableWidgetItem("")); // 耗时
+        m_pTaskWgt->insertRow(nIndex);
+        m_pTaskWgt->setRowHidden(nIndex, true);
+        m_pTaskWgt->setItem(nIndex, 0, new QTableWidgetItem(QString::number(nIndex))); // 任务类型
+        m_pTaskWgt->setItem(nIndex, 1, new QTableWidgetItem("")); // 序号
+        m_pTaskWgt->setItem(nIndex, 2, new QTableWidgetItem("")); // 所属分区
+        m_pTaskWgt->setItem(nIndex, 3, new QTableWidgetItem("")); // 任务类型
+        m_pTaskWgt->setItem(nIndex, 4, new QTableWidgetItem("")); // 任务开始时间
+        m_pTaskWgt->setItem(nIndex, 5, new QTableWidgetItem("")); // 总大小
+        m_pTaskWgt->setItem(nIndex, 6, new QTableWidgetItem("")); // 已完成大小
+        m_pTaskWgt->setItem(nIndex, 7, new QTableWidgetItem("")); // 百分比
+        m_pTaskWgt->setItem(nIndex, 8, new QTableWidgetItem("")); // 速率
+        m_pTaskWgt->setItem(nIndex, 9, new QTableWidgetItem("")); // 任务状态
+        m_pTaskWgt->setItem(nIndex, 10, new QTableWidgetItem("")); // 耗时
 
-        QPushButton *btnTaskStop = new QPushButton(qApp->translate(c_sHostMachine, c_sStop), this);
-        m_pTaskWgt->setCellWidget(m_pTaskWgt->rowCount() - 1, 11, btnTaskStop);
+        QPushButton *btnTaskStop = new QPushButton(qApp->translate(c_sHostMachine, c_sStop), m_pTaskWgt);
+        btnTaskStop->setFixedWidth(100);
+        m_pTaskWgt->setCellWidget(nIndex, 11, btnTaskStop);
         connect(btnTaskStop, SIGNAL(clicked(bool)), this, SLOT(slotTaskStop()));
     }
 
@@ -899,6 +900,7 @@ void HostMachine::readyReadCmd()
         }
 
         m_pTimer->start();
+        QTimer::singleShot(10, this, SLOT(slotRefresh()));
     }
     else if (respondType == SC_Stop)
     {
@@ -908,6 +910,8 @@ void HostMachine::readyReadCmd()
 
         CMWFileList* pWMFileList = (CMWFileList*)m_pTabWgt->currentWidget();
         pWMFileList->m_pProgressBar->hide();
+        pWMFileList->readStop(state);
+        QTimer::singleShot(10, this, SLOT(slotRefresh()));
     }
     else if (respondType == SC_Delete)
     {
@@ -1414,6 +1418,9 @@ void HostMachine::slotForeachExport()
     shared_ptr<tagExportParam> spExportParam = m_lstExportParam.first();
     m_lstExportParam.pop_front();
 
+    reConnectCmd();
+    reConnectData();
+
     m_pDataSocket->preExport(m_pTabWgt->currentIndex(), spExportParam->filePath, (qint64)spExportParam->fileSize * c_bSizeMax);
 
     QTableWidget *pFileListWgt = pFileList->m_pFileListWgt;
@@ -1781,12 +1788,18 @@ void HostMachine::readTaskQuery()
         m_pTaskWgt->item(nRow, 2)->setText(m_pTabWgt->tabBar()->tabText(spTaskInfo->area)); // 所属分区
         m_pTaskWgt->item(nRow, 3)->setText(QString::number(spTaskInfo->type)); // 任务类型
         m_pTaskWgt->item(nRow, 4)->setText(spTaskQueryParam->dtStart.toString("yyyy-MM-dd hh:mm:ss")); // 任务开始时间
-        m_pTaskWgt->item(nRow, 5)->setText(CGlobalFun::formatSize(spTaskQueryParam->filesize)); // 总大小
-        m_pTaskWgt->item(nRow, 6)->setText(CGlobalFun::formatSize((qint64)spTaskInfo->finishedsize * c_bSizeMax)); // 已完成大小
+
+        qint64 finishedsize = (qint64)spTaskInfo->finishedsize * c_bSizeMax;
+        if (spTaskInfo->type == 13)
+            m_pTaskWgt->item(nRow, 5)->setText(CGlobalFun::formatSize(spTaskQueryParam->filesize)); // 总大小
+        else // 记录任务，总大小=已完成大小
+            m_pTaskWgt->item(nRow, 5)->setText(CGlobalFun::formatSize(finishedsize)); // 总大小
+        m_pTaskWgt->item(nRow, 6)->setText(CGlobalFun::formatSize(finishedsize)); // 已完成大小
         m_pTaskWgt->item(nRow, 7)->setText(QString::number(spTaskInfo->percent) + "%"); // 百分比
-        m_pTaskWgt->item(nRow, 8)->setText(CGlobalFun::formatSize(spTaskInfo->speed * c_kSizeMax) + "/s"); // 速率
+        m_pTaskWgt->item(nRow, 8)->setText(CGlobalFun::formatSize(spTaskInfo->speed * c_bSizeMax) + "/s"); // 速率
         m_pTaskWgt->item(nRow, 9)->setText(qApp->translate(c_sHostMachine, c_sTaskState1)); // 任务状态
         m_pTaskWgt->item(nRow, 10)->setText(QString::number(spTaskQueryParam->dtStart.secsTo(QDateTime::currentDateTime())) + "s"); // 耗时
+        m_pTaskWgt->cellWidget(nRow, 11)->show();
     }
 
     m_pTaskWgt->viewport()->update();
@@ -2057,15 +2070,14 @@ bool HostMachine::reConnectCmd()
         return false;
     }
 
-    if (m_pCmdSocket->state() != QAbstractSocket::ConnectedState)
+    m_pCmdSocket->disconnectFromHost();
+    m_pCmdSocket->waitForDisconnected(c_uWaitForMsecs);
+    m_pCmdSocket->connectToHost(QHostAddress(m_sAddr), c_uCommandPort);
+    if (!m_pCmdSocket->waitForConnected(c_uWaitForMsecs))
     {
-        m_pCmdSocket->connectToHost(QHostAddress(m_sAddr), c_uCommandPort);
-        if (!m_pCmdSocket->waitForConnected(c_uWaitForMsecs))
-        {
-            QMessageBox::information(this, qApp->translate(c_sHostMachine, c_sTitle),
-                qApp->translate(c_sHostMachine, c_sNetConnectError));
-            return false;
-        }
+        QMessageBox::information(this, qApp->translate(c_sHostMachine, c_sTitle),
+            qApp->translate(c_sHostMachine, c_sNetConnectError));
+        return false;
     }
 
     return true;
@@ -2086,15 +2098,14 @@ bool HostMachine::reConnectData()
         return false;
     }
 
-    if (m_pDataSocket->state() != QAbstractSocket::ConnectedState)
+    m_pDataSocket->disconnectFromHost();
+    m_pDataSocket->waitForDisconnected(c_uWaitForMsecs);
+    m_pDataSocket->connectToHost(QHostAddress(m_sAddr), c_uDataPort);
+    if (!m_pDataSocket->waitForConnected(c_uWaitForMsecs))
     {
-        m_pDataSocket->connectToHost(QHostAddress(m_sAddr), c_uDataPort);
-        if (!m_pDataSocket->waitForConnected(c_uWaitForMsecs))
-        {
-            QMessageBox::information(this, qApp->translate(c_sHostMachine, c_sTitle),
-                qApp->translate(c_sHostMachine, c_sNetConnectError));
-            return false;
-        }
+        QMessageBox::information(this, qApp->translate(c_sHostMachine, c_sTitle),
+            qApp->translate(c_sHostMachine, c_sNetConnectError));
+        return false;
     }
 
     return true;

@@ -34,6 +34,7 @@ static const char *c_sYes = QT_TRANSLATE_NOOP("MWFileList", "ÊÇ");
 static const char *c_sNo = QT_TRANSLATE_NOOP("MWFileList", "·ñ");
 static const char *c_sToolBar = QT_TRANSLATE_NOOP("MWFileList", "¹¤¾ßÀ¸");
 static const char *c_sArea = QT_TRANSLATE_NOOP("MWFileList", "·ÖÇø");
+static const char *c_sTaskQuery = QT_TRANSLATE_NOOP("MWFileList", "ÈÎÎñ²éÑ¯");
 
 // Ë¢ÐÂ½á¹û
 static const char *c_sRefreshResult = QT_TRANSLATE_NOOP("MWFileList", "Ë¢ÐÂ³É¹¦");
@@ -54,6 +55,10 @@ static const char *c_sRecordResult2 = QT_TRANSLATE_NOOP("MWFileList", "ÆäËüÔËÐÐÒ
 // ÈÎÎñÍ£Ö¹½á¹û
 static const char *c_sTaskStopResult0 = QT_TRANSLATE_NOOP("MWFileList", "ÈÎÎñÍ£Ö¹³É¹¦");
 static const char *c_sTaskStopResult1 = QT_TRANSLATE_NOOP("MWFileList", "ÆäËüÔËÐÐÒì³£");
+
+// ·ÖÇøÍ£Ö¹½á¹û
+static const char *c_sAreaStopResult0 = QT_TRANSLATE_NOOP("MWFileList", "·ÖÇøÍ£Ö¹³É¹¦");
+static const char *c_sAreaStopResult1 = QT_TRANSLATE_NOOP("MWFileList", "ÆäËüÔËÐÐÒì³£");
 
 // µ¼Èë½á¹û
 static const char *c_sImportResult0 = QT_TRANSLATE_NOOP("MWFileList", "¿ªÊ¼µ¼Èë");
@@ -121,7 +126,7 @@ void CMWFileList::initUI()
     m_pActStop = toolBar->addAction(QIcon(sIcon), qApp->translate(c_sMWFileList, c_sStop));
     m_pActStop->setStatusTip(m_pActStop->text());
 
-    m_pActTaskQueryStart = toolBar->addAction("Task Query Trigger");
+    m_pActTaskQueryStart = toolBar->addAction(qApp->translate(c_sMWFileList, c_sTaskQuery));
     m_pActTaskQueryStart->setStatusTip(m_pActTaskQueryStart->text());
 
     m_pFileListWgt = new QTableWidget(this);
@@ -307,7 +312,7 @@ void CMWFileList::readDelete(quint32 area, quint32 state)
 }
 
 /*****************************************************************************
-* @brief   : Ó¦´ð-Í£Ö¹
+* @brief   : Ó¦´ð-ÈÎÎñÍ£Ö¹
 * @author  : wb
 * @date    : 2019/10/28
 * @param:  :
@@ -322,6 +327,29 @@ void CMWFileList::readTaskStop(quint32 tasktype, quint32 state)
     else
     {
         sInfo = qApp->translate(c_sMWFileList, c_sTaskStopResult1);
+    }
+
+    statusBar()->showMessage(sInfo);
+
+    emit siglogRecord(sInfo);
+}
+
+/*****************************************************************************
+* @brief   : Ó¦´ð-·ÖÇøÍ£Ö¹
+* @author  : wb
+* @date    : 2020/01/12
+* @param:  : 
+*****************************************************************************/
+void CMWFileList::readStop(quint32 state)
+{
+    QString sInfo = "";
+    if (state == 0x00)
+    {
+        sInfo = qApp->translate(c_sMWFileList, c_sAreaStopResult0);
+    }
+    else
+    {
+        sInfo = qApp->translate(c_sMWFileList, c_sAreaStopResult1);
     }
 
     statusBar()->showMessage(sInfo);
