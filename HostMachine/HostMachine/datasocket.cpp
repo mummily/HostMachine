@@ -38,21 +38,25 @@ void CDataSocket::slotImport()
             connectToHost(QHostAddress(sIPAddr), c_uDataPort);
             if (!waitForConnected(c_uWaitForMsecs))
             {
-                QMessageBox::information(nullptr, qApp->translate(c_sDataSocket, c_sTitle),
-                    qApp->translate(c_sDataSocket, c_sNetConnectError));
+                m_file.close();
                 return;
             }
         }
 
         char buffer[c_bufferSize] = {0};
-        memset(buffer,0,sizeof(buffer));
+        memset(buffer, 0, sizeof(buffer));
         qint64 len = m_file.read(buffer, sizeof(buffer));
-        /*len = */write(buffer, c_bufferSize);
-        if (nIndex % 1 == 0)
+
+        while (bytesToWrite() > 500*c_kSizeMax)
         {
             if (!waitForBytesWritten(c_uWaitForMsecs))
-                break;
+            {
+                m_file.close();
+                return;
+            }
         }
+
+        write(buffer, c_bufferSize);
         bufferLen += len;
         if (bufferLen < m_fileSize)
             emit importUpdate(areano, fileName, bufferLen, m_fileSize);
