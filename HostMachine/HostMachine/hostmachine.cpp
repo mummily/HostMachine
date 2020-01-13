@@ -148,8 +148,8 @@ static const char *c_sTaskState2 = QT_TRANSLATE_NOOP("HostMachine", "完成");
 static const char *c_sTaskState3 = QT_TRANSLATE_NOOP("HostMachine", "其它");
 
 HostMachine::HostMachine(QWidget *parent)
-    : QMainWindow(parent), m_sAddr(""), m_nProgressBarUpdateInterval(c_uProgressBarUpdateInterval), 
-    m_bShowTaskStop(false), m_sImportPath(""), m_sExportPath("")
+    : QMainWindow(parent), m_sAddr(""), m_bShowTaskStop(false), m_sImportPath(""), m_sExportPath(""),
+    m_nProgressBarUpdateInterval(c_uProgressBarUpdateInterval), m_nProcessEventInterval(c_uProcessEventInterval)
 {
     initData();
     initUI();
@@ -1950,6 +1950,7 @@ void HostMachine::initData()
 void HostMachine::slotImportStart(qint32 areano, QString fileName, qint64 buffer, qint64 total)
 {
     m_pElapsedTimer->restart();
+    m_nProcessEventInterval = c_uProcessEventInterval;
     m_nProgressBarUpdateInterval = c_uProgressBarUpdateInterval;
 
     auto itFind = std::find_if(m_lstTaskQueryParam.begin(), m_lstTaskQueryParam.end(), [&](shared_ptr<tagTaskQueryParam> spTaskQueryParam)->bool
@@ -1971,15 +1972,24 @@ void HostMachine::slotImportStart(qint32 areano, QString fileName, qint64 buffer
 *****************************************************************************/
 void HostMachine::slotImportUpdate(qint32 areano, QString fileName, qint64 buffer, qint64 total)
 {
-    if (m_pElapsedTimer->elapsed() / m_nProgressBarUpdateInterval == 0)
-        return;
+    if (m_pElapsedTimer->elapsed() / m_nProcessEventInterval != 0)
+    {
+        m_nProcessEventInterval += c_uProcessEventInterval;
+        qApp->processEvents();
+    }
 
-    m_nProgressBarUpdateInterval += c_uProgressBarUpdateInterval;
+    if (m_pElapsedTimer->elapsed() / m_nProgressBarUpdateInterval != 0)
+    {
+        m_nProgressBarUpdateInterval += c_uProgressBarUpdateInterval;
 
-    CMWFileList* pWMFileList = (CMWFileList*)m_pTabWgt->widget(areano);
-    pWMFileList->updateProcess(fileName, buffer, total);
+        CMWFileList* pWMFileList = (CMWFileList*)m_pTabWgt->widget(areano);
+        if (nullptr == pWMFileList)
+            return;
 
-    reallyTaskQuery();
+        pWMFileList->updateProcess(fileName, buffer, total);
+
+        reallyTaskQuery();
+    }
 }
 
 /*****************************************************************************
@@ -2008,6 +2018,7 @@ void HostMachine::slotImportCompleted(qint32 areano, QString fileName, qint64 bu
 void HostMachine::slotExportStart(qint32 areano, QString fileName, qint64 buffer, qint64 total)
 {
     m_pElapsedTimer->restart();
+    m_nProcessEventInterval = c_uProcessEventInterval;
     m_nProgressBarUpdateInterval = c_uProgressBarUpdateInterval;
 
     auto itFind = std::find_if(m_lstTaskQueryParam.begin(), m_lstTaskQueryParam.end(), [&](shared_ptr<tagTaskQueryParam> spTaskQueryParam)->bool
@@ -2029,18 +2040,24 @@ void HostMachine::slotExportStart(qint32 areano, QString fileName, qint64 buffer
 *****************************************************************************/
 void HostMachine::slotExportUpdate(qint32 areano, QString fileName, qint64 buffer, qint64 total)
 {
-    if (m_pElapsedTimer->elapsed() / m_nProgressBarUpdateInterval == 0)
-        return;
+    if (m_pElapsedTimer->elapsed() / m_nProcessEventInterval != 0)
+    {
+        m_nProcessEventInterval += c_uProcessEventInterval;
+        qApp->processEvents();
+    }
 
-    m_nProgressBarUpdateInterval += c_uProgressBarUpdateInterval;
+    if (m_pElapsedTimer->elapsed() / m_nProgressBarUpdateInterval != 0)
+    {
+        m_nProgressBarUpdateInterval += c_uProgressBarUpdateInterval;
 
-    CMWFileList* pWMFileList = (CMWFileList*)m_pTabWgt->widget(areano);
-    if (nullptr == pWMFileList)
-        return;
+        CMWFileList* pWMFileList = (CMWFileList*)m_pTabWgt->widget(areano);
+        if (nullptr == pWMFileList)
+            return;
 
-    pWMFileList->updateProcess(fileName, buffer, total);
+        pWMFileList->updateProcess(fileName, buffer, total);
 
-    reallyTaskQuery();
+        reallyTaskQuery();
+    }
 }
 
 /*****************************************************************************
