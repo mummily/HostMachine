@@ -332,9 +332,6 @@ void HostMachine::initConnect()
     connect(m_pDataSocket, SIGNAL(exportStart(qint32, QString, qint64, qint64)), this, SLOT(slotExportStart(qint32, QString, qint64, qint64)));
     connect(m_pDataSocket, SIGNAL(exportUpdate(qint32, QString, qint64, qint64)), this, SLOT(slotExportUpdate(qint32, QString, qint64, qint64)));
     connect(m_pDataSocket, SIGNAL(exportCompleted(qint32, QString, qint64, qint64)), this, SLOT(slotExportCompleted(qint32, QString, qint64, qint64)));
-
-    // 任务查询
-    connect(m_pTimer, SIGNAL(timeout()), this, SLOT(slotTaskQuery()));
 }
 
 /*****************************************************************************
@@ -843,6 +840,7 @@ void HostMachine::readyReadCmd()
         }
 
         in.device()->readAll();
+        readTaskQuery();
 
         if (!queryTaskInvalid())
         {
@@ -851,14 +849,15 @@ void HostMachine::readyReadCmd()
         else
         {
             m_nTimer ++;
-            if (m_nTimer == 5)
+            if (m_nTimer >= 5)
             {
-                m_pTimer->stop();
                 m_nTimer = 0;
             }
+            else
+            {
+                QTimer::singleShot(1000, this, SLOT(slotTaskQuery()));
+            }
         }
-
-        readTaskQuery();
     }
     else if (respondType == SC_Record)
     {
@@ -877,7 +876,9 @@ void HostMachine::readyReadCmd()
             });
 
             (*itFind)->dtStart = QDateTime::currentDateTime();
-            m_pTimer->start();
+
+            QTimer::singleShot(10, this, SLOT(slotRefresh()));
+            QTimer::singleShot(10, this, SLOT(slotTaskQuery()));
         }
     }
     else if (respondType == SC_PlayBack)
@@ -891,7 +892,8 @@ void HostMachine::readyReadCmd()
 
         if (state == 0x00)
         {
-            m_pTimer->start();
+            QTimer::singleShot(10, this, SLOT(slotRefresh()));
+            QTimer::singleShot(10, this, SLOT(slotTaskQuery()));
         }
     }
     else if (respondType == SC_TaskStop)
@@ -907,10 +909,10 @@ void HostMachine::readyReadCmd()
         if (0x00 == state)
         {
             m_pDataSocket->m_file.close();
-        }
 
-        m_pTimer->start();
-        QTimer::singleShot(10, this, SLOT(slotRefresh()));
+            QTimer::singleShot(10, this, SLOT(slotRefresh()));
+            QTimer::singleShot(10, this, SLOT(slotTaskQuery()));
+        }
     }
     else if (respondType == SC_Stop)
     {
@@ -921,7 +923,12 @@ void HostMachine::readyReadCmd()
         CMWFileList* pWMFileList = (CMWFileList*)m_pTabWgt->currentWidget();
         pWMFileList->m_pProgressBar->hide();
         pWMFileList->readStop(state);
-        QTimer::singleShot(10, this, SLOT(slotRefresh()));
+
+        if (0x00 == state)
+        {
+            QTimer::singleShot(10, this, SLOT(slotRefresh()));
+            QTimer::singleShot(10, this, SLOT(slotTaskQuery()));
+        }
     }
     else if (respondType == SC_Delete)
     {
@@ -931,6 +938,11 @@ void HostMachine::readyReadCmd()
 
         CMWFileList* pWMFileList = (CMWFileList*)m_pTabWgt->widget(area);
         pWMFileList->readDelete(area, state);
+
+        if (0x00 == state)
+        {
+            QTimer::singleShot(10, this, SLOT(slotRefresh()));
+        }
     }
     else if (respondType == SC_Refresh)
     {
@@ -1158,8 +1170,6 @@ void HostMachine::slotTaskQuery()
 {
     if (m_sAddr.isEmpty())
     {
-        m_pTimer->stop();
-        m_nTimer = 0;
         QMessageBox::information(this, qApp->translate(c_sHostMachine, c_sTitle),
             qApp->translate(c_sHostMachine, c_sIPSettingTip));
         return;
@@ -1170,8 +1180,6 @@ void HostMachine::slotTaskQuery()
         m_pCmdSocket->connectToHost(QHostAddress(m_sAddr), c_uCommandPort);
         if (!m_pCmdSocket->waitForConnected(c_uWaitForMsecs))
         {
-            m_pTimer->stop();
-            m_nTimer = 0;
             Q_ASSERT(false);
             QMessageBox::information(this, qApp->translate(c_sHostMachine, c_sTitle),
                 qApp->translate(c_sHostMachine, c_sNetConnectError));
@@ -1560,8 +1568,6 @@ void HostMachine::slotDelete()
         m_pCmdSocket->write(block);
         m_pCmdSocket->waitForReadyRead(c_uWaitForMsecs);
     }
-
-    reallyRefresh();
 }
 
 /*****************************************************************************
@@ -1631,17 +1637,6 @@ void HostMachine::slotRefresh()
         return;
 
     reallyRefresh();
-}
-
-/*****************************************************************************
-* @brief   : 请求-刷新
-* @author  : wb
-* @date    : 2019/10/28
-* @param:  : 
-*****************************************************************************/
-void HostMachine::slotTaskQueryStart()
-{
-    m_pTimer->start();
 }
 
 /*****************************************************************************
@@ -1908,8 +1903,6 @@ void HostMachine::initData()
     m_spTaskStopType = make_shared<TaskStopType>();
 
     m_pElapsedTimer = new QElapsedTimer();
-    m_pTimer = new QTimer(this);
-    m_pTimer->setInterval(1000);
     m_nTimer = 0;
 
     m_lstTaskQueryParam.clear();
@@ -2008,8 +2001,6 @@ void HostMachine::slotImportCompleted(qint32 areano, QString fileName, qint64 bu
 
     reallyRefresh();
     slotForeachImport();
-
-    reallyTaskQuery();
 }
 
 /*****************************************************************************

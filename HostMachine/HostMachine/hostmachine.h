@@ -242,8 +242,6 @@ public:
         void slotDelete();
         // 刷新
         void slotRefresh();
-        // 触发任务查询
-        void slotTaskQueryStart();
 
         // Init
         void slotInit();
@@ -309,7 +307,6 @@ private:
 
     QTableWidget                        *m_pTaskWgt;            // 任务列表框
     QElapsedTimer                       *m_pElapsedTimer;       // 导入导出更新间隔
-    QTimer                              *m_pTimer;              // 任务查询定时器
     int                                 m_nTimer;               // 任务查询无任务的次数
     quint64                             m_nProcessEventInterval;
     quint64                             m_nProgressBarUpdateInterval;

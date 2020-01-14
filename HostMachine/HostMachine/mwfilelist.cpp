@@ -174,7 +174,7 @@ void CMWFileList::initConnect()
 
     connect(m_pActRefresh, SIGNAL(triggered(bool)), parentWidget(), SLOT(slotLogRecordAct()));
     connect(m_pActRefresh, SIGNAL(triggered(bool)), parentWidget(), SLOT(slotRefresh()));
-    connect(m_pActTaskQueryStart, SIGNAL(triggered(bool)), parentWidget(), SLOT(slotTaskQueryStart()));
+    connect(m_pActTaskQueryStart, SIGNAL(triggered(bool)), parentWidget(), SLOT(slotTaskQuery()));
 
     // ÆäËü
     connect(this, SIGNAL(siglogRecord(QString)), parentWidget(), SLOT(slotLogRecord(QString)));
