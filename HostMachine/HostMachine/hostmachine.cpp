@@ -173,7 +173,9 @@ HostMachine::~HostMachine()
     if (QFile::exists(sConfigFile))
     {
         Config config(sConfigFile);
-        // TODO Ð´Èë
+        config.write("import.path", m_sImportPath);
+        config.write("export.path", m_sExportPath);
+        config.sync();
     }
 }
 
@@ -1170,6 +1172,7 @@ void HostMachine::slotTaskQuery()
         {
             m_pTimer->stop();
             m_nTimer = 0;
+            Q_ASSERT(false);
             QMessageBox::information(this, qApp->translate(c_sHostMachine, c_sTitle),
                 qApp->translate(c_sHostMachine, c_sNetConnectError));
             return;
@@ -2108,6 +2111,7 @@ bool HostMachine::reConnectCmd()
     m_pCmdSocket->connectToHost(QHostAddress(m_sAddr), c_uCommandPort);
     if (!m_pCmdSocket->waitForConnected(c_uWaitForMsecs))
     {
+        Q_ASSERT(false);
         QMessageBox::information(this, qApp->translate(c_sHostMachine, c_sTitle),
             qApp->translate(c_sHostMachine, c_sNetConnectError));
         return false;
@@ -2136,6 +2140,7 @@ bool HostMachine::reConnectData()
     m_pDataSocket->connectToHost(QHostAddress(m_sAddr), c_uDataPort);
     if (!m_pDataSocket->waitForConnected(c_uWaitForMsecs))
     {
+        Q_ASSERT(false);
         QMessageBox::information(this, qApp->translate(c_sHostMachine, c_sTitle),
             qApp->translate(c_sHostMachine, c_sNetConnectError));
         return false;

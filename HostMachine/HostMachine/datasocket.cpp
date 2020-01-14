@@ -39,6 +39,7 @@ void CDataSocket::slotImport()
             if (!waitForConnected(c_uWaitForMsecs))
             {
                 m_file.close();
+                Q_ASSERT(false);
                 return;
             }
         }
@@ -52,6 +53,7 @@ void CDataSocket::slotImport()
             if (!waitForBytesWritten(c_uWaitForMsecs))
             {
                 m_file.close();
+                Q_ASSERT(false);
                 return;
             }
         }
