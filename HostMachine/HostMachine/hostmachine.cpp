@@ -1030,6 +1030,9 @@ void HostMachine::slotIPSetting()
 
     m_pDataSocket->connectToHost(QHostAddress(m_sAddr), c_uDataPort);
     m_pDataSocket->waitForConnected(c_uWaitForMsecs);
+
+    m_pDataSocket->setSocketOption(QAbstractSocket::ReceiveBufferSizeSocketOption, 1024*1024*8);
+    m_pDataSocket->setSocketOption(QAbstractSocket::SendBufferSizeSocketOption, 1024*1024*8);
 }
 
 /*****************************************************************************
