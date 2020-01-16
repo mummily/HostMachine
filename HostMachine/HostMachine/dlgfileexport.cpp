@@ -19,8 +19,8 @@ static const char *c_sPathTitle = QT_TRANSLATE_NOOP("DlgFileExport", "选择导出文
 static const char *c_sConfirm = QT_TRANSLATE_NOOP("DlgFileExport", "确定");
 static const char *c_sCancel = QT_TRANSLATE_NOOP("DlgFileExport", "取消");
 
-DlgFileExport::DlgFileExport(qint32 filesize, QString sPath, QWidget *parent)
-    : QDialog(parent), m_filesize(filesize), m_sDefExportPath(sPath)
+DlgFileExport::DlgFileExport(double filesize, QString sPath, QWidget *parent)
+    : QDialog(parent), m_filesize(filesize / 1024)/*LBA->MB*/, m_sDefExportPath(sPath)
 {
     initUI();
     initConnect();
@@ -41,7 +41,7 @@ void DlgFileExport::initUI()
     QLabel *lable3 = new QLabel(qApp->translate(c_sDlgFileExport, c_sLabel3), this);
 
     m_spinBox1 = new QDoubleSpinBox(this);
-    m_spinBox1->setSuffix(" LBA");
+    m_spinBox1->setSuffix("MB");
     m_spinBox1->setDecimals(3);
     m_spinBox1->setSingleStep(0.001);
     m_spinBox1->setMinimum(0.0);
@@ -49,7 +49,7 @@ void DlgFileExport::initUI()
     m_spinBox1->setValue(0);
 
     m_spinBox2 = new QDoubleSpinBox(this);
-    m_spinBox2->setSuffix(" LBA");
+    m_spinBox2->setSuffix("MB");
     m_spinBox2->setDecimals(3);
     m_spinBox2->setSingleStep(0.001);
     m_spinBox2->setMinimum(0.0);

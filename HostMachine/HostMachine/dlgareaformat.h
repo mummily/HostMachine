@@ -17,11 +17,11 @@ public:
     ~DlgAreaFormat();
 
 public:
-    qint64 Size5() const { return m_nSize5; }
-    qint64 Size4() const { return m_nSize4; }
-    qint64 Size3() const { return m_nSize3; }
-    qint64 Size2() const { return m_nSize2; }
-    qint64 Size1() const { return m_nSize1; }
+    qint64 Size5() const { return m_nSize5 * 1024 * 1024; } /* GB->LBA */
+    qint64 Size4() const { return m_nSize4 * 1024 * 1024; }
+    qint64 Size3() const { return m_nSize3 * 1024 * 1024; }
+    qint64 Size2() const { return m_nSize2 * 1024 * 1024; }
+    qint64 Size1() const { return m_nSize1 * 1024 * 1024; }
 
 private:
     void initUI();
@@ -41,7 +41,7 @@ private:
     QLabel          *m_pLabel;
 
 private:
-    qint64          m_nTotalSize, m_nSize1, m_nSize2, m_nSize3, m_nSize4, m_nSize5;
+    double          m_nTotalSize, m_nSize1, m_nSize2, m_nSize3, m_nSize4, m_nSize5;
 };
 
 #endif // DLGAREAFORMAT_H

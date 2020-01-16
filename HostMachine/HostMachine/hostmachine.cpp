@@ -1385,7 +1385,7 @@ void HostMachine::slotExport()
     m_lstExportParam.clear();
     if (rowNos.count() == 1)
     {
-        qint32 filesize = pFileListWgt->item(*rowNos.begin(), 5)->text().toInt(); // 来自所在行的文件大小列
+        double filesize = pFileListWgt->item(*rowNos.begin(), 5)->text().toDouble(); // 来自所在行的文件大小列
         DlgFileExport dlg(filesize, m_sExportPath, this);
         if (QDialog::Accepted != dlg.exec())
             return;
@@ -2037,11 +2037,11 @@ void HostMachine::slotExportStart(qint32 areano, QString fileName, qint64 buffer
 *****************************************************************************/
 void HostMachine::slotExportUpdate(qint32 areano, QString fileName, qint64 buffer, qint64 total)
 {
-    if (m_pElapsedTimer->elapsed() / m_nProcessEventInterval != 0)
-    {
-        m_nProcessEventInterval += c_uProcessEventInterval;
-        qApp->processEvents();
-    }
+//     if (m_pElapsedTimer->elapsed() / m_nProcessEventInterval != 0)
+//     {
+//         m_nProcessEventInterval += c_uProcessEventInterval;
+//         qApp->processEvents();
+//     }
 
     if (m_pElapsedTimer->elapsed() / m_nProgressBarUpdateInterval != 0)
     {

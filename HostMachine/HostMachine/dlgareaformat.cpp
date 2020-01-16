@@ -17,13 +17,14 @@ static const char *c_sArea2 = QT_TRANSLATE_NOOP("DlgAreaFormat", "光电图片分区")
 static const char *c_sArea3 = QT_TRANSLATE_NOOP("DlgAreaFormat", "光电视频分区");
 static const char *c_sArea4 = QT_TRANSLATE_NOOP("DlgAreaFormat", "混合数据分区");
 
-static const char *c_sUseInfo = QT_TRANSLATE_NOOP("DlgAreaFormat", "已分配大小（LBA）/总大小（LBA）：");
+static const char *c_sUseInfo = QT_TRANSLATE_NOOP("DlgAreaFormat", "已分配大小（GB）/总大小（GB）：");
 
 static const char *c_sConfirm = QT_TRANSLATE_NOOP("DlgAreaFormat", "确定");
 static const char *c_sCancel = QT_TRANSLATE_NOOP("DlgAreaFormat", "取消");
 
 DlgAreaFormat::DlgAreaFormat(qint64 nTotalSize, qint64 nSize1, qint64 nSize2, qint64 nSize3, qint64 nSize4, qint64 nSize5, QWidget *parent)
-    : QDialog(parent), m_nTotalSize(nTotalSize), m_nSize1(nSize1), m_nSize2(nSize2), m_nSize3(nSize3), m_nSize4(nSize4), m_nSize5(nSize5)
+    : QDialog(parent), m_nTotalSize((double)nTotalSize/(1024*1024)), m_nSize1((double)nSize1/(1024*1024)), m_nSize2((double)nSize2/(1024*1024)),
+    m_nSize3((double)nSize3/(1024*1024)), m_nSize4((double)nSize4/(1024*1024)), m_nSize5((double)nSize5/(1024*1024)) /* LBA->GB */
 {
     initUI();
     initConnect();
@@ -49,43 +50,43 @@ void DlgAreaFormat::initUI()
     m_pRadio5 = new QRadioButton(qApp->translate(c_sDlgAreaFormat, c_sArea4), this);
 
     m_spinbox1 = new QDoubleSpinBox(this);
-    m_spinbox1->setSuffix("LBA");
+    m_spinbox1->setSuffix("GB");
     m_spinbox1->setMinimum(1);
     m_spinbox1->setMaximum(m_nTotalSize);
-    m_spinbox1->setSingleStep(1);
-    m_spinbox1->setDecimals(0);
+    m_spinbox1->setSingleStep(0.001);
+    m_spinbox1->setDecimals(3);
     m_spinbox1->setReadOnly(true);
 
     m_spinbox2 = new QDoubleSpinBox(this);
-    m_spinbox2->setSuffix("LBA");
+    m_spinbox2->setSuffix("GB");
     m_spinbox2->setMinimum(1);
     m_spinbox2->setMaximum(m_nTotalSize);
-    m_spinbox2->setSingleStep(1);
-    m_spinbox2->setDecimals(0);
+    m_spinbox2->setSingleStep(0.001);
+    m_spinbox2->setDecimals(3);
     m_spinbox2->setReadOnly(true);
 
     m_spinbox3 = new QDoubleSpinBox(this);
-    m_spinbox3->setSuffix("LBA");
+    m_spinbox3->setSuffix("GB");
     m_spinbox3->setMinimum(1);
     m_spinbox3->setMaximum(m_nTotalSize);
-    m_spinbox3->setSingleStep(1);
-    m_spinbox3->setDecimals(0);
+    m_spinbox3->setSingleStep(0.001);
+    m_spinbox3->setDecimals(3);
     m_spinbox3->setReadOnly(true);
 
     m_spinbox4 = new QDoubleSpinBox(this);
-    m_spinbox4->setSuffix("LBA");
+    m_spinbox4->setSuffix("GB");
     m_spinbox4->setMinimum(1);
     m_spinbox4->setMaximum(m_nTotalSize);
-    m_spinbox4->setSingleStep(1);
-    m_spinbox4->setDecimals(0);
+    m_spinbox4->setSingleStep(0.001);
+    m_spinbox4->setDecimals(3);
     m_spinbox4->setReadOnly(true);
 
     m_spinbox5 = new QDoubleSpinBox(this);
-    m_spinbox5->setSuffix("LBA");
+    m_spinbox5->setSuffix("GB");
     m_spinbox5->setMinimum(1);
     m_spinbox5->setMaximum(m_nTotalSize);
-    m_spinbox5->setSingleStep(1);
-    m_spinbox5->setDecimals(0);
+    m_spinbox5->setSingleStep(0.001);
+    m_spinbox5->setDecimals(3);
     m_spinbox5->setReadOnly(true);
 
     m_slider1 = new QSlider(this);
