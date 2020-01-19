@@ -849,14 +849,15 @@ void HostMachine::readyReadCmd()
         else
         {
             m_nTimer ++;
-            if (m_nTimer >= 5)
-            {
-                m_nTimer = 0;
-            }
-            else
-            {
-                QTimer::singleShot(1000, this, SLOT(slotTaskQuery()));
-            }
+        }
+
+        if (m_nTimer >= 5)
+        {
+            m_nTimer = 0;
+        }
+        else
+        {
+            QTimer::singleShot(1000, this, SLOT(slotTaskQuery()));
         }
     }
     else if (respondType == SC_Record)
@@ -903,7 +904,6 @@ void HostMachine::readyReadCmd()
         in.device()->readAll();
 
         CMWFileList* pWMFileList = (CMWFileList*)m_pTabWgt->currentWidget();
-        pWMFileList->m_pProgressBar->hide();
         pWMFileList->readTaskStop(tasktype, state);
 
         if (0x00 == state)
@@ -921,7 +921,6 @@ void HostMachine::readyReadCmd()
         in.device()->readAll();
 
         CMWFileList* pWMFileList = (CMWFileList*)m_pTabWgt->currentWidget();
-        pWMFileList->m_pProgressBar->hide();
         pWMFileList->readStop(state);
 
         if (0x00 == state)
@@ -2068,8 +2067,6 @@ void HostMachine::slotExportCompleted(qint32 areano, QString fileName, qint64 bu
     CMWFileList* pWMFileList = (CMWFileList*)m_pTabWgt->widget(areano);
     pWMFileList->updateProcess(fileName, buffer, total);
     slotForeachExport();
-
-    reallyTaskQuery();
 }
 
 /*****************************************************************************

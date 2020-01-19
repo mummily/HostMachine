@@ -58,7 +58,7 @@ void CDataSocket::slotImport()
             }
         }
 
-        write(buffer, c_bufferSize);
+        write(buffer);
         bufferLen += len;
         if (bufferLen < m_fileSize)
             emit importUpdate(areano, fileName, bufferLen, m_fileSize);

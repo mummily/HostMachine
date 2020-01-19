@@ -241,6 +241,7 @@ void CMWFileList::readRefresh(tagAreaFileInfos* pFileInfos)
 
     QString sInfo = qApp->translate(c_sMWFileList, c_sRefreshResult);
 
+    m_pProgressBar->hide();
     statusBar()->showMessage(sInfo);
     emit siglogRecord(sInfo);
 }
@@ -307,6 +308,7 @@ void CMWFileList::readDelete(quint32 area, quint32 state)
         sInfo = qApp->translate(c_sMWFileList, c_sDeleteResult1);
     }
 
+    m_pProgressBar->hide();
     statusBar()->showMessage(sInfo);
     QString sLog = QString("%0%1 %2").arg(qApp->translate(c_sMWFileList, c_sArea)).arg(area).arg(sInfo);
     emit siglogRecord(sLog);
@@ -329,7 +331,8 @@ void CMWFileList::readTaskStop(quint32 tasktype, quint32 state)
     {
         sInfo = qApp->translate(c_sMWFileList, c_sTaskStopResult1);
     }
-
+    
+    m_pProgressBar->hide();
     statusBar()->showMessage(sInfo);
 
     emit siglogRecord(sInfo);
@@ -353,6 +356,7 @@ void CMWFileList::readStop(quint32 state)
         sInfo = qApp->translate(c_sMWFileList, c_sAreaStopResult1);
     }
 
+    m_pProgressBar->hide();
     statusBar()->showMessage(sInfo);
 
     emit siglogRecord(sInfo);
