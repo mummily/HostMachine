@@ -1030,7 +1030,7 @@ void HostMachine::slotIPSetting()
     m_pDataSocket->connectToHost(QHostAddress(m_sAddr), c_uDataPort);
     m_pDataSocket->waitForConnected(c_uWaitForMsecs);
 
-    m_pDataSocket->setSocketOption(QAbstractSocket::ReceiveBufferSizeSocketOption, 1024*1024*8);
+    m_pDataSocket->setSocketOption(QAbstractSocket::ReceiveBufferSizeSocketOption, 1024*1024*20);
     m_pDataSocket->setSocketOption(QAbstractSocket::SendBufferSizeSocketOption, 1024*1024*8);
 }
 
@@ -1959,6 +1959,9 @@ void HostMachine::slotImportStart(qint32 areano, QString fileName, qint64 buffer
     (*itFind)->filesize = total;
     (*itFind)->dtStart = QDateTime::currentDateTime();
 
+    CMWFileList* pWMFileList = (CMWFileList*)m_pTabWgt->widget(areano);
+    pWMFileList->m_pProgressBar->show();
+
     reallyTaskQuery();
 }
 
@@ -2025,6 +2028,9 @@ void HostMachine::slotExportStart(qint32 areano, QString fileName, qint64 buffer
     (*itFind)->filesize = total;
     (*itFind)->dtStart = QDateTime::currentDateTime();
 
+    CMWFileList* pWMFileList = (CMWFileList*)m_pTabWgt->widget(areano);
+    pWMFileList->m_pProgressBar->show();
+
     reallyTaskQuery();
 }
 
@@ -2065,6 +2071,9 @@ void HostMachine::slotExportUpdate(qint32 areano, QString fileName, qint64 buffe
 void HostMachine::slotExportCompleted(qint32 areano, QString fileName, qint64 buffer, qint64 total)
 {
     CMWFileList* pWMFileList = (CMWFileList*)m_pTabWgt->widget(areano);
+    if (nullptr == pWMFileList)
+        return;
+
     pWMFileList->updateProcess(fileName, buffer, total);
     slotForeachExport();
 }
