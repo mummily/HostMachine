@@ -908,11 +908,8 @@ void HostMachine::readyReadCmd()
         CMWFileList* pWMFileList = (CMWFileList*)m_pTabWgt->currentWidget();
         pWMFileList->readTaskStop(tasktype, state);
 
-        if (0x00 == state)
-        {
-            QTimer::singleShot(10, this, SLOT(slotRefresh()));
-            QTimer::singleShot(10, this, SLOT(slotTaskQuery()));
-        }
+        QTimer::singleShot(10, this, SLOT(slotRefresh()));
+        QTimer::singleShot(10, this, SLOT(slotTaskQuery()));
     }
     else if (respondType == SC_Stop)
     {
@@ -923,11 +920,8 @@ void HostMachine::readyReadCmd()
         CMWFileList* pWMFileList = (CMWFileList*)m_pTabWgt->currentWidget();
         pWMFileList->readStop(state);
 
-        if (0x00 == state)
-        {
-            QTimer::singleShot(10, this, SLOT(slotRefresh()));
-            QTimer::singleShot(10, this, SLOT(slotTaskQuery()));
-        }
+        QTimer::singleShot(10, this, SLOT(slotRefresh()));
+        QTimer::singleShot(10, this, SLOT(slotTaskQuery()));
     }
     else if (respondType == SC_Delete)
     {
@@ -1962,10 +1956,8 @@ void HostMachine::slotImportStart(qint32 areano, QString fileName, qint64 buffer
     (*itFind)->filesize = total;
     (*itFind)->dtStart = QDateTime::currentDateTime();
 
-    CMWFileList* pWMFileList = (CMWFileList*)m_pTabWgt->widget(areano);
-    pWMFileList->m_pProgressBar->show();
-
-    reallyTaskQuery();
+    QTimer::singleShot(10, this, SLOT(slotRefresh()));
+    QTimer::singleShot(10, this, SLOT(slotTaskQuery()));
 }
 
 /*****************************************************************************
@@ -2031,10 +2023,8 @@ void HostMachine::slotExportStart(qint32 areano, QString fileName, qint64 buffer
     (*itFind)->filesize = total;
     (*itFind)->dtStart = QDateTime::currentDateTime();
 
-    CMWFileList* pWMFileList = (CMWFileList*)m_pTabWgt->widget(areano);
-    pWMFileList->m_pProgressBar->show();
-
-    reallyTaskQuery();
+    QTimer::singleShot(10, this, SLOT(slotRefresh()));
+    QTimer::singleShot(10, this, SLOT(slotTaskQuery()));
 }
 
 /*****************************************************************************
