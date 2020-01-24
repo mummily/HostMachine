@@ -20,10 +20,12 @@ signals:
     // 导入
     void importStart(qint32, QString, qint64, qint64);
     void importUpdate(qint32, QString, qint64, qint64);
+    void importStop(qint32, QString, qint64, qint64);
     void importCompleted(qint32, QString, qint64, qint64);
     // 导出
     void exportStart(qint32, QString, qint64, qint64);
     void exportUpdate(qint32, QString, qint64, qint64);
+    void exportStop(qint32, QString, qint64, qint64);
     void exportCompleted(qint32, QString, qint64, qint64);
     // 日志
     void siglogRecord(QString);
@@ -35,6 +37,8 @@ public slots:
 private:
     void respondExport(QByteArray buf);
 public:
+    bool    m_bImportStop, m_bExportStop;
+
     QFile   m_file;             // 文件
     bool    m_bStart;           // 是否开始
     qint64  m_fileSize, m_bufferSize;    // 文件大小，缓存大小

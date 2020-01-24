@@ -14,7 +14,7 @@ static const char *c_sNetConnectError = QT_TRANSLATE_NOOP("DataSocket", "ÎÞ·¨Á¬½
 static const char *c_sOpenFileError = QT_TRANSLATE_NOOP("DataSocket", "Ö»¶Á·½Ê½´ò¿ªÎÄ¼þ<%0>Ê§°Ü£¡");
 
 CDataSocket::CDataSocket(QObject *parent)
-    : QTcpSocket(parent)
+    : QTcpSocket(parent), m_bImportStop(false), m_bExportStop(false)
 {
     connect(this, SIGNAL(siglogRecord(QString)), parent, SLOT(slotLogRecord(QString)));
 }
@@ -65,12 +65,18 @@ void CDataSocket::slotImport()
         else
             break;
 
+        if (m_bImportStop)
+            break;
+
         nIndex ++;
     } while (true);
 
     m_file.close();
 
-    emit importCompleted(areano, fileName, bufferLen, m_fileSize);
+    if (m_bImportStop)
+        emit importStop(areano, fileName, bufferLen, m_fileSize);
+    else
+        emit importCompleted(areano, fileName, bufferLen, m_fileSize);
 }
 
 void CDataSocket::readyRead()
@@ -87,6 +93,15 @@ void CDataSocket::readyRead()
 
 void CDataSocket::respondExport(QByteArray buf)
 {
+    QFileInfo fileInfo = m_file.fileName();
+
+    if (m_bExportStop)
+    {
+        m_file.close();
+        emit exportStop(areano, fileInfo.fileName(), m_bufferSize, m_fileSize);
+        return;
+    }
+
     qint64 len = m_file.write(buf);
     m_bufferSize += len;
 
@@ -96,17 +111,12 @@ void CDataSocket::respondExport(QByteArray buf)
 
     if(!bComplete)
     {
-        QFileInfo fileInfo = m_file.fileName();
         emit exportUpdate(areano, fileInfo.fileName(), m_bufferSize, m_fileSize);
     }
     else
     {
         m_file.close();
-
-        QFileInfo fileInfo = m_file.fileName();
         emit exportCompleted(areano, fileInfo.fileName(), m_bufferSize, m_fileSize);
-
-        m_bufferSize = 0;
     }
 }
 
@@ -121,6 +131,8 @@ void CDataSocket::preExport(qint32 areaNo, QString filePath, qint64 fileSize)
 
     QFileInfo fileInfo = m_file.fileName();
     emit exportStart(areano, fileInfo.fileName(), 0, m_fileSize);
+
+    m_bExportStop = false;
 }
 
 bool CDataSocket::preImport(qint32 areaNo, QString filePath)
@@ -140,6 +152,8 @@ bool CDataSocket::preImport(qint32 areaNo, QString filePath)
     m_fileSize = fileInfo.size();
 
     emit importStart(areano, fileInfo.fileName(), 0, m_fileSize);
+
+    m_bImportStop = false;
 
     return true;
 }

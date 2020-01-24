@@ -248,6 +248,7 @@ void CMWFileList::readRefresh(tagAreaFileInfos* pFileInfos)
 
 void CMWFileList::updateProcess(QString fileName, qint64 buffer, qint64 total)
 {
+    m_pProgressBar->show();
     m_pProgressBar->setMaximum(total / c_bSizeMax);
     m_pProgressBar->setValue(buffer / c_bSizeMax);
 

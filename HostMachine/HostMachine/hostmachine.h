@@ -249,9 +249,12 @@ public:
         void slotTabChanged(int index);
         void slotImportStart(qint32 areano, QString fileName, qint64 buffer, qint64 total);
         void slotImportUpdate(qint32 areano, QString fileName, qint64 buffer, qint64 total);
+        void slotImportStop(qint32 areano, QString fileName, qint64 buffer, qint64 total);
         void slotImportCompleted(qint32 areano, QString fileName, qint64 buffer, qint64 total);
+
         void slotExportStart(qint32 areano, QString fileName, qint64 buffer, qint64 total);
         void slotExportUpdate(qint32 areano, QString fileName, qint64 buffer, qint64 total);
+        void slotExportStop(qint32 areano, QString fileName, qint64 buffer, qint64 total);
         void slotExportCompleted(qint32 areano, QString fileName, qint64 buffer, qint64 total);
 
 private:

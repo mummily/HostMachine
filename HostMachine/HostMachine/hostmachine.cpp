@@ -327,10 +327,12 @@ void HostMachine::initConnect()
 
     connect(m_pDataSocket, SIGNAL(importStart(qint32, QString, qint64, qint64)), this, SLOT(slotImportStart(qint32, QString, qint64, qint64)));
     connect(m_pDataSocket, SIGNAL(importUpdate(qint32, QString, qint64, qint64)), this, SLOT(slotImportUpdate(qint32, QString, qint64, qint64)));
+    connect(m_pDataSocket, SIGNAL(importStop(qint32, QString, qint64, qint64)), this, SLOT(slotImportStop(qint32, QString, qint64, qint64)));
     connect(m_pDataSocket, SIGNAL(importCompleted(qint32, QString, qint64, qint64)), this, SLOT(slotImportCompleted(qint32, QString, qint64, qint64)));
 
     connect(m_pDataSocket, SIGNAL(exportStart(qint32, QString, qint64, qint64)), this, SLOT(slotExportStart(qint32, QString, qint64, qint64)));
     connect(m_pDataSocket, SIGNAL(exportUpdate(qint32, QString, qint64, qint64)), this, SLOT(slotExportUpdate(qint32, QString, qint64, qint64)));
+    connect(m_pDataSocket, SIGNAL(exportStop(qint32, QString, qint64, qint64)), this, SLOT(slotExportStop(qint32, QString, qint64, qint64)));
     connect(m_pDataSocket, SIGNAL(exportCompleted(qint32, QString, qint64, qint64)), this, SLOT(slotExportCompleted(qint32, QString, qint64, qint64)));
 }
 
@@ -908,8 +910,6 @@ void HostMachine::readyReadCmd()
 
         if (0x00 == state)
         {
-            m_pDataSocket->m_file.close();
-
             QTimer::singleShot(10, this, SLOT(slotRefresh()));
             QTimer::singleShot(10, this, SLOT(slotTaskQuery()));
         }
@@ -1498,6 +1498,9 @@ void HostMachine::slotStop()
     box.addButton(qApp->translate(c_sHostMachine, c_sNo), QMessageBox::NoRole);
     if (QMessageBox::AcceptRole != box.exec())
         return;
+
+    m_pDataSocket->m_bExportStop = true;
+    m_pDataSocket->m_bImportStop = true;
 
     reConnectCmd();
 
@@ -2193,7 +2196,30 @@ void HostMachine::slotTaskStop()
     if (QMessageBox::AcceptRole != box.exec())
         return;
 
+    m_pDataSocket->m_bExportStop = true;
+    m_pDataSocket->m_bImportStop = true;
+
     reConnectCmd();
 
     reallyTaskStop(tasktype);
+}
+
+/*****************************************************************************
+* @brief   : 
+* @author  : wb
+* @date    : 2020/01/24
+* @param:  : 
+*****************************************************************************/
+void HostMachine::slotImportStop(qint32 areano, QString fileName, qint64 buffer, qint64 total)
+{
+}
+
+/*****************************************************************************
+* @brief   : 
+* @author  : wb
+* @date    : 2020/01/24
+* @param:  : 
+*****************************************************************************/
+void HostMachine::slotExportStop(qint32 areano, QString fileName, qint64 buffer, qint64 total)
+{
 }
