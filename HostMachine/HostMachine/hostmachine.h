@@ -159,6 +159,7 @@ struct tagCheckSelf
     }
 };
 
+// 导入参数
 struct tagImportParam
 {
     qint32 areano;
@@ -169,6 +170,7 @@ struct tagImportParam
     }
 };
 
+// 任务查询参数
 struct tagTaskQueryParam
 {
     qint32 type; // 0-记录 1-导入导出
@@ -181,6 +183,7 @@ struct tagTaskQueryParam
     }
 };
 
+// 导出参数
 struct tagExportParam
 {
     qint32 fileNo;
@@ -188,6 +191,24 @@ struct tagExportParam
     QString filePath;
     tagExportParam()
     {
+    }
+};
+
+// 回放
+struct tagPlayBack
+{
+    quint32 type;
+    quint32 prftime;
+    quint32 datanum;
+    quint32 prf;
+    quint32 cpi;
+    tagPlayBack()
+    {
+        type = 0;
+        prftime = 0;
+        datanum = 0;
+        prf = 0;
+        cpi = 0;
     }
 };
 
@@ -285,6 +306,7 @@ private:
     shared_ptr<tagAreaProperties>       m_spAreaProperties;
     shared_ptr<tagCheckSelf>            m_spcheckSelf;
     shared_ptr<TaskStopType>            m_spTaskStopType;
+    shared_ptr<tagPlayBack>             m_spPlayBack;
     QString                             m_sAddr;
     QList<shared_ptr<tagExportParam>>   m_lstExportParam;
     QList<shared_ptr<tagImportParam>>   m_lstImportParam;

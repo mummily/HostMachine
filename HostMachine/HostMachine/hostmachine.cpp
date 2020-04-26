@@ -175,6 +175,13 @@ HostMachine::~HostMachine()
         Config config(sConfigFile);
         config.write("import.path", m_sImportPath);
         config.write("export.path", m_sExportPath);
+
+        config.write("playback.type", m_spPlayBack->type);
+        config.write("playback.prftime", m_spPlayBack->prftime);
+        config.write("playback.datanum", m_spPlayBack->datanum);
+        config.write("playback.prf", m_spPlayBack->prf);
+        config.write("playback.cpi", m_spPlayBack->cpi);
+
         config.sync();
     }
 }
@@ -1251,9 +1258,15 @@ void HostMachine::slotPlayBack()
         return;
     }
 
-    DlgFilePlayblack dlg(this);
+    DlgFilePlayblack dlg(m_spPlayBack->type, m_spPlayBack->prftime, m_spPlayBack->datanum, m_spPlayBack->prf, m_spPlayBack->cpi, this);
     if (QDialog::Accepted != dlg.exec())
         return;
+
+    m_spPlayBack->type = dlg.Type();
+    m_spPlayBack->prftime = dlg.Prftime();
+    m_spPlayBack->datanum = dlg.Datanum();
+    m_spPlayBack->prf = dlg.Prf();
+    m_spPlayBack->cpi = dlg.Cpi();
 
     reConnectCmd();
 
@@ -1261,11 +1274,11 @@ void HostMachine::slotPlayBack()
     QDataStream out(&block, QIODevice::WriteOnly);
     out << CS_PlayBack << m_pTabWgt->currentIndex()
         << pFileListWgt->item(*fileNos.begin(), 0)->text().toInt()
-        << dlg.Type()
-        << dlg.Prftime()
-        << dlg.Datanum()
-        << dlg.Prf()
-        << dlg.Cpi()
+        << m_spPlayBack->type
+        << m_spPlayBack->prftime
+        << m_spPlayBack->datanum
+        << m_spPlayBack->prf
+        << m_spPlayBack->cpi
         << c_uRequestEndTag;
 
     m_pCmdSocket->write(block);
@@ -1900,6 +1913,7 @@ void HostMachine::initData()
     m_spcheckSelf = make_shared<tagCheckSelf>();
     m_spAreaProperties = make_shared<tagAreaProperties>();
     m_spTaskStopType = make_shared<TaskStopType>();
+    m_spPlayBack = make_shared<tagPlayBack>();
 
     m_pElapsedTimer = new QElapsedTimer();
     m_nTimer = 0;
@@ -1920,6 +1934,12 @@ void HostMachine::initData()
         m_bShowTaskStop = config.readBool("tasklist.showstop");
         m_sImportPath = config.readString("import.path");
         m_sExportPath = config.readString("export.path");
+
+        m_spPlayBack->type = config.readInt("playback.type");
+        m_spPlayBack->prftime = config.readInt("playback.prftime");
+        m_spPlayBack->datanum = config.readInt("playback.datanum");
+        m_spPlayBack->prf = config.readInt("playback.prf");
+        m_spPlayBack->cpi = config.readInt("playback.cpi");
     }
 
     // »’÷æ

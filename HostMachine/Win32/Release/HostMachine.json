@@ -1,5 +1,10 @@
 {
     "tasklist.showstop": "true",
     "import.path": "",
-    "export.path": "/"
+    "export.path": "/",
+    "playback.type": "1",
+    "playback.prftime": "0",
+    "playback.datanum": "0",
+    "playback.prf": "0",
+    "playback.cpi": "0"
 }

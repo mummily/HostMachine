@@ -21,10 +21,11 @@ static const char *c_sCPI = QT_TRANSLATE_NOOP("DlgFilePlayblack", "CPI数据帧头")
 static const char *c_sConfirm = QT_TRANSLATE_NOOP("DlgFilePlayblack", "确定");
 static const char *c_sCancel = QT_TRANSLATE_NOOP("DlgFilePlayblack", "取消");
 
-DlgFilePlayblack::DlgFilePlayblack(QWidget *parent)
-    : QDialog(parent)
+DlgFilePlayblack::DlgFilePlayblack(quint32 type, quint32 prftime, quint32 datanum, quint32 prf, quint32 cpi, QWidget *parent)
+    : QDialog(parent), m_type(type), m_prftime(prftime), m_datanum(datanum), m_prf(prf), m_cpi(cpi)
 {
     initUI();
+    initData();
     initConnect();
 }
 
@@ -108,11 +109,24 @@ void DlgFilePlayblack::initConnect()
 
 void DlgFilePlayblack::slotOk()
 {
-    type = m_comboBox->currentIndex() + 1;
-    prftime = m_sbPRFTime->value();
-    datanum = m_sbDataNum->value();
-    prf = m_sbPRF->value();
-    cpi = m_sbCPI->value();
+    m_type = m_comboBox->currentIndex() + 1;
+    m_prftime = m_sbPRFTime->value();
+    m_datanum = m_sbDataNum->value();
+    m_prf = m_sbPRF->value();
+    m_cpi = m_sbCPI->value();
 
     accept();
+}
+
+void DlgFilePlayblack::initData()
+{
+    int nIndex = m_type - 1;
+    nIndex = std::max(0, nIndex);
+    nIndex = std::min(1, nIndex);
+    m_comboBox->setCurrentIndex(nIndex);
+
+    m_sbPRFTime->setValue(m_prftime);
+    m_sbDataNum->setValue(m_datanum);
+    m_sbPRF->setValue(m_prf);
+    m_sbCPI->setValue(m_cpi);
 }
