@@ -1154,6 +1154,7 @@ void HostMachine::slotSystemConfig()
 *****************************************************************************/
 void HostMachine::reallyTaskQuery()
 {
+    return;
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
     out << CS_TaskQuery << c_uRequestEndTag;

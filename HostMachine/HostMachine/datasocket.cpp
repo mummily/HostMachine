@@ -49,16 +49,10 @@ void CDataSocket::slotImport()
 
         qint64 len = m_file.read(buffer, sizeof(buffer));
         len = write(buffer, c_bufferSize);
-
-        //         while (bytesToWrite() > 500*c_kSizeMax)
-        //         {
-        if (!waitForBytesWritten(c_uWaitForMsecs))
+        while (bytesToWrite() > 1000*c_kSizeMax)
         {
-            m_file.close();
-            Q_ASSERT(false);
-            return;
+            waitForBytesWritten(1000);
         }
-        //         }
 
         bufferLen += len;
         if (bufferLen < m_fileSize)
