@@ -2003,7 +2003,7 @@ void HostMachine::slotImportUpdate(qint32 areano, QString fileName, qint64 buffe
         if (nullptr == pWMFileList)
             return;
 
-        pWMFileList->updateProcess(fileName, buffer, total);
+        pWMFileList->updateProcess(fileName, buffer, total, m_pElapsedTimer->elapsed());
 
         reallyTaskQuery();
     }
@@ -2046,6 +2046,13 @@ void HostMachine::slotExportStart(qint32 areano, QString fileName, qint64 buffer
 
     QTimer::singleShot(10, this, SLOT(slotRefresh()));
     QTimer::singleShot(10, this, SLOT(slotTaskQuery()));
+
+    CMWFileList* pWMFileList = (CMWFileList*)m_pTabWgt->widget(areano);
+    if (nullptr == pWMFileList)
+        return;
+
+    pWMFileList->m_preBuffer = 0;
+    pWMFileList->m_preElapsed = 0;
 }
 
 /*****************************************************************************
@@ -2056,11 +2063,11 @@ void HostMachine::slotExportStart(qint32 areano, QString fileName, qint64 buffer
 *****************************************************************************/
 void HostMachine::slotExportUpdate(qint32 areano, QString fileName, qint64 buffer, qint64 total)
 {
-//     if (m_pElapsedTimer->elapsed() / m_nProcessEventInterval != 0)
-//     {
-//         m_nProcessEventInterval += c_uProcessEventInterval;
-//         qApp->processEvents();
-//     }
+    if (m_pElapsedTimer->elapsed() / m_nProcessEventInterval != 0)
+    {
+        m_nProcessEventInterval += c_uProcessEventInterval;
+        qApp->processEvents();
+    }
 
     if (m_pElapsedTimer->elapsed() / m_nProgressBarUpdateInterval != 0)
     {
@@ -2070,7 +2077,7 @@ void HostMachine::slotExportUpdate(qint32 areano, QString fileName, qint64 buffe
         if (nullptr == pWMFileList)
             return;
 
-        pWMFileList->updateProcess(fileName, buffer, total);
+        pWMFileList->updateProcess(fileName, buffer, total, m_pElapsedTimer->elapsed());
 
         reallyTaskQuery();
     }

@@ -30,7 +30,7 @@ public:
     void readRefresh(tagAreaFileInfos* pFileInfos);
     void readImport(quint32 state);
 
-    void updateProcess(QString fileName, qint64 buffer, qint64 total);
+    void updateProcess(QString fileName, qint64 buffer, qint64 total, qint64 elapsed = 1);
 
 signals:
     void siglogRecord(QString);
@@ -43,6 +43,9 @@ private:
 public:
     QTableWidget            *m_pFileListWgt;
     QProgressBar            *m_pProgressBar;
+
+    qint64 m_preBuffer;
+    qint64 m_preElapsed;
 
 private:
     QAction                 *m_pActImport;      // µº»Î

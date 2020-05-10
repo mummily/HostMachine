@@ -53,8 +53,9 @@
     </message>
     <message>
         <location filename="dlgareaformat.cpp" line="20"/>
-        <source>已分配大小（LBA）/总大小（LBA）：</source>
-        <translation>已分配大小（LBA）/总大小（LBA）：</translation>
+        <source>已分配大小（GB）/总大小（GB）：</source>
+        <oldsource>已分配大小（LBA）/总大小（LBA）：</oldsource>
+        <translation>已分配大小（GB）/总大小（GB）：</translation>
     </message>
     <message>
         <location filename="dlgareaformat.cpp" line="22"/>
@@ -932,8 +933,8 @@
         <location filename="mwfilelist.cpp" line="53"/>
         <location filename="mwfilelist.cpp" line="57"/>
         <location filename="mwfilelist.cpp" line="61"/>
-        <location filename="mwfilelist.cpp" line="66"/>
-        <location filename="mwfilelist.cpp" line="71"/>
+        <location filename="mwfilelist.cpp" line="67"/>
+        <location filename="mwfilelist.cpp" line="72"/>
         <source>其它运行异常</source>
         <translation>其它运行异常</translation>
     </message>
@@ -949,8 +950,8 @@
     </message>
     <message>
         <location filename="mwfilelist.cpp" line="52"/>
-        <location filename="mwfilelist.cpp" line="65"/>
-        <location filename="mwfilelist.cpp" line="70"/>
+        <location filename="mwfilelist.cpp" line="66"/>
+        <location filename="mwfilelist.cpp" line="71"/>
         <source>资源不足</source>
         <translation>资源不足</translation>
     </message>
@@ -966,11 +967,16 @@
     </message>
     <message>
         <location filename="mwfilelist.cpp" line="64"/>
+        <source>%0 -&gt; %1/%2 速度：%3/s 用时：%4s 完成：%p%</source>
+        <translation>%0 -&gt; %1/%2 速度：%3/s 用时：%4s 完成：%p%</translation>
+    </message>
+    <message>
+        <location filename="mwfilelist.cpp" line="65"/>
         <source>开始导入</source>
         <translation>开始导入</translation>
     </message>
     <message>
-        <location filename="mwfilelist.cpp" line="69"/>
+        <location filename="mwfilelist.cpp" line="70"/>
         <source>开始导出</source>
         <translation>开始导出</translation>
     </message>

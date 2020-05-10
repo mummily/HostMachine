@@ -61,6 +61,7 @@ static const char *c_sAreaStopResult0 = QT_TRANSLATE_NOOP("MWFileList", "·ÖÇøÍ£Ö
 static const char *c_sAreaStopResult1 = QT_TRANSLATE_NOOP("MWFileList", "ÆäËüÔËÐÐÒì³£");
 
 // µ¼Èë½á¹û
+static const char *c_sImportTip = QT_TRANSLATE_NOOP("MWFileList", "%0 -> %1/%2 ËÙ¶È£º%3/s ÓÃÊ±£º%4s Íê³É£º%p%");
 static const char *c_sImportResult0 = QT_TRANSLATE_NOOP("MWFileList", "¿ªÊ¼µ¼Èë");
 static const char *c_sImportResult1 = QT_TRANSLATE_NOOP("MWFileList", "×ÊÔ´²»×ã");
 static const char *c_sImportResult2 = QT_TRANSLATE_NOOP("MWFileList", "ÆäËüÔËÐÐÒì³£");
@@ -76,6 +77,9 @@ CMWFileList::CMWFileList(QWidget *parent)
 {
     initUI();
     initConnect();
+
+    m_preBuffer = 0;
+    m_preElapsed = 0;
 }
 
 CMWFileList::~CMWFileList()
@@ -246,14 +250,28 @@ void CMWFileList::readRefresh(tagAreaFileInfos* pFileInfos)
     emit siglogRecord(sInfo);
 }
 
-void CMWFileList::updateProcess(QString fileName, qint64 buffer, qint64 total)
+void CMWFileList::updateProcess(QString fileName, qint64 buffer, qint64 total, qint64 elapsed)
 {
     m_pProgressBar->show();
     m_pProgressBar->setMaximum(total / c_bSizeMax);
     m_pProgressBar->setValue(buffer / c_bSizeMax);
 
-    QString sFormat = QString("%0 -> %1/%2  %p%").arg(fileName).arg(CGlobalFun::formatSize(buffer)).arg(CGlobalFun::formatSize(total));
+    qint64 nBufferDiff = buffer - m_preBuffer;
+
+    qint64 nElapsedDiff = elapsed - m_preElapsed;
+    if (nElapsedDiff < 1)
+        nElapsedDiff = 1;
+
+    QString sFormat = qApp->translate(c_sMWFileList, c_sImportTip)
+        .arg(fileName)
+        .arg(CGlobalFun::formatSize(buffer))
+        .arg(CGlobalFun::formatSize(total))
+        .arg(CGlobalFun::formatSize(nBufferDiff / nElapsedDiff * 1000))
+        .arg(elapsed * 0.001);
     m_pProgressBar->setFormat(sFormat);
+
+    m_preBuffer = buffer;
+    m_preElapsed = elapsed;
 }
 
 void CMWFileList::readPlayBack(quint32 area, quint32 state)
