@@ -33,25 +33,26 @@ void CDataSocket::slotImport()
     int nIndex = 0;
     do
     {
-        if (state() != QAbstractSocket::ConnectedState)
-        {
-            connectToHost(QHostAddress(sIPAddr), c_uDataPort);
-            if (!waitForConnected(c_uWaitForMsecs))
-            {
-                m_file.close();
-                Q_ASSERT(false);
-                return;
-            }
-        }
-
         char buffer[c_bufferSize] = {0};
         memset(buffer, 0, sizeof(buffer));
 
         qint64 len = m_file.read(buffer, sizeof(buffer));
         len = write(buffer, c_bufferSize);
+
         while (bytesToWrite() > 1000*c_kSizeMax)
         {
             waitForBytesWritten(1000);
+
+            if (state() != QAbstractSocket::ConnectedState)
+            {
+                connectToHost(QHostAddress(sIPAddr), c_uDataPort);
+                if (!waitForConnected(1000))
+                {
+                    m_file.close();
+                    Q_ASSERT(false);
+                    return;
+                }
+            }
         }
 
         bufferLen += len;
@@ -98,7 +99,8 @@ void CDataSocket::respondExport(QByteArray buf)
     }
 
     qint64 len = m_file.write(buf);
-    m_bufferSize += len;
+    Q_ASSERT(len > 0);
+    m_bufferSize += buf.size();
 
     bool bComplete = false;
     if (m_bufferSize >= m_fileSize)
