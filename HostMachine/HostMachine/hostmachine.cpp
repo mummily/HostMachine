@@ -838,13 +838,14 @@ void HostMachine::readyReadCmd()
     }
     else if (respondType == SC_TaskQuery)
     {
+        quint32 tasknum = 0;
+        in >> tasknum;
         m_lstTaskInfo.clear();
         for (int index = 0; index < c_uTaskQueryNum; ++index)
         {
             shared_ptr<tagTaskInfo> spTaskInfo = make_shared<tagTaskInfo>();
-            spTaskInfo->state = 1;
             in >> spTaskInfo->flag >> spTaskInfo->area >> spTaskInfo->type
-                >> spTaskInfo->finishedsize >> spTaskInfo->speed >> spTaskInfo->percent;
+                >> spTaskInfo->finishedsize >> spTaskInfo->speed >> spTaskInfo->percent >> spTaskInfo->state;
             m_lstTaskInfo.push_back(spTaskInfo);
         }
 
@@ -1154,7 +1155,6 @@ void HostMachine::slotSystemConfig()
 *****************************************************************************/
 void HostMachine::reallyTaskQuery()
 {
-    return;
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
     out << CS_TaskQuery << c_uRequestEndTag;

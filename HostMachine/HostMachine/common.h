@@ -8,7 +8,7 @@ using namespace std;
 
 const int c_uRefreshFileNum = 8;
 const int c_uTaskQueryNum = 14;
-const int c_uProgressBarUpdateInterval = 1000;
+const int c_uProgressBarUpdateInterval = 3000;
 const int c_uProcessEventInterval = 100;
 const int c_uWaitForMsecs = 5000;
 const int c_uRequestEndTag = 0x5a5a5a5a;
