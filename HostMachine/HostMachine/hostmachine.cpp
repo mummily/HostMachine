@@ -867,7 +867,7 @@ void HostMachine::readyReadCmd()
         }
         else
         {
-            QTimer::singleShot(1000, this, SLOT(slotTaskQuery()));
+            QTimer::singleShot(c_uTaskQueryInterval, this, SLOT(slotTaskQuery()));
         }
     }
     else if (respondType == SC_Record)
@@ -1034,6 +1034,9 @@ void HostMachine::slotIPSetting()
 
     m_pDataSocket->setSocketOption(QAbstractSocket::ReceiveBufferSizeSocketOption, 1024*1024*20);
     m_pDataSocket->setSocketOption(QAbstractSocket::SendBufferSizeSocketOption, 1024*1024*8);
+
+    // 设置IP地址后，触发一次刷新
+    slotRefresh();
 }
 
 /*****************************************************************************
@@ -1795,8 +1798,8 @@ void HostMachine::readTaskQuery()
             continue;
 
         shared_ptr<tagTaskInfo> spTaskInfo = *itTaskInfo;
-        m_pTaskWgt->setRowHidden(nRow, !spTaskInfo->flag);
-        if (!spTaskInfo->flag)
+        m_pTaskWgt->setRowHidden(nRow, (0 == spTaskInfo->flag));
+        if (0 == spTaskInfo->flag)
             continue;
 
         auto itTaskQueryParam = std::find_if(m_lstTaskQueryParam.begin(), m_lstTaskQueryParam.end(), [&](shared_ptr<tagTaskQueryParam> spTaskQueryParam)->bool
